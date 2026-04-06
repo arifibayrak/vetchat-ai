@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import re
 import uuid
 from typing import AsyncGenerator
 
@@ -17,6 +18,32 @@ from app.services.live_search import search_live
 
 _log = logging.getLogger(__name__)
 router = APIRouter()
+
+_STOP_WORDS = {
+    "the","a","an","and","or","in","of","to","for","with","at","by","from",
+    "is","are","was","were","that","this","it","as","on","be","been","has",
+    "have","had","not","but","its","which","may","also","been","be","we",
+}
+
+
+def _extract_relevant_quote(answer: str, ref_num: int, abstract: str) -> str:
+    """Find the abstract sentence most relevant to the claim citing [ref_num]."""
+    if not abstract:
+        return ""
+    pattern = rf"[^.!?]*\[{ref_num}\][^.!?]*[.!?]"
+    claim_matches = re.findall(pattern, answer)
+    if not claim_matches:
+        return ""
+    claim_text = " ".join(claim_matches)
+    claim_words = set(re.sub(r"[^\w\s]", "", claim_text.lower()).split()) - _STOP_WORDS
+    sentences = re.split(r"(?<=[.!?])\s+", abstract.strip())
+    best, best_score = "", 0
+    for sent in sentences:
+        sent_words = set(re.sub(r"[^\w\s]", "", sent.lower()).split()) - _STOP_WORDS
+        score = len(claim_words & sent_words)
+        if score > best_score:
+            best_score, best = score, sent
+    return best if best_score >= 3 else ""
 
 
 def _event(payload: dict) -> str:
@@ -151,6 +178,10 @@ async def _chat_stream(
     yield _event({"type": "progress", "step": 4, "label": "Asking Claude AI…", "icon": "🤖"})
     answer_raw = await loop.run_in_executor(None, claude.complete, query, context_block)
     answer = disclaimer_injector.inject(answer_raw)
+
+    # Populate relevant_quote for each citation
+    for c in citations:
+        c.relevant_quote = _extract_relevant_quote(answer, c.ref, c.abstract)
 
     yield _event({"type": "progress", "step": 5, "label": "Formatting answer…", "icon": "✍️"})
 

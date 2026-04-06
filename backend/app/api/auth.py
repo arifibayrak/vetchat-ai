@@ -5,7 +5,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, update
 
 from app.auth import create_access_token, get_current_user, hash_password, verify_password
 from app import database
@@ -82,6 +82,37 @@ async def login(body: LoginRequest):
         "email": row.email,
         "full_name": row.full_name,
         "token": token,
+    }
+
+
+class UpdateProfileRequest(BaseModel):
+    full_name: str | None = None
+    clinic: str | None = None
+    country: str | None = None
+
+
+@router.patch("/profile")
+async def update_profile(body: UpdateProfileRequest, current_user: dict = Depends(get_current_user)):
+    _require_db()
+    updates = {k: v for k, v in body.model_dump().items() if v is not None}
+    async with database.SessionLocal() as session:
+        if updates:
+            await session.execute(
+                update(users).where(users.c.id == current_user["sub"]).values(**updates)
+            )
+            await session.commit()
+        result = await session.execute(
+            select(users).where(users.c.id == current_user["sub"])
+        )
+        row = result.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {
+        "id": str(row.id),
+        "email": row.email,
+        "full_name": row.full_name,
+        "clinic": row.clinic,
+        "country": row.country,
     }
 
 

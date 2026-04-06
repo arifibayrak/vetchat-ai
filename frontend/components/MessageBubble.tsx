@@ -36,7 +36,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
 
   if (isUser) {
     return (
-      <div className="flex justify-end">
+      <div className="flex justify-end animate-slide-up">
         <div className="max-w-xl rounded-2xl bg-blue-600 px-4 py-2 text-white text-sm shadow">
           {message.content}
         </div>
@@ -46,7 +46,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
 
   if (message.isLoading) {
     return (
-      <div className="flex justify-start w-full">
+      <div className="flex justify-start w-full animate-fade-in">
         <div className="w-full max-w-md rounded-2xl bg-white border border-gray-200 px-5 py-4 shadow-sm">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
             VetChat AI is working…
@@ -58,7 +58,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
   }
 
   return (
-    <div className="flex justify-start w-full">
+    <div className="flex justify-start w-full animate-slide-up">
       <div className="w-full max-w-3xl rounded-2xl bg-white border border-gray-200 px-5 py-4 shadow-sm text-sm space-y-1">
         {message.emergency && <EmergencyBanner resources={message.resources} />}
 

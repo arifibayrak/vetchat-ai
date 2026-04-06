@@ -10,7 +10,7 @@ interface ReferencesPanelProps {
 
 const SOURCE_BADGE: Record<string, string> = {
   "ScienceDirect": "bg-orange-100 text-orange-700",
-  "Scopus": "bg-orange-100 text-orange-700",
+  "Scopus":        "bg-orange-100 text-orange-700",
   "Springer Nature": "bg-green-100 text-green-700",
 };
 
@@ -20,17 +20,17 @@ export default function ReferencesPanel({ citations, liveResources }: References
 
   if (citations.length === 0 && liveResources.length === 0) return null;
 
-  // Merge citations (numbered, with abstract) + live resources (source badge)
   const entries = citations.map((c, i) => ({
-    ref: c.ref,
-    source: liveResources[i]?.source ?? "Literature",
-    title: c.title,
-    journal: c.journal,
-    year: c.year,
-    authors: c.authors,
-    doi: c.doi,
-    url: c.url || (c.doi ? `https://doi.org/${c.doi}` : ""),
-    abstract: c.abstract || liveResources[i]?.abstract || "",
+    ref:            c.ref,
+    source:         liveResources[i]?.source ?? "Literature",
+    title:          c.title,
+    journal:        c.journal,
+    year:           c.year,
+    authors:        c.authors,
+    doi:            c.doi,
+    url:            c.url || (c.doi ? `https://doi.org/${c.doi}` : ""),
+    abstract:       c.abstract || liveResources[i]?.abstract || "",
+    relevant_quote: c.relevant_quote || "",
   }));
 
   const toggleAbstract = (ref: number) =>
@@ -54,12 +54,11 @@ export default function ReferencesPanel({ citations, liveResources }: References
               id={`citation-${e.ref}`}
               className="px-4 py-3 bg-white hover:bg-gray-50 transition-colors scroll-mt-4"
             >
+              {/* Header row: ref badge + source badge */}
               <div className="flex items-start gap-2 mb-1">
-                {/* Ref badge */}
                 <span className="shrink-0 w-5 h-5 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center mt-0.5">
                   {e.ref}
                 </span>
-                {/* Source badge */}
                 <span
                   className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${
                     SOURCE_BADGE[e.source] ?? "bg-gray-100 text-gray-600"
@@ -95,14 +94,23 @@ export default function ReferencesPanel({ citations, liveResources }: References
                 {e.year ? ` · ${e.year}` : ""}
               </p>
 
-              {/* Abstract toggle */}
+              {/* Relevant quote — always visible when present */}
+              {e.relevant_quote && (
+                <blockquote className="mt-2 border-l-4 border-amber-400 bg-amber-50 px-3 py-2 rounded-r-md">
+                  <p className="text-xs text-amber-900 italic leading-relaxed">
+                    📌 &ldquo;{e.relevant_quote}&rdquo;
+                  </p>
+                </blockquote>
+              )}
+
+              {/* Full abstract toggle */}
               {e.abstract && (
                 <div className="mt-2">
                   <button
                     onClick={() => toggleAbstract(e.ref)}
                     className="text-xs text-blue-600 hover:text-blue-800 font-medium"
                   >
-                    {expandedAbstracts[e.ref] ? "Hide abstract" : "Show abstract"}
+                    {expandedAbstracts[e.ref] ? "Hide abstract" : "Show full abstract"}
                   </button>
                   {expandedAbstracts[e.ref] && (
                     <blockquote className="mt-1 border-l-4 border-violet-300 bg-violet-50 px-3 py-2 rounded-r-md">

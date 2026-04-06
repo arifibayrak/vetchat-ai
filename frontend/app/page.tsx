@@ -1,29 +1,21 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/components/AuthProvider";
 import ChatPage from "@/components/ChatPage";
 
 export default function Home() {
-  const { user, isLoading } = useAuthContext();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isLoading && !user) {
-      router.replace("/login");
-    }
-  }, [user, isLoading, router]);
+  const { isLoading } = useAuthContext();
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-400 text-sm">Loading…</p>
+        <div className="flex items-center gap-2 text-gray-400 text-sm animate-fade-in">
+          <span className="text-xl">🐾</span>
+          <span>Loading…</span>
+        </div>
       </div>
     );
   }
-
-  if (!user) return null;
 
   return <ChatPage />;
 }

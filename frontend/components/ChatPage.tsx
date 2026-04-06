@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useAuthContext } from "@/components/AuthProvider";
 import { useChat } from "@/hooks/useChat";
 import { useConversations } from "@/hooks/useConversations";
+import AuthGateModal from "./AuthGateModal";
 import DisclaimerFooter from "./DisclaimerFooter";
 import InputBar from "./InputBar";
 import MessageList from "./MessageList";
@@ -17,16 +18,16 @@ export default function ChatPage() {
 
   const { messages, isLoading, error, sendMessage, resetMessages, loadMessages } =
     useChat(() => {
-      // Refresh sidebar after each completed chat
       fetchConversations();
     });
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [authGateQuery, setAuthGateQuery] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchConversations();
-  }, []);
+    if (user) fetchConversations();
+  }, [user]);
 
   const handleNewChat = () => {
     resetMessages();
@@ -48,8 +49,23 @@ export default function ChatPage() {
     if (activeConversationId === id) handleNewChat();
   };
 
+  const handleSendOrGate = (query: string) => {
+    if (!user) {
+      setAuthGateQuery(query);
+      return;
+    }
+    sendMessage(query);
+  };
+
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
+      {authGateQuery !== null && (
+        <AuthGateModal
+          query={authGateQuery}
+          onClose={() => setAuthGateQuery(null)}
+        />
+      )}
+
       <Sidebar
         conversations={conversations}
         activeConversationId={activeConversationId}
@@ -65,7 +81,6 @@ export default function ChatPage() {
       <div className="flex flex-col flex-1 min-w-0">
         {/* Header */}
         <header className="bg-white border-b px-4 py-3 flex items-center gap-3 shadow-sm">
-          {/* Mobile hamburger */}
           <button
             className="md:hidden text-gray-500 hover:text-gray-800 text-xl leading-none"
             onClick={() => setSidebarOpen(true)}
@@ -88,20 +103,42 @@ export default function ChatPage() {
               </p>
             </div>
           </Link>
+
+          {!user && (
+            <div className="ml-auto flex items-center gap-2">
+              <Link
+                href="/login"
+                className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/register"
+                className="text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-1.5 font-medium transition-colors"
+              >
+                Register
+              </Link>
+            </div>
+          )}
         </header>
 
-        {/* Error banner */}
         {error && (
-          <div className="bg-red-50 border-b border-red-200 px-4 py-2 text-sm text-red-700">
+          <div className="bg-red-50 border-b border-red-200 px-4 py-2 text-sm text-red-700 animate-fade-in">
             {error}
           </div>
         )}
 
-        {/* Message thread */}
-        <MessageList messages={messages} onSend={sendMessage} />
+        <MessageList
+          messages={messages}
+          onSend={handleSendOrGate}
+          isAuthenticated={!!user}
+          onAuthGate={(q) => setAuthGateQuery(q)}
+        />
 
-        {/* Input + footer */}
-        <InputBar onSend={sendMessage} disabled={isLoading} />
+        <InputBar
+          onSend={handleSendOrGate}
+          disabled={isLoading}
+        />
         <DisclaimerFooter />
       </div>
     </div>

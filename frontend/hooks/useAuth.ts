@@ -83,5 +83,23 @@ export function useAuth() {
     setUser(null);
   }, []);
 
-  return { user, token, isLoading, login, register, logout };
+  const updateProfile = useCallback(
+    async (data: { full_name?: string; clinic?: string; country?: string }) => {
+      const res = await fetch("/api/auth/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+      const text = await res.text();
+      const updated = text ? JSON.parse(text) : {};
+      if (!res.ok) throw new Error(updated.detail || "Update failed");
+      setUser((prev) => (prev ? { ...prev, ...data } : prev));
+    },
+    [token],
+  );
+
+  return { user, token, isLoading, login, register, logout, updateProfile };
 }

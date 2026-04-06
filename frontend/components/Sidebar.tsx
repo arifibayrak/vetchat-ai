@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { ConversationSummary, User } from "@/types/chat";
 
 function relativeTime(iso: string): string {
@@ -20,6 +21,7 @@ interface SidebarProps {
   onClose: () => void;
   user: User | null;
   onLogout: () => void;
+  isLoadingConversations?: boolean;
 }
 
 export default function Sidebar({
@@ -32,6 +34,7 @@ export default function Sidebar({
   onClose,
   user,
   onLogout,
+  isLoadingConversations,
 }: SidebarProps) {
   const base =
     "flex flex-col h-full w-64 bg-white border-r border-gray-200 z-40 transition-transform duration-200";
@@ -44,12 +47,11 @@ export default function Sidebar({
       {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/30 z-30 md:hidden"
+          className="fixed inset-0 bg-black/30 z-30 md:hidden animate-fade-in"
           onClick={onClose}
         />
       )}
 
-      {/* Desktop: static, Mobile: overlay */}
       <aside className={`${base} ${mobile} md:static md:translate-x-0 md:shadow-none`}>
         {/* New chat */}
         <div className="p-3 border-b border-gray-100">
@@ -63,7 +65,22 @@ export default function Sidebar({
 
         {/* Conversation list */}
         <div className="flex-1 overflow-y-auto py-2">
-          {conversations.length === 0 ? (
+          {!user ? (
+            <p className="text-xs text-gray-400 text-center px-4 py-6">
+              Sign in to save conversations
+            </p>
+          ) : isLoadingConversations ? (
+            // Shimmer skeleton
+            <div className="space-y-1 px-2 pt-2">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="h-10 rounded-lg bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 bg-[length:200%_100%] animate-shimmer"
+                  style={{ animationDelay: `${i * 150}ms` }}
+                />
+              ))}
+            </div>
+          ) : conversations.length === 0 ? (
             <p className="text-xs text-gray-400 text-center px-4 py-6">
               No conversations yet
             </p>
@@ -73,8 +90,12 @@ export default function Sidebar({
                 Recent
               </p>
               <ul>
-                {conversations.map((conv) => (
-                  <li key={conv.id} className="group relative">
+                {conversations.map((conv, i) => (
+                  <li
+                    key={conv.id}
+                    className="group relative animate-slide-up"
+                    style={{ animationDelay: `${i * 30}ms` }}
+                  >
                     <button
                       onClick={() => onSelectConversation(conv.id)}
                       className={`w-full text-left px-3 py-2 rounded-lg mx-1 transition-colors ${
@@ -90,13 +111,12 @@ export default function Sidebar({
                         {relativeTime(conv.updated_at)}
                       </p>
                     </button>
-                    {/* Delete button */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         onDeleteConversation(conv.id);
                       }}
-                      className="absolute right-2 top-2 invisible group-hover:visible text-gray-400 hover:text-red-500 text-xs px-1 py-0.5 rounded"
+                      className="absolute right-2 top-2 invisible group-hover:visible text-gray-400 hover:text-red-500 text-xs px-1 py-0.5 rounded transition-colors"
                       title="Delete"
                     >
                       ×
@@ -108,23 +128,53 @@ export default function Sidebar({
           )}
         </div>
 
-        {/* User info + logout */}
-        {user && (
-          <div className="border-t border-gray-100 p-3">
-            <p className="text-xs font-medium text-gray-700 truncate">
-              {user.full_name}
-            </p>
-            {user.clinic && (
-              <p className="text-xs text-gray-400 truncate">{user.clinic}</p>
-            )}
-            <button
-              onClick={onLogout}
-              className="mt-2 text-xs text-gray-400 hover:text-red-500 transition-colors"
-            >
-              Sign out
-            </button>
-          </div>
-        )}
+        {/* User info + profile + logout */}
+        <div className="border-t border-gray-100 p-3">
+          {user ? (
+            <>
+              <div className="flex items-center justify-between">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-gray-700 truncate">
+                    {user.full_name}
+                  </p>
+                  {user.clinic && (
+                    <p className="text-xs text-gray-400 truncate">{user.clinic}</p>
+                  )}
+                </div>
+                <Link
+                  href="/profile"
+                  className="shrink-0 ml-2 text-gray-400 hover:text-blue-600 transition-colors"
+                  title="Edit profile"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                  </svg>
+                </Link>
+              </div>
+              <button
+                onClick={onLogout}
+                className="mt-2 text-xs text-gray-400 hover:text-red-500 transition-colors"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <div className="flex gap-2">
+              <Link
+                href="/login"
+                className="flex-1 text-center text-xs text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg py-1.5 transition-colors"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/register"
+                className="flex-1 text-center text-xs text-white bg-blue-600 hover:bg-blue-700 rounded-lg py-1.5 transition-colors"
+              >
+                Register
+              </Link>
+            </div>
+          )}
+        </div>
       </aside>
     </>
   );

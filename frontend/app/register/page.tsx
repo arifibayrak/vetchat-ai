@@ -75,7 +75,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full max-w-md">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full max-w-md animate-slide-up">
         <div className="text-center mb-6">
           <p className="text-4xl mb-2">🐾</p>
           <h1 className="text-2xl font-bold text-gray-800">Create your account</h1>

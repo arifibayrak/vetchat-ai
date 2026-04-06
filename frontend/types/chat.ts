@@ -7,6 +7,7 @@ export interface CitationItem {
   url: string;
   authors: string;
   abstract?: string;
+  relevant_quote?: string;
 }
 
 export interface LiveResourceItem {

@@ -15,6 +15,7 @@ class CitationItem(BaseModel):
     url: str
     authors: str
     abstract: str = ""
+    relevant_quote: str = ""
 
 
 class LiveResourceItem(BaseModel):
