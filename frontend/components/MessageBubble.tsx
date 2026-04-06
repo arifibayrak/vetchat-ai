@@ -64,8 +64,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           <EmergencyBanner resources={message.resources} />
         )}
 
-        {(
-          <>
+        <>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
@@ -122,7 +121,6 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
 
             <ReferencesPanel citations={message.citations} liveResources={message.liveResources} />
           </>
-        )
       </div>
     </div>
   );
