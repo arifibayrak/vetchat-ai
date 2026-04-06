@@ -10,16 +10,17 @@ from pathlib import Path
 _KEYWORDS_PATH = Path(__file__).parent.parent / "data" / "emergency_keywords.json"
 
 EMERGENCY_RESOURCES = [
-    "ASPCA Animal Poison Control Center: (888) 426-4435 (24/7, fee may apply)",
-    "Pet Poison Helpline: (855) 764-7661 (24/7)",
-    "Find an emergency vet: https://www.vetsnow.com or search 'emergency vet near me'",
+    "ASPCA Animal Poison Control Center (toxicology consultation): (888) 426-4435 — 24/7",
+    "ASPCA Pro Veterinary Toxicology resources: aspca.pro",
+    "Activate in-clinic emergency stabilisation protocol immediately",
+    "Consider specialist referral (internal medicine, toxicology, emergency/critical care) as indicated",
 ]
 
 DISCLAIMER = (
-    "VetChat AI provides information based on veterinary literature for educational "
-    "purposes only. It does not constitute professional veterinary advice, diagnosis, "
-    "or treatment. Always consult a licensed veterinarian for your pet's health needs. "
-    "In emergencies, contact an emergency veterinary clinic immediately."
+    "VetChat AI is a clinical reference tool for licensed veterinary professionals. "
+    "Information is derived from peer-reviewed veterinary literature and is intended "
+    "to support — not replace — clinical judgment. All treatment decisions must account "
+    "for patient-specific factors and applicable professional standards of care."
 )
 
 

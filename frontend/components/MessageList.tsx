@@ -6,20 +6,20 @@ import MessageBubble from "./MessageBubble";
 
 const SUGGESTED_PROMPTS = [
   {
-    label: "🍫 Chocolate toxicity in dogs",
-    query: "How does chocolate toxicity work in dogs and what are the symptoms?",
+    label: "☠️ Theobromine toxicosis",
+    query: "Theobromine toxicosis in dogs: dose-response, clinical signs, and management",
   },
   {
-    label: "🤧 Cat respiratory distress",
-    query: "What are the common causes of breathing difficulty in cats?",
+    label: "🫁 Feline bronchial disease",
+    query: "Feline bronchial disease: differential diagnosis and diagnostic workup",
   },
   {
-    label: "🐕 Dog skin allergies & itching",
-    query: "What causes chronic itching and skin allergies in dogs?",
+    label: "🧬 Canine atopic dermatitis",
+    query: "Canine atopic dermatitis: immunopathogenesis and current treatment options",
   },
   {
-    label: "🍇 Grapes and kidney failure in dogs",
-    query: "Why are grapes and raisins toxic to dogs and what happens to their kidneys?",
+    label: "🍇 Grape nephrotoxicity",
+    query: "Grape and raisin nephrotoxicity in dogs: proposed mechanism and clinical course",
   },
 ];
 
@@ -41,8 +41,12 @@ export default function MessageList({ messages, onSend }: MessageListProps) {
         <div className="text-center space-y-6 max-w-lg w-full">
           <div className="space-y-1">
             <p className="text-4xl">🐾</p>
-            <p className="text-gray-600 font-medium">Ask a veterinary question to get started.</p>
-            <p className="text-xs text-gray-400">Powered by academic literature + Claude AI</p>
+            <p className="text-gray-600 font-medium">
+              Ask a clinical question to access veterinary literature evidence.
+            </p>
+            <p className="text-xs text-gray-400">
+              Powered by ScienceDirect · Springer Nature · Claude AI
+            </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {SUGGESTED_PROMPTS.map((p) => (

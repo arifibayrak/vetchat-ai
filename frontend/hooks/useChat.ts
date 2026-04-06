@@ -2,19 +2,24 @@
 
 import { useCallback, useState } from "react";
 import type { ChatResponse, Message, ProgressStep } from "@/types/chat";
+import { useAuthContext } from "@/components/AuthProvider";
 
 let _idCounter = 0;
-const uid = () => String(++_idCounter);
+export const uid = () => String(++_idCounter);
 
 async function streamChat(
   query: string,
+  token: string | null,
   onProgress: (step: ProgressStep) => void,
   onResult: (response: ChatResponse) => void,
   onError: (msg: string) => void,
 ) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
   const res = await fetch("/api/chat", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({ query }),
   });
 
@@ -39,7 +44,6 @@ async function streamChat(
       if (!line.startsWith("data: ")) continue;
       try {
         const event = JSON.parse(line.slice(6));
-
         if (event.type === "progress") {
           onProgress({ step: event.step, label: event.label, icon: event.icon, done: false });
         } else if (event.type === "result") {
@@ -52,10 +56,37 @@ async function streamChat(
   }
 }
 
-export function useChat() {
+export function useChat(onComplete?: () => void) {
+  const { token } = useAuthContext();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const resetMessages = useCallback(() => {
+    setMessages([]);
+    setError(null);
+  }, []);
+
+  const loadMessages = useCallback((rawMessages: Array<{
+    role: "user" | "assistant";
+    content: string;
+    citations: Message["citations"];
+    live_resources: Message["liveResources"];
+    emergency: boolean;
+    resources: string[];
+  }>) => {
+    const converted: Message[] = rawMessages.map((m) => ({
+      id: uid(),
+      role: m.role,
+      content: m.content,
+      citations: m.citations ?? [],
+      liveResources: m.live_resources ?? [],
+      emergency: m.emergency ?? false,
+      resources: m.resources ?? [],
+    }));
+    setMessages(converted);
+    setError(null);
+  }, []);
 
   const sendMessage = useCallback(async (query: string) => {
     if (!query.trim() || isLoading) return;
@@ -90,7 +121,8 @@ export function useChat() {
 
     await streamChat(
       query,
-      // onProgress — update the loading bubble with new step
+      token,
+      // onProgress
       (step) => {
         setMessages((prev) =>
           prev.map((msg) =>
@@ -103,11 +135,11 @@ export function useChat() {
                   ],
                   currentStep: step.step,
                 }
-              : msg
-          )
+              : msg,
+          ),
         );
       },
-      // onResult — replace loading bubble with final answer
+      // onResult
       (response) => {
         setMessages((prev) =>
           prev.map((msg) =>
@@ -122,10 +154,11 @@ export function useChat() {
                   isLoading: false,
                   steps: undefined,
                 }
-              : msg
-          )
+              : msg,
+          ),
         );
         setIsLoading(false);
+        onComplete?.();
       },
       // onError
       (errMsg) => {
@@ -134,7 +167,7 @@ export function useChat() {
         setIsLoading(false);
       },
     );
-  }, [isLoading]);
+  }, [isLoading, token, onComplete]);
 
-  return { messages, isLoading, error, sendMessage };
+  return { messages, isLoading, error, sendMessage, resetMessages, loadMessages };
 }

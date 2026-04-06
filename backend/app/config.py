@@ -42,6 +42,11 @@ class Settings(BaseSettings):
     # e.g. "http://localhost:4000,https://vetchat-ai.vercel.app"
     frontend_origin: str = "http://localhost:4000"
 
+    # Database + auth
+    database_url: str = ""
+    jwt_secret: str = ""
+    jwt_expire_minutes: int = 10080  # 7 days
+
     @property
     def allowed_origins(self) -> list[str]:
         return [o.strip() for o in self.frontend_origin.split(",") if o.strip()]
@@ -52,6 +57,11 @@ class Settings(BaseSettings):
         p = Path(self.chroma_path)
         if not p.is_absolute():
             self.chroma_path = str(_BACKEND_DIR / p)
+        # Rewrite postgresql:// → postgresql+asyncpg:// for SQLAlchemy async driver
+        if self.database_url.startswith("postgres://"):
+            self.database_url = self.database_url.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif self.database_url.startswith("postgresql://"):
+            self.database_url = self.database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
         return self
 
     def validate_required(self) -> None:

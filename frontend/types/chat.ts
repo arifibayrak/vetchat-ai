@@ -20,6 +20,21 @@ export interface LiveResourceItem {
   abstract: string;
 }
 
+export interface User {
+  id: string;
+  email: string;
+  full_name: string;
+  clinic?: string;
+  country?: string;
+}
+
+export interface ConversationSummary {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ChatResponse {
   answer: string;
   citations: CitationItem[];

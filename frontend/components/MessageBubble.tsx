@@ -3,9 +3,8 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Message } from "@/types/chat";
-import CitationPanel from "./CitationPanel";
 import EmergencyBanner from "./EmergencyBanner";
-import LiveResourcesPanel from "./LiveResourcesPanel";
+import ReferencesPanel from "./ReferencesPanel";
 import LoadingSteps from "./LoadingSteps";
 
 interface MessageBubbleProps {
@@ -119,8 +118,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
               {linkifyCitations(message.content)}
             </ReactMarkdown>
 
-            <CitationPanel citations={message.citations} />
-            <LiveResourcesPanel resources={message.liveResources} />
+            <ReferencesPanel citations={message.citations} liveResources={message.liveResources} />
           </>
         )}
 

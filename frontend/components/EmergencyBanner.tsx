@@ -10,9 +10,9 @@ export default function EmergencyBanner({ resources }: EmergencyBannerProps) {
       <div className="flex items-start gap-3">
         <span className="text-2xl">🚨</span>
         <div>
-          <p className="font-bold text-red-800 text-lg">VETERINARY EMERGENCY</p>
+          <p className="font-bold text-red-800 text-lg">EMERGENCY CLINICAL ALERT</p>
           <p className="text-red-700 mt-1 text-sm">
-            Do not wait — contact an emergency veterinary clinic or poison control immediately.
+            Activate emergency clinical protocol immediately. Stabilise patient and contact a veterinary toxicologist or emergency specialist as indicated.
           </p>
           {resources.length > 0 && (
             <ul className="mt-3 space-y-1">
