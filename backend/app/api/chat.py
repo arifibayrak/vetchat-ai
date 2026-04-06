@@ -25,15 +25,15 @@ def _event(payload: dict) -> str:
 
 async def _save_conversation(user_id: str, query: str, result: dict) -> None:
     """Persist a Q&A pair to the database. Silently skips if DB is not configured."""
-    from app.database import SessionLocal
-    if SessionLocal is None:
+    from app import database
+    if database.SessionLocal is None:
         return
     from sqlalchemy import insert
     from app.models.db import conversations, messages
 
     conv_id = str(uuid.uuid4())
     try:
-        async with SessionLocal() as session:
+        async with database.SessionLocal() as session:
             await session.execute(
                 insert(conversations).values(
                     id=conv_id,

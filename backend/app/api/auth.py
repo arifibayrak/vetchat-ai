@@ -8,14 +8,14 @@ from pydantic import BaseModel
 from sqlalchemy import insert, select
 
 from app.auth import create_access_token, get_current_user, hash_password, verify_password
-from app.database import SessionLocal
+from app import database
 from app.models.db import users
 
 router = APIRouter()
 
 
 def _require_db():
-    if SessionLocal is None:
+    if database.SessionLocal is None:
         raise HTTPException(status_code=503, detail="Database not configured")
 
 
@@ -35,7 +35,7 @@ class LoginRequest(BaseModel):
 @router.post("/register", status_code=201)
 async def register(body: RegisterRequest):
     _require_db()
-    async with SessionLocal() as session:
+    async with database.SessionLocal() as session:
         result = await session.execute(
             select(users).where(users.c.email == body.email)
         )
@@ -67,7 +67,7 @@ async def register(body: RegisterRequest):
 @router.post("/login")
 async def login(body: LoginRequest):
     _require_db()
-    async with SessionLocal() as session:
+    async with database.SessionLocal() as session:
         result = await session.execute(
             select(users).where(users.c.email == body.email)
         )
@@ -88,7 +88,7 @@ async def login(body: LoginRequest):
 @router.get("/me")
 async def me(current_user: dict = Depends(get_current_user)):
     _require_db()
-    async with SessionLocal() as session:
+    async with database.SessionLocal() as session:
         result = await session.execute(
             select(users).where(users.c.id == current_user["sub"])
         )

@@ -5,21 +5,21 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import delete, select
 
 from app.auth import get_current_user
-from app.database import SessionLocal
+from app import database
 from app.models.db import conversations, messages
 
 router = APIRouter()
 
 
 def _require_db():
-    if SessionLocal is None:
+    if database.SessionLocal is None:
         raise HTTPException(status_code=503, detail="Database not configured")
 
 
 @router.get("/conversations")
 async def list_conversations(current_user: dict = Depends(get_current_user)):
     _require_db()
-    async with SessionLocal() as session:
+    async with database.SessionLocal() as session:
         result = await session.execute(
             select(
                 conversations.c.id,
@@ -50,7 +50,7 @@ async def get_conversation(
     current_user: dict = Depends(get_current_user),
 ):
     _require_db()
-    async with SessionLocal() as session:
+    async with database.SessionLocal() as session:
         conv_result = await session.execute(
             select(conversations).where(conversations.c.id == conversation_id)
         )
@@ -92,7 +92,7 @@ async def delete_conversation(
     current_user: dict = Depends(get_current_user),
 ):
     _require_db()
-    async with SessionLocal() as session:
+    async with database.SessionLocal() as session:
         conv_result = await session.execute(
             select(conversations.c.user_id).where(
                 conversations.c.id == conversation_id
