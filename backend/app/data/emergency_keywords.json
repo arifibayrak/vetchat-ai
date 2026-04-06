@@ -1,0 +1,109 @@
+{
+  "categories": {
+    "toxicology": {
+      "level": "EMERGENCY",
+      "message": "This sounds like a potential poisoning emergency. Do NOT wait — contact your vet or an animal poison control center immediately.",
+      "keywords": [
+        "xylitol", "sugar-free gum", "sugar free gum",
+        "chocolate", "dark chocolate", "baking chocolate", "cocoa",
+        "grapes", "raisins", "currants",
+        "onion", "onions", "garlic",
+        "macadamia",
+        "antifreeze", "ethylene glycol",
+        "rat poison", "rodenticide", "d-con",
+        "tylenol", "acetaminophen", "paracetamol",
+        "ibuprofen", "advil", "naproxen",
+        "mushroom", "mushrooms",
+        "lily", "lilies",
+        "sago palm", "cycad",
+        "zinc", "pennies",
+        "metaldehyde", "slug bait",
+        "permethrin", "pyrethrin",
+        "bleach", "cleaning product", "household cleaner",
+        "mothballs", "naphthalene"
+      ],
+      "patterns": [
+        "(?i)\\b(ate|eat|eaten|ingested|swallowed|chewed|licked)\\s+(.*?\\s+)?(chocolate|xylitol|grapes?|raisins?|onions?|garlic|antifreeze|bleach|mushrooms?|lily|lilies)",
+        "(?i)\\b(ingested|swallowed|ate)\\s+\\d+\\s*(oz|g|mg|lb|pieces?|tablets?|pills?|capsules?)",
+        "(?i)\\bpoisoned?\\b",
+        "(?i)\\btoxic(ity)?\\b.*\\b(ate|ingested|exposure)\\b"
+      ]
+    },
+    "respiratory": {
+      "level": "EMERGENCY",
+      "message": "Breathing difficulty is a life-threatening emergency. Seek emergency veterinary care immediately.",
+      "keywords": [
+        "can't breathe", "cannot breathe", "not breathing", "stopped breathing",
+        "gasping", "choking", "suffocating",
+        "blue gums", "purple gums", "grey gums", "cyanotic",
+        "labored breathing", "laboured breathing", "breathing hard",
+        "respiratory arrest", "respiratory distress",
+        "open mouth breathing"
+      ],
+      "patterns": [
+        "(?i)\\bcan'?t\\s+breathe\\b",
+        "(?i)\\b(not|stopped)\\s+breathing\\b",
+        "(?i)\\b(blue|purple|grey|white)\\s+(gums?|lips?)\\b",
+        "(?i)\\bgasping\\b"
+      ]
+    },
+    "cardiovascular": {
+      "level": "EMERGENCY",
+      "message": "This sounds like a cardiovascular emergency. Get to an emergency vet immediately.",
+      "keywords": [
+        "collapsed", "collapse", "collapsing",
+        "unconscious", "unresponsive", "not responding",
+        "heart stopped", "cardiac arrest",
+        "pale gums", "white gums",
+        "sudden death", "dying",
+        "no pulse", "weak pulse"
+      ],
+      "patterns": [
+        "(?i)\\b(collapsed|collapsing)\\b",
+        "(?i)\\b(unconscious|unresponsive)\\b",
+        "(?i)\\bcardiac\\s+arrest\\b",
+        "(?i)\\b(pale|white|grey)\\s+gums?\\b",
+        "(?i)\\bno\\s+pulse\\b"
+      ]
+    },
+    "trauma": {
+      "level": "EMERGENCY",
+      "message": "This sounds like a traumatic injury emergency. Go to an emergency vet now.",
+      "keywords": [
+        "hit by car", "hit by a car", "run over", "struck by car", "struck by a car",
+        "broken bone", "bone sticking out",
+        "severe bleeding", "won't stop bleeding", "can't stop bleeding",
+        "deep laceration", "deep wound", "wound won't stop",
+        "impalement", "arrow", "gunshot",
+        "fell from", "fell off",
+        "eye popped out", "prolapsed eye"
+      ],
+      "patterns": [
+        "(?i)\\b(hit|struck|run over)\\s+(by|a)\\s+(car|vehicle|truck)\\b",
+        "(?i)\\bbroken?\\s+bone\\b",
+        "(?i)\\b(severe|won'?t\\s+stop|can'?t\\s+stop)\\s+bleeding\\b",
+        "(?i)\\bbone\\s+sticking\\s+out\\b"
+      ]
+    },
+    "neurological": {
+      "level": "EMERGENCY",
+      "message": "Neurological symptoms can be life-threatening. Seek emergency veterinary care now.",
+      "keywords": [
+        "seizure", "seizing", "seizures",
+        "convulsing", "convulsion", "convulsions",
+        "tremors", "shaking uncontrollably",
+        "paralyzed", "paralysis", "can't walk", "unable to walk",
+        "stroke", "sudden blindness", "sudden loss of vision",
+        "head tilt sudden", "falling over", "rolling",
+        "loss of consciousness"
+      ],
+      "patterns": [
+        "(?i)\\b(seizure|seizing|convuls)\\b",
+        "(?i)\\bparalyz(ed|sis)\\b",
+        "(?i)\\bcan'?t\\s+walk\\b",
+        "(?i)\\b(sudden|acute)\\s+(blindness|vision\\s+loss)\\b",
+        "(?i)\\bloss\\s+of\\s+consciousness\\b"
+      ]
+    }
+  }
+}

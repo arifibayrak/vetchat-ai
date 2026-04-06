@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Vector store / ChromaDB (local data, never committed)
+chroma_store/
+**/chroma_store/
+**/:memory:/
+**/*.sqlite3
+
+# ScienceDirect response cache
+backend/data/cache/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+frontend/.env.local
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
