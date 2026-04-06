@@ -4,12 +4,11 @@ JWT + password utilities, and FastAPI auth dependencies.
 import logging
 from datetime import datetime, timedelta
 
+import bcrypt
 from fastapi import HTTPException, Request
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 
 _log = logging.getLogger(__name__)
-_pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 _DEV_SECRET = "dev-secret-change-in-production-please"
 
@@ -24,11 +23,11 @@ def _secret() -> str:
 
 
 def hash_password(plain: str) -> str:
-    return _pwd.hash(plain)
+    return bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return _pwd.verify(plain, hashed)
+    return bcrypt.checkpw(plain.encode(), hashed.encode())
 
 
 def create_access_token(user_id: str, email: str) -> str:
