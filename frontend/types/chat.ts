@@ -6,6 +6,7 @@ export interface CitationItem {
   doi: string;
   url: string;
   authors: string;
+  abstract?: string;
 }
 
 export interface LiveResourceItem {

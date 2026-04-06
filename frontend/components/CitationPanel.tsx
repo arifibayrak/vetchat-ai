@@ -28,7 +28,7 @@ export default function CitationPanel({ citations }: CitationPanelProps) {
             const doiUrl = c.url || (c.doi ? `https://doi.org/${c.doi}` : null);
 
             return (
-              <li key={c.ref} className="flex gap-3 px-4 py-3 bg-white hover:bg-violet-50 transition-colors">
+              <li key={c.ref} id={`citation-${c.ref}`} className="flex gap-3 px-4 py-3 bg-white hover:bg-violet-50 transition-colors scroll-mt-4">
                 {/* Ref badge */}
                 <span className="shrink-0 w-6 h-6 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center mt-0.5">
                   {c.ref}
@@ -67,6 +67,17 @@ export default function CitationPanel({ citations }: CitationPanelProps) {
                     >
                       {doiUrl}
                     </a>
+                  )}
+
+                  {/* Abstract quote block */}
+                  {c.abstract && (
+                    <blockquote className="mt-2 border-l-4 border-violet-300 bg-violet-50 px-3 py-2 rounded-r-md">
+                      <p className="text-xs text-violet-800 leading-relaxed italic">
+                        {c.abstract.length > 450
+                          ? c.abstract.slice(0, 450) + "…"
+                          : c.abstract}
+                      </p>
+                    </blockquote>
                   )}
                 </div>
               </li>

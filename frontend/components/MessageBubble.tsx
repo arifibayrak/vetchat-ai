@@ -28,6 +28,10 @@ const SECTION_ICONS: Record<string, string> = {
   "Veterinary Recommendation":"✅",
 };
 
+function linkifyCitations(content: string): string {
+  return content.replace(/\[(\d+)\]/g, (_match, n) => `[[${n}]](#citation-${n})`);
+}
+
 export default function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === "user";
 
@@ -92,9 +96,17 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                   return <strong className="font-semibold text-gray-900">{children}</strong>;
                 },
                 a({ href, children }) {
+                  const isAnchor = href?.startsWith("#");
                   return (
-                    <a href={href} target="_blank" rel="noopener noreferrer"
-                      className="text-blue-600 underline hover:text-blue-800">
+                    <a
+                      href={href}
+                      target={isAnchor ? undefined : "_blank"}
+                      rel={isAnchor ? undefined : "noopener noreferrer"}
+                      className={isAnchor
+                        ? "inline-flex items-center justify-center w-5 h-5 rounded-full bg-violet-600 text-white text-xs font-bold hover:bg-violet-800 transition-colors cursor-pointer align-baseline mx-0.5"
+                        : "text-blue-600 underline hover:text-blue-800"
+                      }
+                    >
                       {children}
                     </a>
                   );
@@ -104,7 +116,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                 },
               }}
             >
-              {message.content}
+              {linkifyCitations(message.content)}
             </ReactMarkdown>
 
             <CitationPanel citations={message.citations} />

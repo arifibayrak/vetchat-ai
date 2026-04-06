@@ -14,6 +14,7 @@ class CitationItem(BaseModel):
     doi: str
     url: str
     authors: str
+    abstract: str = ""
 
 
 class LiveResourceItem(BaseModel):
