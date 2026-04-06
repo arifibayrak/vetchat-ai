@@ -49,7 +49,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
       <div className="flex justify-start w-full animate-fade-in">
         <div className="w-full max-w-md rounded-2xl bg-white border border-gray-200 px-5 py-4 shadow-sm">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-            VetChat AI is working…
+            Searching literature and preparing your answer…
           </p>
           <LoadingSteps steps={message.steps ?? []} />
         </div>

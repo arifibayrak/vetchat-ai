@@ -188,7 +188,7 @@ async def _chat_stream(
     context_block, citations = citation_builder.build_from_live(live_results)
 
     # ── Step 4: Claude generates the answer ───────────────────────────────────
-    yield _event({"type": "progress", "step": 4, "label": "Asking Claude AI…", "icon": "🤖"})
+    yield _event({"type": "progress", "step": 4, "label": "Generating evidence-based answer…", "icon": "🤖"})
     answer_raw = await loop.run_in_executor(None, claude.complete, query, context_block)
     answer = disclaimer_injector.inject(answer_raw)
 
