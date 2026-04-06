@@ -8,6 +8,7 @@ export interface CitationItem {
   authors: string;
   abstract?: string;
   relevant_quote?: string;
+  intext_passage?: string;
   volume?: string;
   issue?: string;
   pages?: string;

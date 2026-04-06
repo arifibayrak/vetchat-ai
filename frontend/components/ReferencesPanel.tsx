@@ -50,21 +50,22 @@ function buildEntries(citations: CitationItem[], liveResources: LiveResourceItem
   return citations.map((c, i) => {
     const lr = liveResources[i];
     return {
-      ref:            c.ref,
-      source:         lr?.source ?? "Literature",
-      title:          c.title,
-      journal:        c.journal,
-      year:           c.year,
-      authors:        c.authors,
-      doi:            c.doi,
-      url:            c.url || (c.doi ? `https://doi.org/${c.doi}` : ""),
-      abstract:       c.abstract || lr?.abstract || "",
-      relevant_quote: c.relevant_quote || "",
-      volume:         c.volume || lr?.volume || "",
-      issue:          c.issue  || lr?.issue  || "",
-      pages:          c.pages  || lr?.pages  || "",
-      doc_type:       c.doc_type || lr?.doc_type || "",
-      cited_by:       c.cited_by ?? lr?.cited_by ?? 0,
+      ref:             c.ref,
+      source:          lr?.source ?? "Literature",
+      title:           c.title,
+      journal:         c.journal,
+      year:            c.year,
+      authors:         c.authors,
+      doi:             c.doi,
+      url:             c.url || (c.doi ? `https://doi.org/${c.doi}` : ""),
+      abstract:        c.abstract || lr?.abstract || "",
+      relevant_quote:  c.relevant_quote || "",
+      intext_passage:  c.intext_passage || "",
+      volume:          c.volume || lr?.volume || "",
+      issue:           c.issue  || lr?.issue  || "",
+      pages:           c.pages  || lr?.pages  || "",
+      doc_type:        c.doc_type || lr?.doc_type || "",
+      cited_by:        c.cited_by ?? lr?.cited_by ?? 0,
     };
   });
 }
@@ -182,13 +183,32 @@ export default function ReferencesPanel({ citations, liveResources }: References
                 {copiedRef === e.ref ? "✓ Copied" : "Copy citation"}
               </button>
 
-              {/* Relevant quote — always visible when present */}
-              {e.relevant_quote && (
-                <blockquote className="mt-2 border-l-4 border-amber-400 bg-amber-50 px-3 py-2 rounded-r-md">
-                  <p className="text-xs text-amber-900 italic leading-relaxed">
-                    📌 &ldquo;{e.relevant_quote}&rdquo;
+              {/* How it was cited — exact sentence from the answer */}
+              {e.intext_passage && (
+                <div className="mt-2">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                    How it was cited
                   </p>
-                </blockquote>
+                  <blockquote className="border-l-4 border-blue-400 bg-blue-50 px-3 py-2 rounded-r-md">
+                    <p className="text-xs text-blue-900 leading-relaxed italic">
+                      &ldquo;{e.intext_passage}&rdquo;
+                    </p>
+                  </blockquote>
+                </div>
+              )}
+
+              {/* Relevant passage from the source */}
+              {e.relevant_quote && (
+                <div className="mt-2">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                    Relevant passage from source
+                  </p>
+                  <blockquote className="border-l-4 border-amber-400 bg-amber-50 px-3 py-2 rounded-r-md">
+                    <p className="text-xs text-amber-900 leading-relaxed italic">
+                      &ldquo;{e.relevant_quote}&rdquo;
+                    </p>
+                  </blockquote>
+                </div>
               )}
 
               {/* Full abstract toggle */}
@@ -198,14 +218,12 @@ export default function ReferencesPanel({ citations, liveResources }: References
                     onClick={() => toggleAbstract(e.ref)}
                     className="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
                   >
-                    {expandedAbstracts[e.ref] ? "Hide abstract" : "Show full abstract"}
+                    {expandedAbstracts[e.ref] ? "Hide full abstract" : "Show full abstract"}
                   </button>
                   {expandedAbstracts[e.ref] && (
                     <blockquote className="mt-1 border-l-4 border-violet-300 bg-violet-50 px-3 py-2 rounded-r-md">
                       <p className="text-xs text-violet-800 leading-relaxed italic">
-                        {e.abstract.length > 600
-                          ? e.abstract.slice(0, 600) + "…"
-                          : e.abstract}
+                        {e.abstract}
                       </p>
                     </blockquote>
                   )}

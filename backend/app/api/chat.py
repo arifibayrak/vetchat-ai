@@ -26,24 +26,51 @@ _STOP_WORDS = {
 }
 
 
+def _extract_intext_passage(answer: str, ref_num: int) -> str:
+    """Extract the exact sentence(s) from the answer that cite [ref_num]."""
+    # Match full sentence(s) containing the citation marker
+    pattern = rf"[^.!?\n]*\[{ref_num}\][^.!?\n]*[.!?]"
+    matches = re.findall(pattern, answer)
+    if not matches:
+        return ""
+    # Clean up markdown artifacts (bold markers, leading bullets/spaces)
+    cleaned = " ".join(m.strip().lstrip("▸•- ").replace("**", "") for m in matches)
+    return cleaned
+
+
 def _extract_relevant_quote(answer: str, ref_num: int, abstract: str) -> str:
-    """Find the abstract sentence most relevant to the claim citing [ref_num]."""
+    """
+    Find 1-3 consecutive abstract sentences most relevant to the claim citing [ref_num].
+    Returns a passage (not just one sentence) for richer context.
+    """
     if not abstract:
         return ""
-    pattern = rf"[^.!?]*\[{ref_num}\][^.!?]*[.!?]"
+    pattern = rf"[^.!?\n]*\[{ref_num}\][^.!?\n]*[.!?]"
     claim_matches = re.findall(pattern, answer)
     if not claim_matches:
         return ""
     claim_text = " ".join(claim_matches)
     claim_words = set(re.sub(r"[^\w\s]", "", claim_text.lower()).split()) - _STOP_WORDS
+
     sentences = re.split(r"(?<=[.!?])\s+", abstract.strip())
-    best, best_score = "", 0
+    if not sentences:
+        return ""
+
+    # Score each sentence
+    scores = []
     for sent in sentences:
         sent_words = set(re.sub(r"[^\w\s]", "", sent.lower()).split()) - _STOP_WORDS
-        score = len(claim_words & sent_words)
-        if score > best_score:
-            best_score, best = score, sent
-    return best if best_score >= 3 else ""
+        scores.append(len(claim_words & sent_words))
+
+    best_idx = max(range(len(scores)), key=lambda i: scores[i])
+    if scores[best_idx] < 2:
+        return ""
+
+    # Include the sentence before and after the best match for context
+    start = max(0, best_idx - 1)
+    end = min(len(sentences), best_idx + 2)
+    passage = " ".join(sentences[start:end]).strip()
+    return passage
 
 
 def _event(payload: dict) -> str:
@@ -165,8 +192,9 @@ async def _chat_stream(
     answer_raw = await loop.run_in_executor(None, claude.complete, query, context_block)
     answer = disclaimer_injector.inject(answer_raw)
 
-    # Populate relevant_quote for each citation
+    # Populate intext_passage and relevant_quote for each citation
     for c in citations:
+        c.intext_passage = _extract_intext_passage(answer, c.ref)
         c.relevant_quote = _extract_relevant_quote(answer, c.ref, c.abstract)
 
     yield _event({"type": "progress", "step": 5, "label": "Formatting answer…", "icon": "✍️"})

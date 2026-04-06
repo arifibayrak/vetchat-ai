@@ -16,6 +16,7 @@ class CitationItem(BaseModel):
     authors: str
     abstract: str = ""
     relevant_quote: str = ""
+    intext_passage: str = ""
     volume: str = ""
     issue: str = ""
     pages: str = ""
