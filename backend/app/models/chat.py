@@ -16,10 +16,15 @@ class CitationItem(BaseModel):
     authors: str
     abstract: str = ""
     relevant_quote: str = ""
+    volume: str = ""
+    issue: str = ""
+    pages: str = ""
+    doc_type: str = ""
+    cited_by: int = 0
 
 
 class LiveResourceItem(BaseModel):
-    source: str       # "ScienceDirect" | "Springer Nature"
+    source: str       # "Scopus" | "Springer Nature"
     title: str
     journal: str
     year: int
@@ -27,6 +32,11 @@ class LiveResourceItem(BaseModel):
     doi: str
     url: str
     abstract: str
+    volume: str = ""
+    issue: str = ""
+    pages: str = ""
+    doc_type: str = ""
+    cited_by: int = 0
 
 
 class ChatResponse(BaseModel):
@@ -36,5 +46,5 @@ class ChatResponse(BaseModel):
     emergency: bool
     category: str | None = None
     matched_term: str | None = None
-    resources: list[str] = []   # emergency hotlines
+    resources: list[str] = []
     disclaimer: str

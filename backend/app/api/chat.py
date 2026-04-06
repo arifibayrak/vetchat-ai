@@ -199,6 +199,11 @@ async def _chat_stream(
                 "doi":      r.doi,
                 "url":      r.url,
                 "abstract": r.abstract,
+                "volume":   r.volume,
+                "issue":    r.issue,
+                "pages":    r.pages,
+                "doc_type": r.doc_type,
+                "cited_by": r.cited_by,
             }
             for r in live_results
         ],

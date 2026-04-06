@@ -72,6 +72,11 @@ def build_from_live(live_results: list) -> tuple[str, list[CitationItem]]:
             url=doi_url,
             authors=r.authors,
             abstract=r.abstract,
+            volume=r.volume,
+            issue=r.issue,
+            pages=r.pages,
+            doc_type=r.doc_type,
+            cited_by=r.cited_by,
         ))
 
     return "\n".join(lines), citations

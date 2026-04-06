@@ -8,6 +8,11 @@ export interface CitationItem {
   authors: string;
   abstract?: string;
   relevant_quote?: string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  doc_type?: string;
+  cited_by?: number;
 }
 
 export interface LiveResourceItem {
@@ -19,6 +24,11 @@ export interface LiveResourceItem {
   doi: string;
   url: string;
   abstract: string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  doc_type?: string;
+  cited_by?: number;
 }
 
 export interface User {
