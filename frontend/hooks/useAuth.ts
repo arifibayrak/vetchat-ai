@@ -44,7 +44,8 @@ export function useAuth() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
-    const data = await res.json();
+    const text = await res.text();
+    const data = text ? JSON.parse(text) : {};
     if (!res.ok) throw new Error(data.detail || "Login failed");
     localStorage.setItem("vetchat_token", data.token);
     setToken(data.token);
@@ -65,7 +66,8 @@ export function useAuth() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, full_name, clinic, country }),
       });
-      const data = await res.json();
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
       if (!res.ok) throw new Error(data.detail || "Registration failed");
       localStorage.setItem("vetchat_token", data.token);
       setToken(data.token);
