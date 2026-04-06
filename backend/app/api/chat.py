@@ -99,24 +99,10 @@ async def _chat_stream(
 ) -> AsyncGenerator[str, None]:
     settings = get_settings()
 
-    # ── Step 1: Emergency detection ───────────────────────────────────────────
+    # ── Step 1: Emergency detection (non-blocking — continues to full search) ──
     detector = get_detector()
     emergency = detector.check(query)
-    if emergency.is_emergency:
-        payload = {
-            "answer": emergency.message,
-            "citations": [],
-            "live_resources": [],
-            "emergency": True,
-            "category": emergency.category,
-            "matched_term": emergency.matched_term,
-            "resources": emergency.resources,
-            "disclaimer": DISCLAIMER,
-        }
-        yield _event({"type": "result", "payload": payload})
-        if user_id:
-            await _save_conversation(user_id, query, payload)
-        return
+    emergency_resources = emergency.resources if emergency.is_emergency else []
 
     claude = ClaudeService(api_key=settings.anthropic_api_key, model=settings.claude_model)
     loop = asyncio.get_running_loop()
@@ -207,8 +193,8 @@ async def _chat_stream(
             }
             for r in live_results
         ],
-        "emergency": False,
-        "resources": [],
+        "emergency": emergency.is_emergency,
+        "resources": emergency_resources,
         "disclaimer": DISCLAIMER,
         "search_query": search_query,
     }

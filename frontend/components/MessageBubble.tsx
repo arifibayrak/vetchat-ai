@@ -60,9 +60,11 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
   return (
     <div className="flex justify-start w-full animate-slide-up">
       <div className="w-full max-w-3xl rounded-2xl bg-white border border-gray-200 px-5 py-4 shadow-sm text-sm space-y-1">
-        {message.emergency && <EmergencyBanner resources={message.resources} />}
+        {message.emergency && message.resources.length > 0 && (
+          <EmergencyBanner resources={message.resources} />
+        )}
 
-        {!message.emergency && (
+        {(
           <>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
@@ -120,11 +122,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
 
             <ReferencesPanel citations={message.citations} liveResources={message.liveResources} />
           </>
-        )}
-
-        {message.emergency && (
-          <p className="mt-3 text-gray-700 text-sm">{message.content}</p>
-        )}
+        )
       </div>
     </div>
   );
