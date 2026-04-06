@@ -1,6 +1,7 @@
 "use client";
 
 import { useChat } from "@/hooks/useChat";
+import Link from "next/link";
 import DisclaimerFooter from "./DisclaimerFooter";
 import InputBar from "./InputBar";
 import MessageList from "./MessageList";
@@ -12,11 +13,13 @@ export default function ChatPage() {
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b px-6 py-3 flex items-center gap-3 shadow-sm">
-        <span className="text-2xl">🐾</span>
-        <div>
-          <h1 className="font-bold text-gray-800 text-lg leading-tight">VetChat AI</h1>
-          <p className="text-xs text-gray-500">Citation-first veterinary literature assistant</p>
-        </div>
+        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <span className="text-2xl">🐾</span>
+          <div>
+            <h1 className="font-bold text-gray-800 text-lg leading-tight">VetChat AI</h1>
+            <p className="text-xs text-gray-500">Citation-first veterinary literature assistant</p>
+          </div>
+        </Link>
       </header>
 
       {/* Error banner */}
