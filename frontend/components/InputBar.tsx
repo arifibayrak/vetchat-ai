@@ -19,19 +19,19 @@ export default function InputBar({ onSend, disabled }: InputBarProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="border-t bg-white px-4 py-3 flex gap-2">
+    <form onSubmit={handleSubmit} className="border-t bg-white px-3 sm:px-4 py-3 flex gap-2">
       <input
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Ask a clinical question…"
         disabled={disabled}
-        className="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
+        className="flex-1 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
       />
       <button
         type="submit"
         disabled={disabled || !value.trim()}
-        className="rounded-full bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-40 transition-colors"
+        className="rounded-full bg-blue-600 px-4 sm:px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-40 transition-colors shrink-0"
       >
         {disabled ? "…" : "Send"}
       </button>

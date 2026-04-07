@@ -23,28 +23,6 @@ const DOC_TYPE_BADGE: Record<string, string> = {
   "Letter":           "bg-gray-100 text-gray-600",
 };
 
-/** Format: Vol. 42, No. 3, pp. 123–145 */
-function formatLocator(volume?: string, issue?: string, pages?: string): string {
-  const parts: string[] = [];
-  if (volume) parts.push(`Vol. ${volume}`);
-  if (issue)  parts.push(`No. ${issue}`);
-  if (pages)  parts.push(`pp. ${pages}`);
-  return parts.join(", ");
-}
-
-/** Full academic citation string */
-function academicCitation(e: ReturnType<typeof buildEntries>[number]): string {
-  const parts: string[] = [];
-  if (e.authors) parts.push(`${e.authors}.`);
-  parts.push(`(${e.year}).`);
-  parts.push(`${e.title}.`);
-  let journalPart = `*${e.journal}*`;
-  const locator = formatLocator(e.volume, e.issue, e.pages);
-  if (locator) journalPart += `, ${locator}`;
-  parts.push(journalPart + ".");
-  if (e.doi) parts.push(`https://doi.org/${e.doi}`);
-  return parts.join(" ");
-}
 
 function buildEntries(citations: CitationItem[], liveResources: LiveResourceItem[]) {
   return citations.map((c, i) => {
@@ -73,7 +51,6 @@ function buildEntries(citations: CitationItem[], liveResources: LiveResourceItem
 export default function ReferencesPanel({ citations, liveResources }: ReferencesPanelProps) {
   const [open, setOpen] = useState(true);
   const [expandedAbstracts, setExpandedAbstracts] = useState<Record<number, boolean>>({});
-  const [copiedRef, setCopiedRef] = useState<number | null>(null);
 
   if (citations.length === 0 && liveResources.length === 0) return null;
 
@@ -81,12 +58,6 @@ export default function ReferencesPanel({ citations, liveResources }: References
 
   const toggleAbstract = (ref: number) =>
     setExpandedAbstracts((prev) => ({ ...prev, [ref]: !prev[ref] }));
-
-  const copyCitation = (e: (typeof entries)[number]) => {
-    navigator.clipboard.writeText(academicCitation(e)).catch(() => {});
-    setCopiedRef(e.ref);
-    setTimeout(() => setCopiedRef(null), 2000);
-  };
 
   return (
     <div className="mt-4 rounded-xl border border-gray-200 overflow-hidden">
@@ -174,14 +145,6 @@ export default function ReferencesPanel({ citations, liveResources }: References
                   </a>
                 </p>
               )}
-
-              {/* Copy citation button */}
-              <button
-                onClick={() => copyCitation(e)}
-                className="mt-1.5 text-xs text-gray-400 hover:text-gray-700 transition-colors"
-              >
-                {copiedRef === e.ref ? "✓ Copied" : "Copy citation"}
-              </button>
 
               {/* How it was cited — exact sentence from the answer */}
               {e.intext_passage && (

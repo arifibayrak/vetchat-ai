@@ -60,8 +60,13 @@ interface MessageListProps {
 export default function MessageList({ messages, onSend, isAuthenticated, onAuthGate }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  // Only auto-scroll while a response is loading (isLoading messages present),
+  // not after the final answer arrives — so the user stays at the top of the answer.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const hasLoading = messages.some((m) => m.isLoading);
+    if (hasLoading) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
   const handlePromptClick = (query: string) => {
@@ -74,30 +79,31 @@ export default function MessageList({ messages, onSend, isAuthenticated, onAuthG
 
   if (messages.length === 0) {
     return (
-      <div className="flex flex-1 items-center justify-center px-4 animate-fade-in">
-        <div className="text-center space-y-6 max-w-2xl w-full">
+      <div className="flex flex-1 items-center justify-center px-3 py-6 animate-fade-in overflow-y-auto">
+        <div className="text-center space-y-5 w-full max-w-2xl">
           <div className="space-y-1 animate-slide-up">
-            <p className="text-4xl">🐾</p>
-            <p className="text-gray-600 font-medium">
+            <p className="text-3xl sm:text-4xl">🐾</p>
+            <p className="text-gray-600 font-medium text-sm sm:text-base">
               Ask a clinical question to access veterinary literature evidence.
             </p>
             <p className="text-xs text-gray-400">
-              Powered by ScienceDirect · Springer Nature · Claude AI
+              Powered by ScienceDirect · Springer Nature
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* 1 col on mobile, 2 cols on sm+ */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
             {SUGGESTED_PROMPTS.map((p, i) => (
               <button
                 key={p.label}
                 onClick={() => handlePromptClick(p.query)}
-                className={`text-left rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 transition-colors shadow-sm animate-slide-up ${DELAY_CLASSES[i] ?? ""}`}
+                className={`text-left rounded-xl border border-gray-200 bg-white px-3 py-2.5 sm:px-4 sm:py-3 text-sm text-gray-700 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 active:bg-blue-100 transition-colors shadow-sm animate-slide-up ${DELAY_CLASSES[i] ?? ""}`}
               >
-                <span className="font-medium">{p.label}</span>
+                <span className="font-medium leading-snug block">{p.label}</span>
               </button>
             ))}
           </div>
           {!isAuthenticated && (
-            <p className="text-xs text-gray-400 animate-fade-in animation-delay-525">
+            <p className="text-xs text-gray-400 animate-fade-in animation-delay-525 px-2">
               Sign in to start searching peer-reviewed veterinary literature
             </p>
           )}
@@ -107,7 +113,7 @@ export default function MessageList({ messages, onSend, isAuthenticated, onAuthG
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+    <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-4 space-y-4">
       {messages.map((msg) => (
         <MessageBubble key={msg.id} message={msg} />
       ))}
