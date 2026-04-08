@@ -52,7 +52,6 @@ export default function ChatPage() {
   };
 
   const handleLogout = () => {
-    logout();
     router.push("/sign-out");
   };
 
