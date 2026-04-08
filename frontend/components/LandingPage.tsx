@@ -35,7 +35,7 @@ function Navbar() {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-1">
-          {["Features", "How it works", "For Clinics", "Pricing"].map((item) => (
+          {["Features", "How it works", "For Clinics"].map((item) => (
             <a
               key={item}
               href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
@@ -85,7 +85,7 @@ function Navbar() {
       {/* Mobile menu */}
       {menuOpen && (
         <div className="md:hidden bg-white border-b border-slate-100 px-6 py-4 space-y-2">
-          {["Features", "How it works", "For Clinics", "Pricing"].map((item) => (
+          {["Features", "How it works", "For Clinics"].map((item) => (
             <a
               key={item}
               href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
