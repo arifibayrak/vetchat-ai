@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/components/AuthProvider";
 import { useChat } from "@/hooks/useChat";
 import { useConversations } from "@/hooks/useConversations";
@@ -13,6 +14,7 @@ import Sidebar from "./Sidebar";
 
 export default function ChatPage() {
   const { user, logout } = useAuthContext();
+  const router = useRouter();
   const { conversations, fetchConversations, loadConversation, deleteConversation } =
     useConversations();
 
@@ -49,6 +51,11 @@ export default function ChatPage() {
     if (activeConversationId === id) handleNewChat();
   };
 
+  const handleLogout = () => {
+    logout();
+    router.push("/sign-out");
+  };
+
   const handleSendOrGate = (query: string) => {
     if (!user) {
       setAuthGateQuery(query);
@@ -75,7 +82,7 @@ export default function ChatPage() {
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         user={user}
-        onLogout={logout}
+        onLogout={handleLogout}
       />
 
       <div className="flex flex-col flex-1 min-w-0">
@@ -114,7 +121,7 @@ export default function ChatPage() {
               </Link>
               <Link
                 href="/register"
-                className="text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-1.5 font-medium transition-colors"
+                className="text-sm bg-teal-600 hover:bg-teal-700 text-white rounded-lg px-3 py-1.5 font-medium transition-colors"
               >
                 Register
               </Link>

@@ -57,7 +57,7 @@ export default function Sidebar({
         <div className="p-3 border-b border-gray-100">
           <button
             onClick={onNewChat}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 text-sm font-medium transition-colors"
+            className="w-full bg-teal-600 hover:bg-teal-700 text-white rounded-lg py-2 text-sm font-medium transition-colors"
           >
             + New Chat
           </button>
@@ -100,7 +100,7 @@ export default function Sidebar({
                       onClick={() => onSelectConversation(conv.id)}
                       className={`w-full text-left px-3 py-2 rounded-lg mx-1 transition-colors ${
                         activeConversationId === conv.id
-                          ? "bg-blue-50 text-blue-700"
+                          ? "bg-teal-50 text-teal-700"
                           : "text-gray-700 hover:bg-gray-100"
                       }`}
                     >
@@ -153,8 +153,11 @@ export default function Sidebar({
               </div>
               <button
                 onClick={onLogout}
-                className="mt-2 text-xs text-gray-400 hover:text-red-500 transition-colors"
+                className="mt-2 w-full text-left text-xs text-slate-500 hover:text-red-500 transition-colors flex items-center gap-1.5"
               >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
                 Sign out
               </button>
             </>
@@ -168,7 +171,7 @@ export default function Sidebar({
               </Link>
               <Link
                 href="/register"
-                className="flex-1 text-center text-xs text-white bg-blue-600 hover:bg-blue-700 rounded-lg py-1.5 transition-colors"
+                className="flex-1 text-center text-xs text-white bg-teal-600 hover:bg-teal-700 rounded-lg py-1.5 transition-colors"
               >
                 Register
               </Link>
