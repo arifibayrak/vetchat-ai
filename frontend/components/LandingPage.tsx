@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 // ─── Nav ───────────────────────────────────────────────────────────────────────
@@ -266,47 +266,6 @@ function ChatMockup() {
   );
 }
 
-// ─── Trusted by (logo ticker) ──────────────────────────────────────────────────
-const LOGOS = [
-  "City Vet Clinic",
-  "BluePearl Vets",
-  "VCA Animal Hospitals",
-  "Banfield Pet Hospital",
-  "Medivet",
-  "Vets4Pets",
-  "PDSA",
-  "IVC Evidensia",
-  "Linnaeus Group",
-  "PetMedic",
-];
-
-function TrustedBy() {
-  const doubled = [...LOGOS, ...LOGOS];
-  return (
-    <section className="py-16 bg-white border-b border-slate-100">
-      <div className="max-w-7xl mx-auto px-6 text-center mb-10">
-        <p className="text-sm font-medium text-slate-400 tracking-widest uppercase">
-          Trusted by veterinary professionals across
-        </p>
-      </div>
-      <div className="relative overflow-hidden">
-        <div className="flex animate-marquee whitespace-nowrap">
-          {doubled.map((name, i) => (
-            <div
-              key={i}
-              className="inline-flex items-center mx-8 px-6 py-2.5 rounded-full border border-slate-200 bg-slate-50 text-slate-500 text-sm font-medium flex-shrink-0 hover:border-teal-200 hover:text-teal-700 hover:bg-teal-50 transition-colors"
-            >
-              {name}
-            </div>
-          ))}
-        </div>
-        <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-white to-transparent z-10" />
-        <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-white to-transparent z-10" />
-      </div>
-    </section>
-  );
-}
-
 // ─── Features ──────────────────────────────────────────────────────────────────
 const FEATURES = [
   {
@@ -432,80 +391,6 @@ function HowItWorks() {
   );
 }
 
-// ─── Testimonials ─────────────────────────────────────────────────────────────
-const TESTIMONIALS = [
-  {
-    quote:
-      "VetChat AI answered a drug interaction question in under 30 seconds that would have taken me 10 minutes to look up manually. It's become part of my daily workflow.",
-    name: "Dr. Sarah Mitchell",
-    title: "Small Animal Specialist · Edinburgh",
-    initials: "SM",
-  },
-  {
-    quote:
-      "I was sceptical at first, but the citations make all the difference. Every answer comes with a reference I can verify — that's the level of trust we need in clinical practice.",
-    name: "Dr. James Okafor",
-    title: "Emergency Vet · Lagos",
-    initials: "JO",
-  },
-  {
-    quote:
-      "As a new grad, it's like having a senior vet on call 24/7. The dosage tables alone have saved me so much time during night shifts.",
-    name: "Dr. Priya Nair",
-    title: "Mixed Practice · Bangalore",
-    initials: "PN",
-  },
-];
-
-function Testimonials() {
-  return (
-    <section className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <p className="text-sm font-semibold text-teal-600 tracking-widest uppercase mb-3">
-            From the veterinary community
-          </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
-            Vets love VetChat AI
-          </h2>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {TESTIMONIALS.map((t) => (
-            <div
-              key={t.name}
-              className="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-teal-100 hover:bg-teal-50/30 transition-all duration-300"
-            >
-              {/* Stars */}
-              <div className="flex gap-1 mb-5">
-                {Array(5).fill(0).map((_, i) => (
-                  <svg key={i} className="w-4 h-4 text-amber-400 fill-amber-400" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
-              </div>
-
-              <blockquote className="text-slate-700 leading-relaxed mb-6 text-sm">
-                &ldquo;{t.quote}&rdquo;
-              </blockquote>
-
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
-                  {t.initials}
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">{t.name}</p>
-                  <p className="text-xs text-slate-500">{t.title}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 // ─── For Clinics ──────────────────────────────────────────────────────────────
 function ForClinics() {
   return (
@@ -595,68 +480,20 @@ function CTASection() {
 // ─── Footer ───────────────────────────────────────────────────────────────────
 function Footer() {
   return (
-    <footer className="bg-slate-900 text-slate-400 pt-16 pb-8">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-          {/* Brand */}
-          <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center">
-                <span className="text-white text-sm">🐾</span>
-              </div>
-              <span className="font-semibold text-white text-sm">
-                VetChat <span className="text-teal-400">AI</span>
-              </span>
-            </div>
-            <p className="text-sm leading-relaxed">
-              Evidence-based clinical intelligence for veterinary professionals.
-            </p>
+    <footer className="bg-slate-900 text-slate-400 py-8">
+      <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center">
+            <span className="text-white text-xs">🐾</span>
           </div>
-
-          {/* Product */}
-          <div>
-            <p className="text-white text-sm font-semibold mb-4">Product</p>
-            <ul className="space-y-2.5 text-sm">
-              {["Features", "How it works", "Pricing", "Changelog"].map((l) => (
-                <li key={l}>
-                  <a href="#" className="hover:text-teal-400 transition-colors">{l}</a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Resources */}
-          <div>
-            <p className="text-white text-sm font-semibold mb-4">Resources</p>
-            <ul className="space-y-2.5 text-sm">
-              {["Documentation", "Blog", "Case studies", "Support"].map((l) => (
-                <li key={l}>
-                  <a href="#" className="hover:text-teal-400 transition-colors">{l}</a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Company */}
-          <div>
-            <p className="text-white text-sm font-semibold mb-4">Company</p>
-            <ul className="space-y-2.5 text-sm">
-              {["About", "Careers", "Security", "Contact"].map((l) => (
-                <li key={l}>
-                  <a href="#" className="hover:text-teal-400 transition-colors">{l}</a>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <span className="text-slate-500">
+            &copy; {new Date().getFullYear()} VetChat AI. All rights reserved.
+          </span>
         </div>
-
-        <div className="border-t border-slate-800 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs">
-          <p>&copy; {new Date().getFullYear()} VetChat AI. All rights reserved.</p>
-          <div className="flex gap-6">
-            {["Privacy Policy", "Terms of Service", "Cookie Policy"].map((l) => (
-              <a key={l} href="#" className="hover:text-teal-400 transition-colors">{l}</a>
-            ))}
-          </div>
+        <div className="flex gap-6">
+          {["Features", "How it works", "Privacy Policy", "Terms of Service"].map((l) => (
+            <a key={l} href="#" className="hover:text-teal-400 transition-colors">{l}</a>
+          ))}
         </div>
       </div>
     </footer>
@@ -669,10 +506,8 @@ export default function LandingPage() {
     <div className="font-[family-name:var(--font-geist-sans)]">
       <Navbar />
       <Hero />
-      <TrustedBy />
       <FeaturesSection />
       <HowItWorks />
-      <Testimonials />
       <ForClinics />
       <CTASection />
       <Footer />
