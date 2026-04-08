@@ -9,7 +9,7 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="flex items-center gap-2 text-slate-400 text-sm animate-fade-in">
           <span className="text-xl">🐾</span>
           <span>Loading…</span>
