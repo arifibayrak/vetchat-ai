@@ -189,7 +189,9 @@ async def _chat_stream(
 
     # ── Step 4: Claude generates the answer ───────────────────────────────────
     yield _event({"type": "progress", "step": 4, "label": "Generating evidence-based answer…", "icon": "🤖"})
-    answer_raw = await loop.run_in_executor(None, claude.complete, query, context_block)
+    answer_raw = await loop.run_in_executor(
+        None, claude.complete, query, context_block, settings.claude_max_tokens
+    )
     answer = disclaimer_injector.inject(answer_raw)
 
     # Populate intext_passage and relevant_quote for each citation

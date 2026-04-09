@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     embedding_model: str = "all-MiniLM-L6-v2"
     use_reranker: bool = True
     claude_model: str = "claude-sonnet-4-6"
+    claude_max_tokens: int = 8192  # detailed clinical answers need headroom
     # Comma-separated list of allowed CORS origins
     # e.g. "http://localhost:4000,https://vetchat-ai.vercel.app"
     frontend_origin: str = "http://localhost:4000"

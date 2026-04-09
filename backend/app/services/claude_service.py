@@ -57,7 +57,7 @@ class ClaudeService:
         )
         return response.content[0].text.strip()
 
-    def complete(self, query: str, context_block: str, max_tokens: int = 1024) -> str:
+    def complete(self, query: str, context_block: str, max_tokens: int = 8192) -> str:
         """
         Non-streaming completion.
         Returns the full answer text (without disclaimer — caller adds that).
@@ -71,7 +71,7 @@ class ClaudeService:
         )
         return response.content[0].text
 
-    def stream(self, query: str, context_block: str, max_tokens: int = 1024):
+    def stream(self, query: str, context_block: str, max_tokens: int = 8192):
         """
         Streaming completion — yields text chunks.
         Caller is responsible for injecting disclaimer after the stream ends.
