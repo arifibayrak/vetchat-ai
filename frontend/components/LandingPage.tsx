@@ -553,7 +553,7 @@ function ExamplesSection() {
         </div>
 
         <p className="text-center text-xs text-slate-500 mt-5">
-          Answers are AI-generated and should be verified against current clinical guidelines before patient care decisions.
+          Answers are sourced from peer-reviewed veterinary research, academic papers, and scientific journals. Independent expert review is recommended before applying findings in clinical practice.
         </p>
       </div>
     </section>
@@ -745,7 +745,7 @@ function FlowchartSection() {
         </div>
 
         <p className="text-center text-xs text-slate-500 mt-8">
-          All algorithms are AI-generated from cited veterinary references. Verify against current guidelines before clinical use.
+          All algorithms are derived from cited peer-reviewed veterinary literature. Expert review is recommended before applying in clinical settings.
         </p>
       </div>
     </section>
@@ -858,16 +858,16 @@ function HowItWorks() {
         </div>
 
         {/* Bottom note */}
-        <div className="mt-16 flex flex-wrap justify-center gap-6 text-sm text-slate-500">
+        <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-sm text-slate-500 px-4 sm:px-0">
           {[
             { icon: "⚡", label: "< 10 second response time" },
             { icon: "📖", label: "Every answer is cited" },
             { icon: "🔒", label: "GDPR compliant" },
             { icon: "🌐", label: "Works on any device" },
           ].map((i) => (
-            <div key={i.label} className="flex items-center gap-2">
-              <span>{i.icon}</span>
-              <span>{i.label}</span>
+            <div key={i.label} className="flex items-center justify-center gap-2 text-center">
+              <span className="text-base sm:text-sm">{i.icon}</span>
+              <span className="text-xs sm:text-sm leading-tight">{i.label}</span>
             </div>
           ))}
         </div>
