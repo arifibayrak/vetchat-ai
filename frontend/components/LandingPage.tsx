@@ -560,183 +560,192 @@ function ExamplesSection() {
   );
 }
 
-// ─── Flowchart Section ────────────────────────────────────────────────────────
-function FlowchartSection() {
-  const T  = "#0d9488";  // teal stroke / arrow color
-  const TX = "#334155";  // slate-700 text
-  const BG = "#f0fdfa";  // teal-50 box fill
-  const BD = "#5eead4";  // teal-300 box border
-  const DIM = "#94a3b8"; // slate-400 dimmed text
+// ─── Clinical Algorithms Section ──────────────────────────────────────────────
+type FlowStep =
+  | { type: "node"; text: string; sub?: string; highlight?: boolean }
+  | { type: "branch"; items: string[] }
+  | { type: "note"; text: string };
 
+const ALGORITHMS: {
+  title: string;
+  icon: string;
+  query: string;
+  steps: FlowStep[];
+  source: string;
+  time: string;
+}[] = [
+  {
+    title: "Vomiting Workup",
+    icon: "🤢",
+    query: "Diagnostic approach for vomiting in dogs and cats",
+    steps: [
+      { type: "node", text: "Vomiting", highlight: true },
+      { type: "node", text: "History / physical examination" },
+      { type: "branch", items: ["Acute", "Chronic", "Hematemesis"] },
+      { type: "note", text: "Mild → supportive care first" },
+      { type: "node", text: "CBC · chemistry · urinalysis", sub: "thyroxine, FeLV/FIV (cats) · cPLI, cortisol (dogs) · abdominal imaging" },
+      { type: "note", text: "If inconclusive →" },
+      { type: "node", text: "Fasting bile acids · serum gastrin" },
+      { type: "node", text: "Gastroduodenoscopy + biopsy" },
+      { type: "node", text: "CSF tap · CT · MRI" },
+    ],
+    source: "Ettinger & Feldman — TVIM, 8th Ed. Fig. 26.2",
+    time: "3.8s",
+  },
+  {
+    title: "Respiratory Distress",
+    icon: "🫁",
+    query: "Emergency approach to dyspnea in companion animals",
+    steps: [
+      { type: "node", text: "Respiratory distress", highlight: true },
+      { type: "node", text: "O₂ supplementation + minimal handling" },
+      { type: "node", text: "Rapid physical assessment" },
+      { type: "branch", items: ["Upper airway", "Parenchymal", "Pleural space"] },
+      { type: "node", text: "Thoracic radiograph · point-of-care ultrasound" },
+      { type: "note", text: "Pleural effusion → thoracocentesis first" },
+      { type: "node", text: "Targeted treatment", sub: "Furosemide · bronchodilators · thoracocentesis · intubation" },
+      { type: "node", text: "Monitor SpO₂ · RR · effort · ABG" },
+      { type: "node", text: "Advanced imaging / bronchoscopy if unresolved" },
+    ],
+    source: "BSAVA Manual of Canine & Feline Emergency & Critical Care",
+    time: "4.1s",
+  },
+  {
+    title: "Shock Protocol",
+    icon: "💔",
+    query: "Recognition and management of shock in small animals",
+    steps: [
+      { type: "node", text: "Acute collapse / suspected shock", highlight: true },
+      { type: "node", text: "Assess: HR · MM color · CRT · BP · mentation" },
+      { type: "branch", items: ["Hypovolemic", "Distributive", "Cardiogenic"] },
+      { type: "note", text: "Cardiogenic: echo before IV fluids" },
+      { type: "node", text: "IV access · fluid resuscitation", sub: "Isotonic crystalloid 20 mL/kg bolus IV · reassess every 15 min" },
+      { type: "node", text: "Identify & treat underlying cause" },
+      { type: "node", text: "Vasopressors if refractory", sub: "Norepinephrine 0.1–1 µg/kg/min · dopamine 5–20 µg/kg/min" },
+      { type: "node", text: "Monitor: lactate · MAP · urine output · SpO₂" },
+      { type: "node", text: "Blood products if PCV < 20% or TP < 35 g/L" },
+    ],
+    source: "Silverstein & Hopper — Small Animal Critical Care Medicine",
+    time: "5.2s",
+  },
+];
+
+function Arrow() {
   return (
-    <section className="py-24 bg-white">
-      <div className="max-w-5xl mx-auto px-6">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <p className="text-sm font-semibold text-teal-600 tracking-widest uppercase mb-3">
+    <div className="flex flex-col items-center my-0.5">
+      <div className="w-px h-3 bg-teal-500/50" />
+      <svg width="10" height="6" viewBox="0 0 10 6">
+        <polygon points="0,0 10,0 5,6" fill="#14b8a6" opacity="0.7" />
+      </svg>
+    </div>
+  );
+}
+
+function AlgoCard({ algo }: { algo: typeof ALGORITHMS[0] }) {
+  return (
+    <div className="bg-slate-800/50 border border-slate-700/40 rounded-2xl overflow-hidden flex flex-col">
+      {/* Header */}
+      <div className="px-5 py-4 border-b border-slate-700/40 bg-slate-900/50">
+        <div className="flex items-center gap-2.5 mb-1.5">
+          <span className="text-lg">{algo.icon}</span>
+          <span className="text-sm font-semibold text-white">{algo.title}</span>
+        </div>
+        <p className="text-xs text-slate-400 italic leading-snug">
+          &ldquo;{algo.query}&rdquo;
+        </p>
+      </div>
+
+      {/* Flow */}
+      <div className="px-4 py-4 flex-1 flex flex-col">
+        {algo.steps.map((step, i) => {
+          const isLast = i === algo.steps.length - 1;
+
+          if (step.type === "node") {
+            return (
+              <div key={i} className="flex flex-col items-center">
+                <div className={`w-full rounded-xl px-3 py-2 text-center ${
+                  step.highlight
+                    ? "bg-teal-600/25 border border-teal-500/40 text-teal-200"
+                    : "bg-slate-700/40 border border-slate-600/30 text-slate-200"
+                }`}>
+                  <p className={`text-xs leading-snug ${step.highlight ? "font-semibold" : ""}`}>{step.text}</p>
+                  {step.sub && <p className="text-[10px] text-slate-400 mt-0.5 leading-snug">{step.sub}</p>}
+                </div>
+                {!isLast && <Arrow />}
+              </div>
+            );
+          }
+
+          if (step.type === "branch") {
+            return (
+              <div key={i} className="flex flex-col items-center">
+                <div className="flex gap-1.5 w-full">
+                  {step.items.map((item) => (
+                    <div key={item} className="flex-1 rounded-lg px-2 py-1.5 text-center bg-slate-900/60 border border-slate-600/20 text-slate-400 text-[10px]">
+                      {item}
+                    </div>
+                  ))}
+                </div>
+                {!isLast && <Arrow />}
+              </div>
+            );
+          }
+
+          if (step.type === "note") {
+            return (
+              <div key={i} className="flex flex-col items-center">
+                <div className="flex items-center gap-2 w-full py-0.5">
+                  <div className="flex-1 h-px bg-slate-600/40" />
+                  <span className="text-[10px] text-teal-500 italic flex-shrink-0">{step.text}</span>
+                  <div className="flex-1 h-px bg-slate-600/40" />
+                </div>
+                {!isLast && <Arrow />}
+              </div>
+            );
+          }
+
+          return null;
+        })}
+      </div>
+
+      {/* Footer */}
+      <div className="px-5 py-3 border-t border-slate-700/40 flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#5eead4" strokeWidth="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+          <p className="text-[10px] text-slate-400 leading-snug">{algo.source}</p>
+        </div>
+        <span className="text-[10px] text-slate-500 flex-shrink-0 ml-2">⚡ {algo.time}</span>
+      </div>
+    </div>
+  );
+}
+
+function FlowchartSection() {
+  return (
+    <section className="py-24 bg-slate-900">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="text-center mb-14">
+          <p className="text-sm font-semibold text-teal-400 tracking-widest uppercase mb-3">
             Systematic output
           </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
-            Decision trees, not just text
+          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
+            Clinical decision algorithms
           </h2>
-          <p className="text-slate-500 max-w-lg mx-auto text-sm">
-            Ask VetChat AI a diagnostic question and receive a structured algorithmic flowchart grounded in specialist guidelines.
+          <p className="text-slate-400 max-w-lg mx-auto text-sm">
+            Ask a diagnostic question — get a structured step-by-step algorithm grounded in specialist textbooks, in seconds.
           </p>
         </div>
 
-        {/* Chat-style output wrapper */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
-          {/* Chat bar */}
-          <div className="flex items-center gap-3 px-6 py-4 bg-slate-50 border-b border-slate-100">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center flex-shrink-0">
-              <span className="text-sm">🐾</span>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-slate-700">VetChat AI</p>
-              <p className="text-xs text-slate-400 italic">
-                &ldquo;Show me the diagnostic algorithm for vomiting in companion animals&rdquo;
-              </p>
-            </div>
-          </div>
-
-          {/* AI answer body */}
-          <div className="p-6">
-            <p className="text-sm text-slate-600 mb-5 leading-relaxed">
-              Here is the evidence-based diagnostic approach for vomiting in dogs and cats, adapted from Ettinger &amp; Feldman&apos;s{" "}
-              <em>Textbook of Veterinary Internal Medicine</em>:
-            </p>
-
-            {/* Flowchart SVG */}
-            <div className="overflow-x-auto rounded-xl border border-slate-100">
-              <svg
-                viewBox="0 0 820 536"
-                className="w-full min-w-[560px]"
-                style={{ fontFamily: "system-ui, sans-serif", fill: TX }}
-                aria-label="Vomiting diagnostic algorithm flowchart"
-              >
-                <defs>
-                  <marker id="fc-arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
-                    <polygon points="0 0, 9 3.5, 0 7" fill={T} />
-                  </marker>
-                </defs>
-
-                {/* ── NODE 1: Vomiting ─────────────────────────────── */}
-                <text x="410" y="22" textAnchor="middle" fontWeight="600" fontSize="14">Vomiting</text>
-                <line x1="410" y1="28" x2="410" y2="52" stroke={T} strokeWidth="1.5" markerEnd="url(#fc-arr)" />
-
-                {/* ── NODE 2: History / PE ──────────────────────────── */}
-                <text x="410" y="64" textAnchor="middle" fontSize="13">History / physical examination</text>
-
-                {/* ── BRANCH: History → Acute / Chronic / Hematemesis ─ */}
-                <line x1="410" y1="71" x2="410" y2="82" stroke={T} strokeWidth="1.5" />
-                <line x1="165" y1="82" x2="695" y2="82" stroke={T} strokeWidth="1.5" />
-                <line x1="165" y1="82" x2="165" y2="118" stroke={T} strokeWidth="1.5" markerEnd="url(#fc-arr)" />
-                <line x1="410" y1="82" x2="410" y2="118" stroke={T} strokeWidth="1.5" markerEnd="url(#fc-arr)" />
-                <line x1="695" y1="82" x2="695" y2="118" stroke={T} strokeWidth="1.5" markerEnd="url(#fc-arr)" />
-
-                {/* ── NODE 3: Acute / Chronic / Hematemesis ────────── */}
-                <text x="165" y="130" textAnchor="middle" fontSize="13">Acute</text>
-                <text x="410" y="130" textAnchor="middle" fontSize="13">Chronic</text>
-                <text x="695" y="130" textAnchor="middle" fontSize="13">Hematemesis</text>
-
-                {/* Hematemesis → See Fig */}
-                <line x1="695" y1="137" x2="695" y2="168" stroke={T} strokeWidth="1.5" markerEnd="url(#fc-arr)" />
-                <text x="695" y="180" textAnchor="middle" fontSize="12" fontStyle="italic" fill={DIM}>See Fig. 26.3</text>
-
-                {/* Chronic → CBC box (routed right of Acute sub-nodes) */}
-                <line x1="410" y1="137" x2="468" y2="137" stroke={T} strokeWidth="1.5" />
-                <line x1="468" y1="137" x2="468" y2="305" stroke={T} strokeWidth="1.5" markerEnd="url(#fc-arr)" />
-                {/* Note: 468 is within CBC box x range 375–805 */}
-
-                {/* ── BRANCH: Acute → 3 sub-nodes ─────────────────── */}
-                <line x1="165" y1="137" x2="165" y2="150" stroke={T} strokeWidth="1.5" />
-                <line x1="57"  y1="150" x2="348" y2="150" stroke={T} strokeWidth="1.5" />
-                <line x1="57"  y1="150" x2="57"  y2="175" stroke={T} strokeWidth="1.5" markerEnd="url(#fc-arr)" />
-                <line x1="175" y1="150" x2="175" y2="175" stroke={T} strokeWidth="1.5" markerEnd="url(#fc-arr)" />
-                <line x1="348" y1="150" x2="348" y2="175" stroke={T} strokeWidth="1.5" markerEnd="url(#fc-arr)" />
-
-                {/* ── NODE 4: Not very ill ──────────────────────────── */}
-                <text x="57" y="188" textAnchor="middle" fontSize="11">Animal not</text>
-                <text x="57" y="201" textAnchor="middle" fontSize="11">very ill</text>
-
-                {/* ── NODE 5: Tentative acute GE ───────────────────── */}
-                <text x="175" y="188" textAnchor="middle" fontSize="11">Tentative acute</text>
-                <text x="175" y="201" textAnchor="middle" fontSize="11">gastroenteritis</text>
-
-                {/* ── NODE 6: Animal very ill ───────────────────────── */}
-                <text x="348" y="185" textAnchor="middle" fontSize="11">Animal very ill or</text>
-                <text x="348" y="198" textAnchor="middle" fontSize="11">suspect serious</text>
-                <text x="348" y="211" textAnchor="middle" fontSize="11">disease</text>
-
-                {/* Merge bracket: nodes 4+5 → Minimal diagnostics */}
-                <line x1="57"  y1="216" x2="57"  y2="232" stroke={T} strokeWidth="1.5" />
-                <line x1="175" y1="216" x2="175" y2="232" stroke={T} strokeWidth="1.5" />
-                <line x1="57"  y1="232" x2="175" y2="232" stroke={T} strokeWidth="1.5" />
-                <line x1="114" y1="232" x2="114" y2="260" stroke={T} strokeWidth="1.5" markerEnd="url(#fc-arr)" />
-
-                {/* ── NODE 7: Minimal diagnostics ──────────────────── */}
-                <text x="114" y="272" textAnchor="middle" fontSize="11">Minimal diagnostics</text>
-                <text x="114" y="285" textAnchor="middle" fontSize="11">Symptomatic / Supportive therapy</text>
-
-                {/* 7 → 8 */}
-                <line x1="114" y1="291" x2="114" y2="318" stroke={T} strokeWidth="1.5" markerEnd="url(#fc-arr)" />
-
-                {/* ── NODE 8: If not responsive ────────────────────── */}
-                <text x="114" y="330" textAnchor="middle" fontSize="11">If not responsive to</text>
-                <text x="114" y="343" textAnchor="middle" fontSize="11">appropriate therapy...</text>
-
-                {/* 8 → CBC box (horizontal arrow from right edge of text) */}
-                <line x1="212" y1="337" x2="373" y2="337" stroke={T} strokeWidth="1.5" markerEnd="url(#fc-arr)" />
-
-                {/* Node 6 (very ill) → CBC box */}
-                <line x1="348" y1="221" x2="348" y2="307" stroke={T} strokeWidth="1.5" />
-                <line x1="348" y1="307" x2="373" y2="307" stroke={T} strokeWidth="1.5" markerEnd="url(#fc-arr)" />
-
-                {/* ── CBC BOX ───────────────────────────────────────── */}
-                <rect x="375" y="295" width="430" height="88" rx="8" fill={BG} stroke={BD} strokeWidth="1.5" />
-                <text x="590" y="313" textAnchor="middle" fontSize="11" fontWeight="600">CBC / chemistry profile / urinalysis</text>
-                <text x="590" y="326" textAnchor="middle" fontSize="10.5" fill="#475569">(thyroxine, FeLV, FIV in cats) · (cPLI, serum cortisol in dogs)</text>
-                <text x="590" y="339" textAnchor="middle" fontSize="10.5" fill="#475569">plain abdominal radiography and/or ultrasonography</text>
-                <text x="590" y="352" textAnchor="middle" fontSize="10.5" fill="#475569">supportive therapy</text>
-
-                {/* CBC → bile acids */}
-                <line x1="590" y1="383" x2="590" y2="406" stroke={T} strokeWidth="1.5" markerEnd="url(#fc-arr)" />
-
-                {/* ── NODE 9: Bile acids ───────────────────────────── */}
-                <text x="590" y="419" textAnchor="middle" fontSize="11.5">If not diagnostic, then fasting / post-prandial serum</text>
-                <text x="590" y="433" textAnchor="middle" fontSize="11.5">bile acid concentrations ± serum gastrin concentration</text>
-
-                {/* bile acids → endoscopy */}
-                <line x1="590" y1="439" x2="590" y2="462" stroke={T} strokeWidth="1.5" markerEnd="url(#fc-arr)" />
-
-                {/* ── NODE 10: Gastroduodenoscopy ──────────────────── */}
-                <text x="590" y="475" textAnchor="middle" fontSize="11.5">Gastroduodenoscopy and biopsy (± colonoileoscopy in cats)</text>
-
-                {/* endoscopy → CSF */}
-                <line x1="590" y1="481" x2="590" y2="504" stroke={T} strokeWidth="1.5" markerEnd="url(#fc-arr)" />
-
-                {/* ── NODE 11: CSF / CT / MRI ──────────────────────── */}
-                <text x="590" y="516" textAnchor="middle" fontSize="11.5">If no diagnosis, then consider CSF tap, CT, MRI</text>
-              </svg>
-            </div>
-
-            {/* Source badge */}
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <span className="inline-flex items-center gap-1.5 text-xs text-teal-700 bg-teal-50 border border-teal-200 rounded-lg px-3 py-1.5">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-                Ettinger &amp; Feldman — Textbook of Veterinary Internal Medicine, 8th Ed. · Fig. 26.2
-              </span>
-              <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                Generated in 4.2s
-              </span>
-            </div>
-          </div>
+        <div className="grid md:grid-cols-3 gap-6">
+          {ALGORITHMS.map((algo) => (
+            <AlgoCard key={algo.title} algo={algo} />
+          ))}
         </div>
 
-        {/* Capability note */}
-        <p className="text-center text-xs text-slate-400 mt-6">
-          VetChat AI can generate decision trees, dosage tables, differential lists, and step-by-step protocols — all cited.
+        <p className="text-center text-xs text-slate-500 mt-8">
+          All algorithms are AI-generated from cited veterinary references. Verify against current guidelines before clinical use.
         </p>
       </div>
     </section>
