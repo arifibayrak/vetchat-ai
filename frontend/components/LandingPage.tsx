@@ -332,57 +332,350 @@ function FeaturesSection() {
   );
 }
 
-// ─── How it works ──────────────────────────────────────────────────────────────
-const STEPS = [
+// ─── Clinical Examples ─────────────────────────────────────────────────────────
+const EXAMPLES = [
   {
-    number: "01",
-    title: "Ask your question",
-    description:
-      "Type your clinical question in plain language — drug dosage, differential diagnosis, treatment protocol, or anything else.",
+    label: "Drug Dosage",
+    icon: "💊",
+    question: "What's the safe meloxicam dose for a 10 kg dog with osteoarthritis?",
+    answer: [
+      { type: "text", content: "For a 10 kg dog, the initial meloxicam dose is:" },
+      {
+        type: "table",
+        rows: [
+          ["Day 1 (loading)", "0.2 mg/kg", "2.0 mg", "Once daily with food"],
+          ["Maintenance", "0.1 mg/kg", "1.0 mg", "Once daily with food"],
+        ],
+        headers: ["Phase", "Dose", "Amount", "Administration"],
+      },
+      {
+        type: "warning",
+        content:
+          "Monitor renal function before starting and after 14 days. Avoid in patients with GI disease, renal insufficiency, or concurrent NSAID use.",
+      },
+    ],
+    sources: ["Plumb's Veterinary Drug Handbook, 10th Ed.", "BSAVA Small Animal Formulary"],
   },
   {
-    number: "02",
-    title: "AI retrieves evidence",
-    description:
-      "VetChat AI searches its curated veterinary knowledge base — textbooks, journals, pharmacology references — to find the most relevant clinical information.",
+    label: "Emergency",
+    icon: "🚨",
+    question: "Dog ingested xylitol gum (~3 pieces) 20 min ago. Steps?",
+    answer: [
+      { type: "text", content: "Xylitol toxicity — act immediately. Estimated dose: ~0.3 g/kg (hepatotoxic range >0.5 g/kg)." },
+      {
+        type: "steps",
+        items: [
+          "Induce emesis if < 30 min post-ingestion and patient is alert (apomorphine 0.03 mg/kg IV or IM).",
+          "Establish IV access — start dextrose supplementation (2.5–5% dextrose in 0.9% NaCl).",
+          "Check baseline glucose, ALT, ALP, and bilirubin immediately.",
+          "Monitor BGL every 30–60 min for 12 hours minimum.",
+          "If ALT elevation detected at 24 h, begin hepatoprotective support (SAMe, NAC).",
+          "Hospitalise for 24–72 h monitoring depending on dose ingested.",
+        ],
+      },
+    ],
+    sources: ["ASPCA Animal Poison Control Center", "Merck Veterinary Manual — Xylitol Toxicosis"],
   },
   {
-    number: "03",
-    title: "Get a cited answer",
-    description:
-      "Receive a clear, concise answer with cited sources so you can verify the information and share it with confidence.",
+    label: "Differential Diagnosis",
+    icon: "🔬",
+    question: "5-year-old cat, PU/PD, weight loss, polyphagia. Top differentials?",
+    answer: [
+      { type: "text", content: "Classic PU/PD triad in a middle-aged cat. Ranked differentials by probability:" },
+      {
+        type: "differentials",
+        items: [
+          { rank: 1, condition: "Hyperthyroidism", probability: "High", note: "Check T4; weight loss + polyphagia is classic" },
+          { rank: 2, condition: "Diabetes mellitus", probability: "High", note: "Fasting glucose + fructosamine; check for glucosuria" },
+          { rank: 3, condition: "Chronic kidney disease", probability: "Moderate", note: "SDMA, creatinine, UA — often concurrent with hyperthyroidism" },
+          { rank: 4, condition: "Hepatic disease", probability: "Lower", note: "ALT, ALP, bile acids, abdominal ultrasound" },
+        ],
+      },
+      { type: "text", content: "Recommend: T4, glucose, BMP, UA with culture, and abdominal ultrasound as first-line workup." },
+    ],
+    sources: ["Ettinger & Feldman: Textbook of Veterinary Internal Medicine", "ISFM Feline Hyperthyroidism Guidelines"],
   },
 ];
 
-function HowItWorks() {
+function ExamplesSection() {
+  const [active, setActive] = useState(0);
+  const ex = EXAMPLES[active];
+
   return (
-    <section id="how-it-works" className="py-24 bg-slate-50">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
+    <section className="py-24 bg-slate-900">
+      <div className="max-w-6xl mx-auto px-6">
+        {/* Header */}
+        <div className="text-center mb-14">
+          <p className="text-sm font-semibold text-teal-400 tracking-widest uppercase mb-3">
+            See it in action
+          </p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
+            Real clinical questions,<br className="hidden sm:block" /> real answers
+          </h2>
+          <p className="text-slate-400 max-w-xl mx-auto text-sm">
+            Ask anything you&apos;d look up in a textbook — get a structured, cited answer in seconds.
+          </p>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex justify-center gap-2 mb-8 flex-wrap">
+          {EXAMPLES.map((e, i) => (
+            <button
+              key={e.label}
+              onClick={() => setActive(i)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                active === i
+                  ? "bg-teal-600 text-white shadow-lg shadow-teal-900/40"
+                  : "bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white border border-white/10"
+              }`}
+            >
+              <span>{e.icon}</span> {e.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Chat window */}
+        <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl">
+          {/* Titlebar */}
+          <div className="flex items-center gap-2 px-5 py-3.5 border-b border-slate-700/50 bg-slate-900/60">
+            <div className="flex gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-red-500/60" />
+              <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
+              <div className="w-3 h-3 rounded-full bg-green-500/60" />
+            </div>
+            <div className="ml-3 flex items-center gap-2 text-slate-400 text-xs">
+              <span>🐾</span>
+              <span>VetChat AI — Clinical Query</span>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-5">
+            {/* User message */}
+            <div className="flex justify-end">
+              <div className="max-w-2xl bg-teal-600 text-white rounded-2xl rounded-br-sm px-4 py-3 text-sm leading-relaxed">
+                {ex.question}
+              </div>
+            </div>
+
+            {/* AI response */}
+            <div className="flex gap-3">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-md">
+                <span className="text-sm">🐾</span>
+              </div>
+              <div className="flex-1 space-y-3">
+                {ex.answer.map((block, i) => {
+                  if (block.type === "text") {
+                    return (
+                      <p key={i} className="text-slate-200 text-sm leading-relaxed">{block.content as string}</p>
+                    );
+                  }
+                  if (block.type === "table") {
+                    const t = block as typeof block & { headers: string[]; rows: string[][] };
+                    return (
+                      <div key={i} className="overflow-x-auto rounded-xl border border-slate-700/50">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="bg-slate-900/60">
+                              {t.headers.map((h) => (
+                                <th key={h} className="px-4 py-2.5 text-left text-slate-400 font-semibold">{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {t.rows.map((row, ri) => (
+                              <tr key={ri} className="border-t border-slate-700/40 hover:bg-slate-700/20 transition-colors">
+                                {row.map((cell, ci) => (
+                                  <td key={ci} className={`px-4 py-2.5 ${ci === 0 ? "text-teal-400 font-medium" : "text-slate-300"}`}>{cell}</td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  }
+                  if (block.type === "warning") {
+                    return (
+                      <div key={i} className="flex gap-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3">
+                        <span className="text-amber-400 text-sm flex-shrink-0">⚠️</span>
+                        <p className="text-amber-200/90 text-xs leading-relaxed">{block.content as string}</p>
+                      </div>
+                    );
+                  }
+                  if (block.type === "steps") {
+                    const s = block as typeof block & { items: string[] };
+                    return (
+                      <ol key={i} className="space-y-2">
+                        {s.items.map((item, si) => (
+                          <li key={si} className="flex gap-3 items-start text-sm text-slate-300">
+                            <span className="w-5 h-5 rounded-full bg-teal-600/30 border border-teal-500/40 text-teal-400 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{si + 1}</span>
+                            <span className="leading-relaxed">{item}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    );
+                  }
+                  if (block.type === "differentials") {
+                    const d = block as typeof block & { items: { rank: number; condition: string; probability: string; note: string }[] };
+                    return (
+                      <div key={i} className="space-y-2">
+                        {d.items.map((item) => (
+                          <div key={item.rank} className="flex items-start gap-3 p-3 rounded-xl bg-slate-900/40 border border-slate-700/40">
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5 ${
+                              item.probability === "High" ? "bg-teal-600/30 text-teal-400 border border-teal-500/30" :
+                              item.probability === "Moderate" ? "bg-blue-600/20 text-blue-400 border border-blue-500/20" :
+                              "bg-slate-700/50 text-slate-400 border border-slate-600/30"
+                            }`}>{item.probability}</span>
+                            <div>
+                              <p className="text-sm font-semibold text-slate-100">{item.condition}</p>
+                              <p className="text-xs text-slate-400 mt-0.5">{item.note}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
+
+                {/* Sources */}
+                <div className="pt-2 border-t border-slate-700/40 flex flex-wrap gap-2">
+                  {ex.sources.map((s) => (
+                    <span key={s} className="inline-flex items-center gap-1.5 text-xs text-teal-400 bg-teal-900/30 border border-teal-800/40 rounded-lg px-2.5 py-1">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p className="text-center text-xs text-slate-500 mt-5">
+          Answers are AI-generated and should be verified against current clinical guidelines before patient care decisions.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+// ─── How it works (visual pipeline) ───────────────────────────────────────────
+function HowItWorks() {
+  const sources = [
+    { label: "Plumb's Drug Handbook", icon: "📘" },
+    { label: "BSAVA Formulary", icon: "📗" },
+    { label: "ScienceDirect", icon: "🔬" },
+    { label: "Springer Nature", icon: "📙" },
+    { label: "Merck Vet Manual", icon: "📕" },
+  ];
+
+  return (
+    <section id="how-it-works" className="py-24 bg-white overflow-hidden">
+      <div className="max-w-6xl mx-auto px-6">
+        {/* Header */}
+        <div className="text-center mb-20">
           <p className="text-sm font-semibold text-teal-600 tracking-widest uppercase mb-3">
             How it works
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
-            From question to answer<br className="hidden sm:block" /> in under 10 seconds
+            From question to cited answer<br className="hidden sm:block" /> in under 10 seconds
           </h2>
+          <p className="text-slate-500 text-sm max-w-md mx-auto">
+            VetChat AI retrieves, ranks, and synthesises evidence from trusted veterinary sources — then explains it clearly.
+          </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 relative">
-          {/* Connector line */}
-          <div className="hidden md:block absolute top-10 left-1/3 right-1/3 h-px bg-gradient-to-r from-teal-200 to-teal-200" />
+        {/* Pipeline diagram */}
+        <div className="relative">
+          {/* Horizontal connector (desktop) */}
+          <div className="hidden lg:block absolute top-14 left-[12%] right-[12%] h-0.5 bg-gradient-to-r from-teal-200 via-teal-400 to-teal-200 z-0" />
 
-          {STEPS.map((step, i) => (
-            <div key={step.number} className="relative">
-              <div className="flex items-center gap-4 mb-5">
-                <div className="w-10 h-10 rounded-full bg-teal-600 text-white text-sm font-bold flex items-center justify-center flex-shrink-0 shadow-lg shadow-teal-100">
-                  {i + 1}
-                </div>
-                {i < STEPS.length - 1 && (
-                  <div className="hidden md:block flex-1 h-px bg-slate-200" />
-                )}
+          <div className="grid lg:grid-cols-4 gap-6 relative z-10">
+            {/* Node 1: You ask */}
+            <div className="flex flex-col items-center text-center">
+              <div className="w-28 h-28 rounded-2xl bg-slate-900 border-2 border-slate-700 flex flex-col items-center justify-center gap-1 shadow-xl mb-5">
+                <span className="text-3xl">💬</span>
+                <span className="text-white text-xs font-semibold mt-1">You ask</span>
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-3">{step.title}</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">{step.description}</p>
+              <h3 className="font-semibold text-slate-900 mb-2">Clinical question</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Plain language — drug dose, emergency protocol, differential diagnosis, anything.
+              </p>
+              <div className="mt-3 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-600 italic w-full">
+                &ldquo;Safe ketamine dose for a 4 kg cat?&rdquo;
+              </div>
+            </div>
+
+            {/* Node 2: AI processes */}
+            <div className="flex flex-col items-center text-center">
+              <div className="w-28 h-28 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-700 flex flex-col items-center justify-center gap-1 shadow-xl shadow-teal-200 mb-5">
+                <span className="text-3xl">🧠</span>
+                <span className="text-white text-xs font-semibold mt-1">AI processes</span>
+              </div>
+              <h3 className="font-semibold text-slate-900 mb-2">Query understanding</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Identifies species, drug, clinical context, and retrieves the most relevant knowledge chunks.
+              </p>
+              <div className="mt-3 flex flex-col gap-1 w-full">
+                {["Species: Feline", "Drug: Ketamine", "Context: Anaesthesia"].map((t) => (
+                  <div key={t} className="bg-teal-50 border border-teal-200 rounded-lg px-2.5 py-1 text-xs text-teal-700 text-left">{t}</div>
+                ))}
+              </div>
+            </div>
+
+            {/* Node 3: Knowledge base */}
+            <div className="flex flex-col items-center text-center">
+              <div className="w-28 h-28 rounded-2xl bg-white border-2 border-slate-200 flex flex-col items-center justify-center gap-1 shadow-lg mb-5">
+                <span className="text-3xl">📚</span>
+                <span className="text-slate-700 text-xs font-semibold mt-1">Knowledge</span>
+              </div>
+              <h3 className="font-semibold text-slate-900 mb-2">Trusted sources</h3>
+              <p className="text-xs text-slate-500 leading-relaxed mb-3">
+                Searches across a curated veterinary knowledge base.
+              </p>
+              <div className="flex flex-col gap-1 w-full">
+                {sources.map((s) => (
+                  <div key={s.label} className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1">
+                    <span className="text-xs">{s.icon}</span>
+                    <span className="text-xs text-slate-600">{s.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Node 4: Cited answer */}
+            <div className="flex flex-col items-center text-center">
+              <div className="w-28 h-28 rounded-2xl bg-emerald-600 flex flex-col items-center justify-center gap-1 shadow-xl shadow-emerald-200 mb-5">
+                <span className="text-3xl">✅</span>
+                <span className="text-white text-xs font-semibold mt-1">You receive</span>
+              </div>
+              <h3 className="font-semibold text-slate-900 mb-2">Cited answer</h3>
+              <p className="text-xs text-slate-500 leading-relaxed mb-3">
+                Clear, structured response with the exact sources cited — verifiable and shareable.
+              </p>
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 text-xs text-emerald-800 text-left w-full">
+                <p className="font-semibold mb-1">2–4 mg/kg IV ketamine</p>
+                <p className="text-emerald-600">📖 BSAVA Manual of Anaesthesia</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile vertical connector */}
+          <div className="lg:hidden absolute top-28 left-1/2 -translate-x-1/2 w-0.5 bg-gradient-to-b from-teal-200 to-teal-400" style={{ height: "calc(100% - 7rem)" }} />
+        </div>
+
+        {/* Bottom note */}
+        <div className="mt-16 flex flex-wrap justify-center gap-6 text-sm text-slate-500">
+          {[
+            { icon: "⚡", label: "< 10 second response time" },
+            { icon: "📖", label: "Every answer is cited" },
+            { icon: "🔒", label: "GDPR compliant" },
+            { icon: "🌐", label: "Works on any device" },
+          ].map((i) => (
+            <div key={i.label} className="flex items-center gap-2">
+              <span>{i.icon}</span>
+              <span>{i.label}</span>
             </div>
           ))}
         </div>
@@ -507,6 +800,7 @@ export default function LandingPage() {
       <Navbar />
       <Hero />
       <FeaturesSection />
+      <ExamplesSection />
       <HowItWorks />
       <ForClinics />
       <CTASection />
