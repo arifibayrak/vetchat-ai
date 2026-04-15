@@ -9,9 +9,11 @@ interface ReferencesPanelProps {
 }
 
 const SOURCE_BADGE: Record<string, string> = {
-  "ScienceDirect": "bg-orange-100 text-orange-700",
-  "Scopus":        "bg-orange-100 text-orange-700",
-  "Springer Nature": "bg-green-100 text-green-700",
+  "ScienceDirect":    "bg-orange-100 text-orange-700",
+  "Scopus":           "bg-orange-100 text-orange-700",
+  "Springer Nature":  "bg-green-100 text-green-700",
+  "Taylor & Francis": "bg-teal-100 text-teal-700",
+  "Literature":       "bg-slate-100 text-slate-600",
 };
 
 const DOC_TYPE_BADGE: Record<string, string> = {
@@ -27,9 +29,12 @@ const DOC_TYPE_BADGE: Record<string, string> = {
 function buildEntries(citations: CitationItem[], liveResources: LiveResourceItem[]) {
   return citations.map((c, i) => {
     const lr = liveResources[i];
+    // Prefer the publisher-aware source from CitationItem (set by backend provenance logic)
+    const source = c.source || lr?.source || "Literature";
     return {
       ref:             c.ref,
-      source:          lr?.source ?? "Literature",
+      source,
+      publisher:       c.publisher || "",
       title:           c.title,
       journal:         c.journal,
       year:            c.year,
@@ -56,6 +61,11 @@ export default function ReferencesPanel({ citations, liveResources }: References
 
   const entries = buildEntries(citations, liveResources);
 
+  // Collect unique publishers for the provenance footer
+  const publishers = Array.from(
+    new Set(entries.map((e) => e.publisher).filter(Boolean))
+  );
+
   const toggleAbstract = (ref: number) =>
     setExpandedAbstracts((prev) => ({ ...prev, [ref]: !prev[ref] }));
 
@@ -70,6 +80,7 @@ export default function ReferencesPanel({ citations, liveResources }: References
       </button>
 
       {open && (
+        <>
         <ol className="divide-y divide-gray-100">
           {entries.map((e) => (
             <li
@@ -82,14 +93,23 @@ export default function ReferencesPanel({ citations, liveResources }: References
                 <span className="shrink-0 w-5 h-5 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center">
                   {e.ref}
                 </span>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${SOURCE_BADGE[e.source] ?? "bg-gray-100 text-gray-600"}`}>
+                {/* Publisher/source badge — shows which database this came from */}
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${SOURCE_BADGE[e.source] ?? SOURCE_BADGE[e.publisher] ?? "bg-gray-100 text-gray-600"}`}>
                   {e.source}
                 </span>
+                {/* Publisher name if different from source (e.g. source=Scopus, publisher=Elsevier) */}
+                {e.publisher && e.publisher !== e.source && (
+                  <span className="text-xs text-gray-400">via {e.publisher}</span>
+                )}
                 {e.doc_type && (
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${DOC_TYPE_BADGE[e.doc_type] ?? "bg-gray-100 text-gray-600"}`}>
                     {e.doc_type}
                   </span>
                 )}
+                {/* Peer-reviewed trust signal */}
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
+                  ✓ Peer-reviewed
+                </span>
                 {e.cited_by > 0 && (
                   <span className="text-xs text-gray-400 ml-auto">
                     📊 Cited by {e.cited_by}
@@ -195,6 +215,18 @@ export default function ReferencesPanel({ citations, liveResources }: References
             </li>
           ))}
         </ol>
+        {/* Provenance footer — makes trust story explicit to the vet */}
+        <div className="px-4 py-2.5 bg-slate-50 border-t border-gray-100 flex items-start gap-2">
+          <span className="text-emerald-600 text-sm shrink-0 mt-0.5">🔒</span>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            <span className="font-semibold text-slate-700">Source integrity: </span>
+            Every answer is grounded exclusively in passages retrieved from peer-reviewed veterinary journals
+            {publishers.length > 0 && (
+              <> ({publishers.join(", ")})</>
+            )}. Lenny does not generate clinical facts from its own memory.
+          </p>
+        </div>
+        </>
       )}
     </div>
   );

@@ -1,0 +1,871 @@
+{
+  "source": "Taylor and Francis",
+  "category": "Veterinary Science and Animal Health",
+  "count": 108,
+  "journals": [
+    {
+      "title": "Acta Agriculturae Scandinavica, Section A - Animal Science",
+      "subtitle": "",
+      "print_issn": "0906-4702",
+      "online_issn": "1651-1972",
+      "url": "https://www.tandfonline.com/saga20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Acta Agriculturae Scandinavica, Section B - Soil & Plant Science",
+      "subtitle": "",
+      "print_issn": "0906-4710",
+      "online_issn": "1651-1913",
+      "url": "https://www.tandfonline.com/sagb20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "African Journal of Aquatic Science",
+      "subtitle": "",
+      "print_issn": "1608-5914",
+      "online_issn": "1727-9364",
+      "url": "https://www.tandfonline.com/taas20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "African Journal of Herpetology",
+      "subtitle": "",
+      "print_issn": "2156-4574",
+      "online_issn": "2153-3660",
+      "url": "https://www.tandfonline.com/ther20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "African Journal of Range & Forage Science",
+      "subtitle": "",
+      "print_issn": "1022-0119",
+      "online_issn": "1727-9380",
+      "url": "https://www.tandfonline.com/tarf20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "African Zoology",
+      "subtitle": "",
+      "print_issn": "1562-7020",
+      "online_issn": "2224-073X",
+      "url": "https://www.tandfonline.com/tafz20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Animal Biotechnology",
+      "subtitle": "",
+      "print_issn": "1049-5398",
+      "online_issn": "1532-2378",
+      "url": "https://www.tandfonline.com/labt20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Animal Cells and Systems",
+      "subtitle": "",
+      "print_issn": "1976-8354",
+      "online_issn": "2151-2485",
+      "url": "https://www.tandfonline.com/tacs20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Annales de la Soci\u00c3\u00a9t\u00c3\u00a9 entomologique de France (N.S.)",
+      "subtitle": "International Journal of Entomology",
+      "print_issn": "0037-9271",
+      "online_issn": "2168-6351",
+      "url": "https://www.tandfonline.com/tase20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Aquatic Insects",
+      "subtitle": "International Journal of Freshwater Entomology",
+      "print_issn": "0165-0424",
+      "online_issn": "1744-4152",
+      "url": "https://www.tandfonline.com/naqi20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Archives of Animal Nutrition",
+      "subtitle": "",
+      "print_issn": "1745-039X",
+      "online_issn": "1477-2817",
+      "url": "https://www.tandfonline.com/gaan20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Arid Land Research and Management",
+      "subtitle": "",
+      "print_issn": "1532-4982",
+      "online_issn": "1532-4990",
+      "url": "https://www.tandfonline.com/uasr20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Art Therapy",
+      "subtitle": "Journal of the American Art Therapy Association",
+      "print_issn": "0742-1656",
+      "online_issn": "2159-9394",
+      "url": "https://www.tandfonline.com/uart20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Arts & Health",
+      "subtitle": "An International Journal for Research, Policy and Practice",
+      "print_issn": "1753-3015",
+      "online_issn": "1753-3023",
+      "url": "https://www.tandfonline.com/rahe20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Australasian Journal of Environmental Management",
+      "subtitle": "",
+      "print_issn": "1448-6563",
+      "online_issn": "2159-5356",
+      "url": "https://www.tandfonline.com/tjem20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Avian Pathology",
+      "subtitle": "",
+      "print_issn": "0307-9457",
+      "online_issn": "1465-3338",
+      "url": "https://www.tandfonline.com/cavp20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Bioacoustics",
+      "subtitle": "The International Journal of Animal Sound and its Recording",
+      "print_issn": "0952-4622",
+      "online_issn": "2165-0586",
+      "url": "https://www.tandfonline.com/tbio20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Biodiversity",
+      "subtitle": "",
+      "print_issn": "1488-8386",
+      "online_issn": "2160-0651",
+      "url": "https://www.tandfonline.com/tbid20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Biological Rhythm Research",
+      "subtitle": "",
+      "print_issn": "0929-1016",
+      "online_issn": "1744-4179",
+      "url": "https://www.tandfonline.com/nbrr20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Bird Study",
+      "subtitle": "",
+      "print_issn": "0006-3657",
+      "online_issn": "1944-6705",
+      "url": "https://www.tandfonline.com/tbis20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Body, Movement and Dance in Psychotherapy",
+      "subtitle": "An International Journal for Theory, Research and Practice",
+      "print_issn": "1743-2979",
+      "online_issn": "1743-2987",
+      "url": "https://www.tandfonline.com/tbmd20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Botany Letters",
+      "subtitle": "",
+      "print_issn": "2381-8107",
+      "online_issn": "2381-8115",
+      "url": "https://www.tandfonline.com/tabg21",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "British Poultry Science",
+      "subtitle": "",
+      "print_issn": "0007-1668",
+      "online_issn": "1466-1799",
+      "url": "https://www.tandfonline.com/cbps20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Canadian Art Therapy Association Journal",
+      "subtitle": "",
+      "print_issn": "0832-2473",
+      "online_issn": "2377-360X",
+      "url": "https://www.tandfonline.com/ucat20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Canadian Journal of Art Therapy",
+      "subtitle": "Research, Practice, and Issues",
+      "print_issn": "2690-7240",
+      "online_issn": "2690-7267",
+      "url": "https://www.tandfonline.com/ucat21",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Canadian Journal of Plant Pathology",
+      "subtitle": "",
+      "print_issn": "0706-0661",
+      "online_issn": "1715-2992",
+      "url": "https://www.tandfonline.com/tcjp20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Chemistry and Ecology",
+      "subtitle": "",
+      "print_issn": "0275-7540",
+      "online_issn": "1029-0370",
+      "url": "https://www.tandfonline.com/gche20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Cogent Food & Agriculture",
+      "subtitle": "",
+      "print_issn": "",
+      "online_issn": "2331-1932",
+      "url": "https://www.tandfonline.com/oafa20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Computers in Human Services",
+      "subtitle": "",
+      "print_issn": "0740-445X",
+      "online_issn": "",
+      "url": "https://www.tandfonline.com/wzch20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Creative Industries Journal",
+      "subtitle": "",
+      "print_issn": "1751-0694",
+      "online_issn": "1751-0708",
+      "url": "https://www.tandfonline.com/rcij20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Current Writing: Text and Reception in Southern Africa",
+      "subtitle": "",
+      "print_issn": "1013-929X",
+      "online_issn": "2159-9130",
+      "url": "https://www.tandfonline.com/rcwr20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Diatom Research",
+      "subtitle": "",
+      "print_issn": "0269-249X",
+      "online_issn": "2159-8347",
+      "url": "https://www.tandfonline.com/tdia20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Dramatherapy",
+      "subtitle": "",
+      "print_issn": "0263-0672",
+      "online_issn": "2157-1430",
+      "url": "https://www.tandfonline.com/rdrt20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "\u00c3\u2030coscience",
+      "subtitle": "",
+      "print_issn": "1195-6860",
+      "online_issn": "2376-7626",
+      "url": "https://www.tandfonline.com/teco20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Ecosystems and People",
+      "subtitle": "",
+      "print_issn": "2639-5908",
+      "online_issn": "2639-5916",
+      "url": "https://www.tandfonline.com/tbsm22",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "EMI: Animal & Environment",
+      "subtitle": "",
+      "print_issn": "",
+      "online_issn": "2998-6990",
+      "url": "https://www.tandfonline.com/tema20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "English Academy Review",
+      "subtitle": "A Journal of English Studies",
+      "print_issn": "1013-1752",
+      "online_issn": "1753-5360",
+      "url": "https://www.tandfonline.com/racr20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "English Studies in Africa",
+      "subtitle": "",
+      "print_issn": "0013-8398",
+      "online_issn": "1943-8117",
+      "url": "https://www.tandfonline.com/reia20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Ethology Ecology & Evolution",
+      "subtitle": "",
+      "print_issn": "0394-9370",
+      "online_issn": "1828-7131",
+      "url": "https://www.tandfonline.com/teee20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "The European Zoological Journal",
+      "subtitle": "",
+      "print_issn": "",
+      "online_issn": "2475-0263",
+      "url": "https://www.tandfonline.com/tizo21",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Forest Science and Technology",
+      "subtitle": "",
+      "print_issn": "2158-0103",
+      "online_issn": "2158-0715",
+      "url": "https://www.tandfonline.com/tfst20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Historical Biology",
+      "subtitle": "An International Journal of Paleobiology",
+      "print_issn": "0891-2963",
+      "online_issn": "1029-2381",
+      "url": "https://www.tandfonline.com/ghbi20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Inscape",
+      "subtitle": "",
+      "print_issn": "0264-7141",
+      "online_issn": "",
+      "url": "https://www.tandfonline.com/rart19",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "International Journal of Acarology",
+      "subtitle": "",
+      "print_issn": "0164-7954",
+      "online_issn": "1945-3892",
+      "url": "https://www.tandfonline.com/taca20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "International Journal of Art Therapy",
+      "subtitle": "Formerly Inscape",
+      "print_issn": "1745-4832",
+      "online_issn": "1745-4840",
+      "url": "https://www.tandfonline.com/rart20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "International Journal of Play",
+      "subtitle": "",
+      "print_issn": "2159-4937",
+      "online_issn": "2159-4953",
+      "url": "https://www.tandfonline.com/rijp20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Invertebrate Reproduction & Development",
+      "subtitle": "",
+      "print_issn": "0792-4259",
+      "online_issn": "2157-0272",
+      "url": "https://www.tandfonline.com/tinv20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Italian Journal of Animal Science",
+      "subtitle": "",
+      "print_issn": "",
+      "online_issn": "1828-051X",
+      "url": "https://www.tandfonline.com/tjas20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Journal of Applied Animal Research",
+      "subtitle": "",
+      "print_issn": "0971-2119",
+      "online_issn": "0974-1844",
+      "url": "https://www.tandfonline.com/taar20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Journal of Applied Animal Welfare Science",
+      "subtitle": "",
+      "print_issn": "1088-8705",
+      "online_issn": "1532-7604",
+      "url": "https://www.tandfonline.com/haaw20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Journal of Aquatic Animal Health",
+      "subtitle": "",
+      "print_issn": "0899-7659",
+      "online_issn": "1548-8667",
+      "url": "https://www.tandfonline.com/uahh20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Journal of Biological Dynamics",
+      "subtitle": "",
+      "print_issn": "1751-3758",
+      "online_issn": "1751-3766",
+      "url": "https://www.tandfonline.com/tjbd20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Journal of Child and Adolescent Counseling",
+      "subtitle": "",
+      "print_issn": "2372-7810",
+      "online_issn": "2372-7829",
+      "url": "https://www.tandfonline.com/ucac20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Journal of Clinical Activities, Assignments & Handouts in Psychotherapy Practice",
+      "subtitle": "",
+      "print_issn": "1532-3285",
+      "online_issn": "",
+      "url": "https://www.tandfonline.com/wzjc20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Journal of Creativity in Mental Health",
+      "subtitle": "",
+      "print_issn": "1540-1383",
+      "online_issn": "1540-1391",
+      "url": "https://www.tandfonline.com/wcmh20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Journal of Forest Research",
+      "subtitle": "",
+      "print_issn": "1341-6979",
+      "online_issn": "1610-7403",
+      "url": "https://www.tandfonline.com/tjfr20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Journal of Freshwater Ecology",
+      "subtitle": "",
+      "print_issn": "0270-5060",
+      "online_issn": "2156-6941",
+      "url": "https://www.tandfonline.com/tjfe20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Journal of Integrative Environmental Sciences",
+      "subtitle": "",
+      "print_issn": "1943-815X",
+      "online_issn": "1943-8168",
+      "url": "https://www.tandfonline.com/nens20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Journal of International Wildlife Law & Policy",
+      "subtitle": "",
+      "print_issn": "1388-0292",
+      "online_issn": "1548-1476",
+      "url": "https://www.tandfonline.com/uwlp20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Journal of Land Use Science",
+      "subtitle": "",
+      "print_issn": "1747-423X",
+      "online_issn": "1747-4248",
+      "url": "https://www.tandfonline.com/tlus20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Journal of Natural History",
+      "subtitle": "",
+      "print_issn": "0022-2933",
+      "online_issn": "1464-5262",
+      "url": "https://www.tandfonline.com/tnah20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Journal of Poetry Therapy",
+      "subtitle": "The Interdisciplinary Journal of Practice, Theory, Research and Education",
+      "print_issn": "0889-3675",
+      "online_issn": "1567-2344",
+      "url": "https://www.tandfonline.com/tjpt20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Journal of Postcolonial Writing",
+      "subtitle": "",
+      "print_issn": "1744-9855",
+      "online_issn": "1744-9863",
+      "url": "https://www.tandfonline.com/rjpw20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Journal of Psychotherapy in Independent Practice",
+      "subtitle": "",
+      "print_issn": "1522-9580",
+      "online_issn": "",
+      "url": "https://www.tandfonline.com/wzpi20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Journal of Systematic Palaeontology",
+      "subtitle": "",
+      "print_issn": "1477-2019",
+      "online_issn": "1478-0941",
+      "url": "https://www.tandfonline.com/tjsp20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Journal of Vertebrate Paleontology",
+      "subtitle": "",
+      "print_issn": "0272-4634",
+      "online_issn": "1937-2809",
+      "url": "https://www.tandfonline.com/ujvp20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Lake and Reservoir Management",
+      "subtitle": "",
+      "print_issn": "1040-2381",
+      "online_issn": "2151-5530",
+      "url": "https://www.tandfonline.com/ulrm20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Life Writing",
+      "subtitle": "",
+      "print_issn": "1448-4528",
+      "online_issn": "1751-2964",
+      "url": "https://www.tandfonline.com/rlwr20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Marine and Freshwater Behaviour and Physiology",
+      "subtitle": "",
+      "print_issn": "1023-6244",
+      "online_issn": "1029-0362",
+      "url": "https://www.tandfonline.com/gmfw20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Molluscan Research",
+      "subtitle": "",
+      "print_issn": "1323-5818",
+      "online_issn": "1448-6067",
+      "url": "https://www.tandfonline.com/tmos20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Mycology",
+      "subtitle": "An International Journal on Fungal Biology",
+      "print_issn": "2150-1203",
+      "online_issn": "2150-1211",
+      "url": "https://www.tandfonline.com/tmyc20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "New Writing",
+      "subtitle": "The International Journal for the Practice and Theory of Creative Writing",
+      "print_issn": "1479-0726",
+      "online_issn": "1943-3107",
+      "url": "https://www.tandfonline.com/rmnw20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "New Zealand Entomologist",
+      "subtitle": "",
+      "print_issn": "0077-9962",
+      "online_issn": "1179-3430",
+      "url": "https://www.tandfonline.com/tnze20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "New Zealand Veterinary Journal",
+      "subtitle": "Te Hautaka T\u00c4\u0081kuta Kararehe o Aotearoa",
+      "print_issn": "0048-0169",
+      "online_issn": "1176-0710",
+      "url": "https://www.tandfonline.com/tnzv20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Nordic Journal of Music Therapy",
+      "subtitle": "",
+      "print_issn": "0809-8131",
+      "online_issn": "1944-8260",
+      "url": "https://www.tandfonline.com/rnjm20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Nordisk Tidsskrift for Musikkterapi",
+      "subtitle": "",
+      "print_issn": "0803-9828",
+      "online_issn": "",
+      "url": "https://www.tandfonline.com/rnjm19",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Oriental Insects",
+      "subtitle": "",
+      "print_issn": "0030-5316",
+      "online_issn": "2157-8745",
+      "url": "https://www.tandfonline.com/toin20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Ostrich",
+      "subtitle": "Journal of African Ornithology",
+      "print_issn": "0030-6525",
+      "online_issn": "1727-947X",
+      "url": "https://www.tandfonline.com/tost20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Palynology",
+      "subtitle": "",
+      "print_issn": "0191-6122",
+      "online_issn": "1558-9188",
+      "url": "https://www.tandfonline.com/tpal20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Plant Ecology & Diversity",
+      "subtitle": "",
+      "print_issn": "1755-0874",
+      "online_issn": "1755-1668",
+      "url": "https://www.tandfonline.com/tped20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Plant Signaling & Behavior",
+      "subtitle": "",
+      "print_issn": "",
+      "online_issn": "1559-2324",
+      "url": "https://www.tandfonline.com/kpsb20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Psychoanalytic Perspectives",
+      "subtitle": "",
+      "print_issn": "1551-806X",
+      "online_issn": "2163-6958",
+      "url": "https://www.tandfonline.com/uppe20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Psychology Research and Behavior Management",
+      "subtitle": "",
+      "print_issn": "",
+      "online_issn": "1179-1578",
+      "url": "https://www.tandfonline.com/dprb20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Psychotherapy in Private Practice",
+      "subtitle": "",
+      "print_issn": "0731-7158",
+      "online_issn": "",
+      "url": "https://www.tandfonline.com/wzpp20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "The Psychotherapy Patient",
+      "subtitle": "",
+      "print_issn": "0738-6176",
+      "online_issn": "",
+      "url": "https://www.tandfonline.com/wzpy20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Redox Report",
+      "subtitle": "Communications in Free Radical Research",
+      "print_issn": "1351-0002",
+      "online_issn": "1743-2928",
+      "url": "https://www.tandfonline.com/yrer20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Review: Literature and Arts of the Americas",
+      "subtitle": "",
+      "print_issn": "0890-5762",
+      "online_issn": "1743-0666",
+      "url": "https://www.tandfonline.com/rrev20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Reviews in Fisheries Science & Aquaculture",
+      "subtitle": "",
+      "print_issn": "2330-8249",
+      "online_issn": "2330-8257",
+      "url": "https://www.tandfonline.com/brfs21",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Ringing & Migration",
+      "subtitle": "",
+      "print_issn": "0307-8698",
+      "online_issn": "2159-8355",
+      "url": "https://www.tandfonline.com/tram20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Scandinavian Journal of Forest Research",
+      "subtitle": "",
+      "print_issn": "0282-7581",
+      "online_issn": "1651-1891",
+      "url": "https://www.tandfonline.com/sfor20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Scrutiny2",
+      "subtitle": "Issues in English Studies in Southern Africa",
+      "print_issn": "1812-5441",
+      "online_issn": "1753-5409",
+      "url": "https://www.tandfonline.com/rscr20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Soil Science and Plant Nutrition",
+      "subtitle": "",
+      "print_issn": "0038-0768",
+      "online_issn": "1747-0765",
+      "url": "https://www.tandfonline.com/tssp20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Southern Forests: a Journal of Forest Science",
+      "subtitle": "",
+      "print_issn": "2070-2620",
+      "online_issn": "2070-2639",
+      "url": "https://www.tandfonline.com/tsfs20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Studies in Travel Writing",
+      "subtitle": "",
+      "print_issn": "1364-5145",
+      "online_issn": "1755-7550",
+      "url": "https://www.tandfonline.com/rstw20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Studies on Neotropical Fauna and Environment",
+      "subtitle": "",
+      "print_issn": "0165-0521",
+      "online_issn": "1744-5140",
+      "url": "https://www.tandfonline.com/nnfe20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Systematics and Biodiversity",
+      "subtitle": "",
+      "print_issn": "1477-2000",
+      "online_issn": "1478-0933",
+      "url": "https://www.tandfonline.com/tsab20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "The Wilson Journal of Ornithology",
+      "subtitle": "",
+      "print_issn": "1559-4491",
+      "online_issn": "1938-5447",
+      "url": "https://www.tandfonline.com/uwjo20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Transactions of the Royal Society of South Africa",
+      "subtitle": "",
+      "print_issn": "0035-919X",
+      "online_issn": "2154-0098",
+      "url": "https://www.tandfonline.com/ttrs20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Veterinary Medicine: Research and Reports",
+      "subtitle": "",
+      "print_issn": "",
+      "online_issn": "2230-2034",
+      "url": "https://www.tandfonline.com/dvmr20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Veterinary Quarterly",
+      "subtitle": "",
+      "print_issn": "0165-2176",
+      "online_issn": "1875-5941",
+      "url": "https://www.tandfonline.com/tveq20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Wasafiri",
+      "subtitle": "",
+      "print_issn": "0269-0055",
+      "online_issn": "1747-1508",
+      "url": "https://www.tandfonline.com/rwas20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "World's Poultry Science Journal",
+      "subtitle": "",
+      "print_issn": "0043-9339",
+      "online_issn": "1743-4777",
+      "url": "https://www.tandfonline.com/twps20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "British Poultry Abstracts",
+      "subtitle": "",
+      "print_issn": "1746-6202",
+      "online_issn": "1746-6210",
+      "url": "https://www.tandfonline.com/cbpa20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "International Journal of Veterinary Science and Medicine",
+      "subtitle": "",
+      "print_issn": "",
+      "online_issn": "2314-4599",
+      "url": "https://www.tandfonline.com/tvsm20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Journal of Medical and Veterinary Mycology",
+      "subtitle": "",
+      "print_issn": "0268-1218",
+      "online_issn": "",
+      "url": "https://www.tandfonline.com/immy19",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Sabouraudia: Journal of Medical and Veterinary Mycology",
+      "subtitle": "",
+      "print_issn": "0036-2174",
+      "online_issn": "",
+      "url": "https://www.tandfonline.com/immy18",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Veterinary Medicine: Research and Reports",
+      "subtitle": "",
+      "print_issn": "",
+      "online_issn": "2230-2034",
+      "url": "https://www.tandfonline.com/dvmr20",
+      "publisher": "Taylor & Francis"
+    },
+    {
+      "title": "Veterinary Nursing Journal",
+      "subtitle": "",
+      "print_issn": "1741-5349",
+      "online_issn": "2045-0648",
+      "url": "https://www.tandfonline.com/tvnj20",
+      "publisher": "Taylor & Francis"
+    }
+  ]
+}

@@ -25,6 +25,8 @@ class RetrievedChunk:
     chunk_index: int
     total_chunks: int
     source_type: str
+    publisher: str = ""   # e.g. "Taylor & Francis" for T&F-seeded entries
+    url: str = ""         # direct link (e.g. tandfonline.com for T&F journals)
 
 
 def search(
@@ -71,6 +73,8 @@ def search(
             chunk_index=int(meta.get("chunk_index", 0)),
             total_chunks=int(meta.get("total_chunks", 1)),
             source_type=meta.get("source_type", "abstract"),
+            publisher=meta.get("publisher", ""),
+            url=meta.get("url", ""),
         ))
 
     return chunks

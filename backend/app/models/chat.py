@@ -22,6 +22,9 @@ class CitationItem(BaseModel):
     pages: str = ""
     doc_type: str = ""
     cited_by: int = 0
+    # Provenance — shown in UI so vets know exactly which publisher/database each source is from
+    publisher: str = ""   # e.g. "Taylor & Francis", "Elsevier", "Springer Nature"
+    source: str = ""      # e.g. "Scopus", "Springer Nature", "Taylor & Francis", "Literature"
 
 
 class LiveResourceItem(BaseModel):

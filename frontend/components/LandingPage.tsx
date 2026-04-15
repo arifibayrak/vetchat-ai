@@ -29,7 +29,7 @@ function Navbar() {
             <span className="text-white text-sm">🐾</span>
           </div>
           <span className={`font-semibold text-[15px] tracking-tight transition-colors ${scrolled ? "text-slate-900" : "text-white"}`}>
-            VetChat <span className="text-teal-400">AI</span>
+            Lenny
           </span>
         </a>
 
@@ -205,7 +205,7 @@ function ChatMockup() {
         <div className="w-3 h-3 rounded-full bg-green-500/70" />
         <div className="ml-3 flex items-center gap-1.5">
           <span className="text-white text-xs">🐾</span>
-          <span className="text-slate-400 text-xs font-medium">VetChat AI</span>
+          <span className="text-slate-400 text-xs font-medium">Lenny</span>
         </div>
       </div>
 
@@ -297,7 +297,7 @@ function FeaturesSection() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
           <p className="text-sm font-semibold text-teal-600 tracking-widest uppercase mb-3">
-            What VetChat AI does
+            What Lenny does
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
             Everything a vet needs,<br className="hidden sm:block" /> right at the point of care
@@ -445,7 +445,7 @@ function ExamplesSection() {
             </div>
             <div className="ml-3 flex items-center gap-2 text-slate-400 text-xs">
               <span>🐾</span>
-              <span>VetChat AI — Clinical Query</span>
+              <span>Lenny — Clinical Query</span>
             </div>
           </div>
 
@@ -774,7 +774,7 @@ function HowItWorks() {
             From question to cited answer<br className="hidden sm:block" /> in under 10 seconds
           </h2>
           <p className="text-slate-500 text-sm max-w-md mx-auto">
-            VetChat AI retrieves, ranks, and synthesises evidence from trusted veterinary sources — then explains it clearly.
+            Lenny retrieves, ranks, and synthesises evidence from trusted veterinary sources — then explains it clearly.
           </p>
         </div>
 
@@ -908,7 +908,7 @@ function ForClinics() {
             Equip your entire team with instant clinical intelligence
           </h2>
           <p className="text-slate-400 leading-relaxed mb-8">
-            Deploy VetChat AI across your clinic. Every vet, nurse, and student gets
+            Deploy Lenny across your clinic. Every vet, nurse, and student gets
             instant access to evidence-based answers — reducing errors, accelerating
             consultations, and improving patient outcomes.
           </p>
@@ -941,7 +941,7 @@ function CTASection() {
           Ready to transform how you practise?
         </h2>
         <p className="text-teal-100 mb-10 text-lg">
-          Join 500+ vets already using VetChat AI. Free during beta.
+          Join 500+ vets already using Lenny. Free during beta.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <Link
@@ -972,7 +972,7 @@ function Footer() {
             <span className="text-white text-xs">🐾</span>
           </div>
           <span className="text-slate-500">
-            &copy; {new Date().getFullYear()} VetChat AI. All rights reserved.
+            &copy; {new Date().getFullYear()} Lenny. All rights reserved.
           </span>
         </div>
         <div className="flex gap-6">

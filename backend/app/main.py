@@ -45,7 +45,7 @@ def create_app() -> FastAPI:
     settings = get_settings()
 
     app = FastAPI(
-        title="VetChat AI",
+        title="Lenny",
         version="0.1.0",
         lifespan=lifespan,
     )

@@ -23,7 +23,7 @@ export default function SignOutPage() {
         {/* Message */}
         <h1 className="text-2xl font-bold text-slate-900 mb-2">You&apos;ve been signed out</h1>
         <p className="text-sm text-slate-500 mb-8">
-          Thanks for using VetChat AI. Your session has been ended securely.
+          Thanks for using Lenny. Your session has been ended securely.
         </p>
 
         {/* Actions */}

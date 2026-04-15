@@ -102,7 +102,7 @@ export default function ChatPage() {
             <span className="text-2xl">🐾</span>
             <div>
               <h1 className="font-bold text-gray-800 text-lg leading-tight">
-                VetChat AI
+                Lenny
               </h1>
               <p className="text-xs text-gray-500">
                 Evidence-based clinical reference for veterinary professionals

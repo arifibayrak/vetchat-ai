@@ -55,7 +55,7 @@ export default function LoginPage() {
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Welcome back</h1>
           <p className="text-sm text-slate-500 mt-1">
-            Sign in to your VetChat AI account
+            Sign in to your Lenny account
           </p>
         </div>
 
@@ -109,7 +109,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-sm text-slate-500 mt-6">
-          New to VetChat AI?{" "}
+          New to Lenny?{" "}
           <Link href="/register" className="text-teal-600 hover:text-teal-700 font-medium">
             Create an account
           </Link>

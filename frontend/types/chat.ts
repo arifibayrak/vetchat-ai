@@ -1,3 +1,15 @@
+export type FlowStep =
+  | { type: "node"; text: string; sub?: string; highlight?: boolean }
+  | { type: "branch"; items: string[] }
+  | { type: "note"; text: string };
+
+export interface FlowData {
+  title: string;
+  icon: string;
+  steps: FlowStep[];
+  source: string;
+}
+
 export interface CitationItem {
   ref: number;
   title: string;
@@ -14,6 +26,9 @@ export interface CitationItem {
   pages?: string;
   doc_type?: string;
   cited_by?: number;
+  // Provenance — which publisher/database this source came from
+  publisher?: string;   // e.g. "Taylor & Francis", "Elsevier", "Springer Nature"
+  source?: string;      // e.g. "Scopus", "Springer Nature", "Taylor & Francis"
 }
 
 export interface LiveResourceItem {
@@ -56,6 +71,7 @@ export interface ChatResponse {
   matched_term?: string;
   resources: string[];
   disclaimer: string;
+  flow?: FlowData;
 }
 
 export interface ProgressStep {
@@ -76,4 +92,5 @@ export interface Message {
   isLoading?: boolean;
   steps?: ProgressStep[];
   currentStep?: number;
+  flow?: FlowData;
 }

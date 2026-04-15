@@ -17,7 +17,7 @@ EMERGENCY_RESOURCES = [
 ]
 
 DISCLAIMER = (
-    "VetChat AI is a clinical reference tool for licensed veterinary professionals. "
+    "Lenny is a clinical reference tool for licensed veterinary professionals. "
     "Information is derived from peer-reviewed veterinary literature and is intended "
     "to support — not replace — clinical judgment. All treatment decisions must account "
     "for patient-specific factors and applicable professional standards of care."

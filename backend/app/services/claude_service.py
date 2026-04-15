@@ -1,6 +1,7 @@
 """
 Claude API wrapper — streaming and non-streaming answers with citation context.
 """
+import json
 from pathlib import Path
 
 import anthropic
@@ -8,6 +9,31 @@ import anthropic
 from app.services.emergency_detector import DISCLAIMER
 
 _SYSTEM_PROMPT_PATH = Path(__file__).parent.parent / "data" / "system_prompt.txt"
+
+_FLOW_KEYWORDS = frozenset({
+    "workup", "approach", "protocol", "algorithm", "diagnostic",
+    "management", "treatment", "emergency", "differential", "triage",
+    "assessment", "evaluation", "step", "procedure", "how to",
+})
+
+_FLOW_SYSTEM = (
+    "You are a veterinary clinical decision support tool. "
+    "Given a query and a clinical answer, produce a structured step-by-step clinical algorithm as JSON. "
+    "Output ONLY valid JSON — no markdown fences, no explanation. "
+    'Format: {"title": "Short title", "icon": "one emoji", "steps": [...], "source": "Reference if known"}\n'
+    "Step types:\n"
+    '- {"type": "node", "text": "≤8 words", "sub": "optional detail ≤12 words", "highlight": true/false}\n'
+    '- {"type": "branch", "items": ["Option A", "Option B", "Option C"]}\n'
+    '- {"type": "note", "text": "Clinical pearl or conditional step"}\n'
+    "Rules: first node must have highlight:true (presenting problem). 6-12 steps total. "
+    "Use branch for differential/classification splits. Use note for conditionals. "
+    "source = main textbook or journal referenced."
+)
+
+
+def is_diagnostic_query(query: str) -> bool:
+    q = query.lower()
+    return any(kw in q for kw in _FLOW_KEYWORDS)
 _system_prompt: str | None = None
 
 
@@ -71,6 +97,30 @@ class ClaudeService:
         )
         return response.content[0].text
 
+    def generate_flow(self, query: str, answer: str) -> dict | None:
+        """
+        Generate a structured clinical decision flow for diagnostic/algorithm queries.
+        Returns a dict with title, icon, steps, source — or None on failure.
+        """
+        try:
+            response = self._client.messages.create(
+                model=self._model,
+                max_tokens=800,
+                system=_FLOW_SYSTEM,
+                messages=[{
+                    "role": "user",
+                    "content": f"Query: {query}\n\nAnswer:\n{answer[:2000]}",
+                }],
+            )
+            text = response.content[0].text.strip()
+            # Strip markdown fences if Claude adds them anyway
+            if text.startswith("```"):
+                parts = text.split("```")
+                text = parts[1].lstrip("json").strip() if len(parts) > 1 else text
+            return json.loads(text)
+        except Exception:
+            return None
+
     def stream(self, query: str, context_block: str, max_tokens: int = 4096):
         """
         Streaming completion — yields text chunks.
@@ -92,6 +142,12 @@ def _build_user_message(query: str, context_block: str) -> str:
         f"{query}\n\n"
         f"## Retrieved Veterinary Literature\n"
         f"{context_block}\n\n"
-        f"Please answer based solely on the literature above. "
-        f"Cite sources inline using [N] notation."
+        f"STRICT INSTRUCTIONS — you MUST follow these exactly:\n"
+        f"1. Answer ONLY using the retrieved literature above. Do NOT draw on your training knowledge.\n"
+        f"2. Every factual claim MUST be cited inline with [N] notation referencing a source above.\n"
+        f"3. If the literature above does not directly support a claim, do NOT make that claim.\n"
+        f"4. If the retrieved passages are insufficient to answer the question, output this exact message and nothing else: "
+        f'"I was unable to find peer-reviewed research that directly addresses your question. '
+        f'Please try rephrasing your question or ask about a related veterinary topic."\n'
+        f"5. A response with no [N] citations is not acceptable under any circumstances."
     )
