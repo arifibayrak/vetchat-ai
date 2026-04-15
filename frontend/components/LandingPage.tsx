@@ -25,9 +25,9 @@ function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo — dog only, no background box */}
-        <a href="#" className="flex items-center gap-2.5 group">
+        <a href="#" className="flex items-center gap-1 group">
           <DogLogo size={36} />
-          <span className="font-bold text-[16px] tracking-tight text-teal-400 group-hover:text-teal-300 transition-colors">
+          <span className="font-bold text-[17px] tracking-tight transition-colors" style={{ color: "#C07030" }}>
             Lenny
           </span>
         </a>
@@ -166,8 +166,8 @@ function Hero() {
         </div>
       </div>
 
-      {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent" />
+      {/* Bottom fade — dark to dark, no white bleed */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-950 to-transparent" />
     </section>
   );
 }
@@ -286,16 +286,16 @@ const FEATURES = [
 
 function FeaturesSection() {
   return (
-    <section id="features" className="py-24 bg-white">
+    <section id="features" className="py-24 bg-slate-950">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
-          <p className="text-sm font-semibold text-teal-600 tracking-widest uppercase mb-3">
+          <p className="text-sm font-semibold text-teal-400 tracking-widest uppercase mb-3">
             What Lenny does
           </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
             Everything a vet needs,<br className="hidden sm:block" /> right at the point of care
           </h2>
-          <p className="text-slate-500 max-w-xl mx-auto">
+          <p className="text-slate-400 max-w-xl mx-auto">
             Built specifically for veterinary professionals — not a general-purpose chatbot repurposed for medicine.
           </p>
         </div>
@@ -304,17 +304,17 @@ function FeaturesSection() {
           {FEATURES.map((f) => (
             <div
               key={f.title}
-              className="group p-8 rounded-2xl border border-slate-200 bg-white hover:border-teal-200 hover:shadow-xl hover:shadow-teal-50 transition-all duration-300 hover:-translate-y-1"
+              className="group p-8 rounded-2xl border border-slate-700 bg-slate-800/50 hover:border-teal-500/40 hover:shadow-xl hover:shadow-teal-900/20 transition-all duration-300 hover:-translate-y-1"
             >
-              <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center text-2xl mb-5 group-hover:bg-teal-100 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-teal-900/30 flex items-center justify-center text-2xl mb-5 group-hover:bg-teal-900/50 transition-colors">
                 {f.icon}
               </div>
-              <div className="inline-block px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-700 text-xs font-medium mb-3">
+              <div className="inline-block px-2.5 py-0.5 rounded-full bg-teal-900/30 text-teal-400 text-xs font-medium mb-3">
                 {f.tag}
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-3">{f.title}</h3>
-              <p className="text-slate-500 leading-relaxed text-sm">{f.description}</p>
-              <div className="mt-5 text-teal-600 text-sm font-medium group-hover:text-teal-700 flex items-center gap-1.5">
+              <h3 className="text-lg font-semibold text-white mb-3">{f.title}</h3>
+              <p className="text-slate-400 leading-relaxed text-sm">{f.description}</p>
+              <div className="mt-5 text-teal-400 text-sm font-medium group-hover:text-teal-300 flex items-center gap-1.5">
                 Learn more <span className="group-hover:translate-x-0.5 transition-transform inline-block">→</span>
               </div>
             </div>
@@ -756,17 +756,17 @@ function HowItWorks() {
   ];
 
   return (
-    <section id="how-it-works" className="py-24 bg-white overflow-hidden">
+    <section id="how-it-works" className="py-24 bg-slate-900 overflow-hidden">
       <div className="max-w-6xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-20">
-          <p className="text-sm font-semibold text-teal-600 tracking-widest uppercase mb-3">
+          <p className="text-sm font-semibold text-teal-400 tracking-widest uppercase mb-3">
             How it works
           </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
             From question to cited answer<br className="hidden sm:block" /> in under 10 seconds
           </h2>
-          <p className="text-slate-500 text-sm max-w-md mx-auto">
+          <p className="text-slate-400 text-sm max-w-md mx-auto">
             Lenny retrieves, ranks, and synthesises evidence from trusted veterinary sources — then explains it clearly.
           </p>
         </div>
@@ -774,7 +774,7 @@ function HowItWorks() {
         {/* Pipeline diagram */}
         <div className="relative">
           {/* Horizontal connector (desktop) */}
-          <div className="hidden lg:block absolute top-14 left-[12%] right-[12%] h-0.5 bg-gradient-to-r from-teal-200 via-teal-400 to-teal-200 z-0" />
+          <div className="hidden lg:block absolute top-14 left-[12%] right-[12%] h-0.5 bg-gradient-to-r from-slate-700 via-teal-500 to-slate-700 z-0" />
 
           <div className="grid lg:grid-cols-4 gap-6 relative z-10">
             {/* Node 1: You ask */}
@@ -783,47 +783,47 @@ function HowItWorks() {
                 <span className="text-3xl">💬</span>
                 <span className="text-white text-xs font-semibold mt-1">You ask</span>
               </div>
-              <h3 className="font-semibold text-slate-900 mb-2">Clinical question</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
+              <h3 className="font-semibold text-white mb-2">Clinical question</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
                 Plain language — drug dose, emergency protocol, differential diagnosis, anything.
               </p>
-              <div className="mt-3 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-600 italic w-full">
+              <div className="mt-3 bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-xs text-slate-300 italic w-full">
                 &ldquo;Safe ketamine dose for a 4 kg cat?&rdquo;
               </div>
             </div>
 
             {/* Node 2: AI processes */}
             <div className="flex flex-col items-center text-center">
-              <div className="w-28 h-28 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-700 flex flex-col items-center justify-center gap-1 shadow-xl shadow-teal-200 mb-5">
+              <div className="w-28 h-28 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-700 flex flex-col items-center justify-center gap-1 shadow-xl shadow-teal-900/50 mb-5">
                 <span className="text-3xl">🧠</span>
                 <span className="text-white text-xs font-semibold mt-1">AI processes</span>
               </div>
-              <h3 className="font-semibold text-slate-900 mb-2">Query understanding</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
+              <h3 className="font-semibold text-white mb-2">Query understanding</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
                 Identifies species, drug, clinical context, and retrieves the most relevant knowledge chunks.
               </p>
               <div className="mt-3 flex flex-col gap-1 w-full">
                 {["Species: Feline", "Drug: Ketamine", "Context: Anaesthesia"].map((t) => (
-                  <div key={t} className="bg-teal-50 border border-teal-200 rounded-lg px-2.5 py-1 text-xs text-teal-700 text-left">{t}</div>
+                  <div key={t} className="bg-teal-900/40 border border-teal-700/50 rounded-lg px-2.5 py-1 text-xs text-teal-300 text-left">{t}</div>
                 ))}
               </div>
             </div>
 
             {/* Node 3: Knowledge base */}
             <div className="flex flex-col items-center text-center">
-              <div className="w-28 h-28 rounded-2xl bg-white border-2 border-slate-200 flex flex-col items-center justify-center gap-1 shadow-lg mb-5">
+              <div className="w-28 h-28 rounded-2xl bg-slate-800 border-2 border-slate-600 flex flex-col items-center justify-center gap-1 shadow-lg mb-5">
                 <span className="text-3xl">📚</span>
-                <span className="text-slate-700 text-xs font-semibold mt-1">Knowledge</span>
+                <span className="text-slate-200 text-xs font-semibold mt-1">Knowledge</span>
               </div>
-              <h3 className="font-semibold text-slate-900 mb-2">Trusted sources</h3>
-              <p className="text-xs text-slate-500 leading-relaxed mb-3">
+              <h3 className="font-semibold text-white mb-2">Trusted sources</h3>
+              <p className="text-xs text-slate-400 leading-relaxed mb-3">
                 Searches across a curated veterinary knowledge base.
               </p>
               <div className="flex flex-col gap-1 w-full">
                 {sources.map((s) => (
-                  <div key={s.label} className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1">
+                  <div key={s.label} className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1">
                     <span className="text-xs">{s.icon}</span>
-                    <span className="text-xs text-slate-600">{s.label}</span>
+                    <span className="text-xs text-slate-300">{s.label}</span>
                   </div>
                 ))}
               </div>
@@ -831,23 +831,23 @@ function HowItWorks() {
 
             {/* Node 4: Cited answer */}
             <div className="flex flex-col items-center text-center">
-              <div className="w-28 h-28 rounded-2xl bg-emerald-600 flex flex-col items-center justify-center gap-1 shadow-xl shadow-emerald-200 mb-5">
+              <div className="w-28 h-28 rounded-2xl bg-emerald-600 flex flex-col items-center justify-center gap-1 shadow-xl shadow-emerald-900/50 mb-5">
                 <span className="text-3xl">✅</span>
                 <span className="text-white text-xs font-semibold mt-1">You receive</span>
               </div>
-              <h3 className="font-semibold text-slate-900 mb-2">Cited answer</h3>
-              <p className="text-xs text-slate-500 leading-relaxed mb-3">
+              <h3 className="font-semibold text-white mb-2">Cited answer</h3>
+              <p className="text-xs text-slate-400 leading-relaxed mb-3">
                 Clear, structured response with the exact sources cited — verifiable and shareable.
               </p>
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 text-xs text-emerald-800 text-left w-full">
+              <div className="bg-emerald-900/30 border border-emerald-700/50 rounded-xl px-3 py-2 text-xs text-emerald-200 text-left w-full">
                 <p className="font-semibold mb-1">2–4 mg/kg IV ketamine</p>
-                <p className="text-emerald-600">📖 BSAVA Manual of Anaesthesia</p>
+                <p className="text-emerald-400">📖 BSAVA Manual of Anaesthesia</p>
               </div>
             </div>
           </div>
 
           {/* Mobile vertical connector */}
-          <div className="lg:hidden absolute top-28 left-1/2 -translate-x-1/2 w-0.5 bg-gradient-to-b from-teal-200 to-teal-400" style={{ height: "calc(100% - 7rem)" }} />
+          <div className="lg:hidden absolute top-28 left-1/2 -translate-x-1/2 w-0.5 bg-gradient-to-b from-slate-700 via-teal-500 to-slate-700" style={{ height: "calc(100% - 7rem)" }} />
         </div>
 
         {/* Bottom note */}
