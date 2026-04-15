@@ -31,7 +31,7 @@ export default function SignOutPage() {
         <div className="flex flex-col gap-3">
           <Link
             href="/login"
-            className="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl text-sm transition-colors shadow-sm"
+            className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl text-sm transition-colors shadow-sm"
           >
             Sign back in
           </Link>

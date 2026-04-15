@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { ChatResponse, Message, ProgressStep } from "@/types/chat";
+import type { ChatResponse, FlowData, Message, ProgressStep } from "@/types/chat";
 import { useAuthContext } from "@/components/AuthProvider";
 
 let _idCounter = 0;
@@ -13,6 +13,7 @@ async function streamChat(
   onProgress: (step: ProgressStep) => void,
   onResult: (response: ChatResponse) => void,
   onError: (msg: string) => void,
+  onFlow: (flow: FlowData) => void,
 ) {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -48,6 +49,8 @@ async function streamChat(
           onProgress({ step: event.step, label: event.label, icon: event.icon, done: false });
         } else if (event.type === "result") {
           onResult(event.payload as ChatResponse);
+        } else if (event.type === "flow") {
+          onFlow(event.payload as FlowData);
         }
       } catch {
         // malformed line — skip
@@ -165,6 +168,14 @@ export function useChat(onComplete?: () => void) {
         setError(errMsg);
         setMessages((prev) => prev.filter((msg) => msg.id !== assistantId));
         setIsLoading(false);
+      },
+      // onFlow
+      (flow) => {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantId ? { ...msg, flow } : msg,
+          ),
+        );
       },
     );
   }, [isLoading, token, onComplete]);

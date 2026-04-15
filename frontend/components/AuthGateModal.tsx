@@ -45,17 +45,17 @@ export default function AuthGateModal({ query, onClose }: AuthGateModalProps) {
           </div>
 
           {query && (
-            <div className="bg-teal-50 border border-teal-200 rounded-lg px-4 py-3 text-sm text-teal-800 text-left">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-800 text-left">
               <span className="font-medium">Your question:</span>{" "}
               <span className="italic">&ldquo;{query}&rdquo;</span>
-              <p className="text-xs text-teal-600 mt-1">Sign in to continue with this search</p>
+              <p className="text-xs text-amber-600 mt-1">Sign in to continue with this search</p>
             </div>
           )}
 
           <div className="flex flex-col gap-3 pt-2">
             <Link
               href="/register"
-              className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl py-3 text-sm transition-colors text-center"
+              className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl py-3 text-sm transition-colors text-center"
             >
               Create free account
             </Link>

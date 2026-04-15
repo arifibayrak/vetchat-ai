@@ -57,7 +57,7 @@ export default function Sidebar({
         <div className="p-3 border-b border-gray-100">
           <button
             onClick={onNewChat}
-            className="w-full bg-teal-600 hover:bg-teal-700 text-white rounded-lg py-2 text-sm font-medium transition-colors"
+            className="w-full bg-amber-600 hover:bg-amber-700 text-white rounded-lg py-2 text-sm font-medium transition-colors"
           >
             + New Chat
           </button>
@@ -100,7 +100,7 @@ export default function Sidebar({
                       onClick={() => onSelectConversation(conv.id)}
                       className={`w-full text-left px-3 py-2 rounded-lg mx-1 transition-colors ${
                         activeConversationId === conv.id
-                          ? "bg-teal-100 text-teal-800 font-medium"
+                          ? "bg-amber-100 text-amber-800 font-medium"
                           : "text-gray-700 hover:bg-gray-100"
                       }`}
                     >
@@ -143,7 +143,7 @@ export default function Sidebar({
                 </div>
                 <Link
                   href="/profile"
-                  className="shrink-0 ml-2 text-gray-400 hover:text-teal-600 transition-colors"
+                  className="shrink-0 ml-2 text-gray-400 hover:text-amber-600 transition-colors"
                   title="Edit profile"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
@@ -171,7 +171,7 @@ export default function Sidebar({
               </Link>
               <Link
                 href="/register"
-                className="flex-1 text-center text-xs text-white bg-teal-600 hover:bg-teal-700 rounded-lg py-1.5 transition-colors"
+                className="flex-1 text-center text-xs text-white bg-amber-600 hover:bg-amber-700 rounded-lg py-1.5 transition-colors"
               >
                 Register
               </Link>

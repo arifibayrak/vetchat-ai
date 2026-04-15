@@ -39,7 +39,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md mb-6">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-teal-600 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-amber-600 transition-colors"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6" />
@@ -73,7 +73,7 @@ export default function LoginPage() {
               required
               autoComplete="email"
               placeholder="you@clinic.com"
-              className="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-shadow"
+              className="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-shadow"
             />
           </div>
 
@@ -89,14 +89,14 @@ export default function LoginPage() {
               required
               autoComplete="current-password"
               placeholder="••••••••"
-              className="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-shadow"
+              className="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-shadow"
             />
           </div>
 
           <div className="flex justify-end">
             <Link
               href="#"
-              className="text-xs text-slate-500 hover:text-teal-600 transition-colors"
+              className="text-xs text-slate-500 hover:text-amber-600 transition-colors"
             >
               Forgot password?
             </Link>
@@ -114,7 +114,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors shadow-sm mt-2"
+            className="w-full bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors shadow-sm mt-2"
           >
             <span className="flex items-center justify-center gap-2">
               {loading && (
@@ -130,7 +130,7 @@ export default function LoginPage() {
 
         <p className="text-center text-sm text-slate-500 mt-6">
           New to Lenny?{" "}
-          <Link href="/register" className="text-teal-600 hover:text-teal-700 font-medium">
+          <Link href="/register" className="text-amber-600 hover:text-amber-700 font-medium">
             Create free account
           </Link>
         </p>

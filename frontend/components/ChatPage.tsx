@@ -102,7 +102,7 @@ export default function ChatPage() {
           >
             <DogLogo size={36} />
             <div>
-              <h1 className="font-bold text-teal-400 text-lg leading-tight">
+              <h1 className="font-bold text-amber-400 text-lg leading-tight">
                 Lenny
               </h1>
               <p className="text-xs text-slate-400">
@@ -121,7 +121,7 @@ export default function ChatPage() {
               </Link>
               <Link
                 href="/register"
-                className="text-sm bg-teal-600 hover:bg-teal-700 text-white rounded-lg px-3 py-1.5 font-medium transition-colors"
+                className="text-sm bg-amber-600 hover:bg-amber-700 text-white rounded-lg px-3 py-1.5 font-medium transition-colors"
               >
                 Register
               </Link>
