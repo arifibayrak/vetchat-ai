@@ -8,6 +8,7 @@ import { useChat } from "@/hooks/useChat";
 import { useConversations } from "@/hooks/useConversations";
 import AuthGateModal from "./AuthGateModal";
 import DisclaimerFooter from "./DisclaimerFooter";
+import DogLogo from "./DogLogo";
 import InputBar from "./InputBar";
 import MessageList from "./MessageList";
 import Sidebar from "./Sidebar";
@@ -99,7 +100,7 @@ export default function ChatPage() {
             href="/"
             className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
-            <span className="text-2xl">🐾</span>
+            <DogLogo size={36} />
             <div>
               <h1 className="font-bold text-gray-800 text-lg leading-tight">
                 Lenny

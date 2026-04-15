@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { useAuthContext } from "@/components/AuthProvider";
+import DogLogo from "@/components/DogLogo";
 
 export default function LoginPage() {
   const { user, login } = useAuthContext();
@@ -50,8 +51,8 @@ export default function LoginPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 w-full max-w-md animate-slide-up">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center mx-auto mb-4 shadow-sm">
-            <span className="text-xl">🐾</span>
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center mx-auto mb-4 shadow-sm overflow-hidden">
+            <DogLogo size={40} />
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Welcome back</h1>
           <p className="text-sm text-slate-500 mt-1">

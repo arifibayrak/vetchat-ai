@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { useAuthContext } from "@/components/AuthProvider";
+import DogLogo from "@/components/DogLogo";
 
 export default function SignOutPage() {
   const { logout } = useAuthContext();
@@ -16,8 +17,8 @@ export default function SignOutPage() {
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-10 w-full max-w-md text-center animate-slide-up">
         {/* Icon */}
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center mx-auto mb-6 shadow-md">
-          <span className="text-3xl">🐾</span>
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center mx-auto mb-6 shadow-md overflow-hidden">
+          <DogLogo size={52} />
         </div>
 
         {/* Message */}

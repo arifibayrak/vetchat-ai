@@ -15,6 +15,65 @@ from app.ingestion.sciencedirect_client import ArticleMetadata, ConfigurationErr
 from app.ingestion.springer_nature_client import SpringerNatureClient
 
 _MOCK_DIR = Path(__file__).parent.parent.parent / "data" / "mock"
+_TF_JOURNALS_FILE = Path(__file__).parent.parent.parent / "data" / "taylor_francis_journals.json"
+
+
+def _tf_journal_id(title: str) -> str:
+    import hashlib
+    return "tf_" + hashlib.sha256(title.encode()).hexdigest()[:12]
+
+
+def seed_taylor_francis(collection: chromadb.Collection, embedding_model: str = "all-MiniLM-L6-v2") -> int:
+    """Seed T&F veterinary journal catalog into Chroma. Returns number of entries upserted."""
+    if not _TF_JOURNALS_FILE.exists():
+        return 0
+
+    with open(_TF_JOURNALS_FILE) as f:
+        data = json.load(f)
+
+    journals = data.get("journals", [])
+    if not journals:
+        return 0
+
+    texts = []
+    for j in journals:
+        parts = [f"Journal: {j['title']}"]
+        if j.get("subtitle"):
+            parts.append(f"Subtitle: {j['subtitle']}")
+        parts.append("Publisher: Taylor & Francis (tandfonline.com)")
+        if j.get("print_issn"):
+            parts.append(f"Print ISSN: {j['print_issn']}")
+        if j.get("online_issn"):
+            parts.append(f"Online ISSN: {j['online_issn']}")
+        if j.get("url"):
+            parts.append(f"URL: {j['url']}")
+        parts.append("Category: Veterinary Science and Animal Health")
+        texts.append(" | ".join(parts))
+
+    embeddings = embed_texts(texts, model_name=embedding_model)
+
+    ids, docs, embs, metas = [], [], [], []
+    for j, text, emb in zip(journals, texts, embeddings):
+        ids.append(_tf_journal_id(j["title"]))
+        docs.append(text)
+        embs.append(emb)
+        metas.append({
+            "doi": "",
+            "title": j["title"],
+            "journal": j["title"],
+            "year": 2024,
+            "authors": "Taylor & Francis",
+            "chunk_index": 0,
+            "total_chunks": 1,
+            "source_type": "journal_directory",
+            "publisher": "Taylor & Francis",
+            "print_issn": j.get("print_issn", ""),
+            "online_issn": j.get("online_issn", ""),
+            "url": j.get("url", ""),
+        })
+
+    collection.upsert(ids=ids, documents=docs, embeddings=embs, metadatas=metas)
+    return len(ids)
 
 
 def _chunk_id(doi: str, chunk_index: int) -> str:

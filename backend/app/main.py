@@ -24,6 +24,22 @@ async def lifespan(app: FastAPI):
     app.state.chroma_client = client
     app.state.chroma_collection = collection
 
+    # Auto-seed content if collection is empty (first deploy / fresh environment)
+    if collection.count() == 0:
+        _log.info("ChromaDB is empty — seeding mock clinical data and T&F journals…")
+        try:
+            from app.ingestion.pipeline import seed_mock, seed_taylor_francis
+            import asyncio
+            loop = asyncio.get_event_loop()
+            n_mock = await seed_mock(collection, settings)
+            _log.info("Seeded %d mock clinical chunks.", n_mock)
+            n_tf = await loop.run_in_executor(None, seed_taylor_francis, collection, settings.embedding_model)
+            _log.info("Seeded %d Taylor & Francis journal entries.", n_tf)
+        except Exception as exc:
+            _log.warning("Auto-seed failed (app still starts): %s", exc)
+    else:
+        _log.info("ChromaDB has %d documents — skipping seed.", collection.count())
+
     # Initialise PostgreSQL if DATABASE_URL is configured
     if settings.database_url:
         from app.database import create_tables, init_db

@@ -142,12 +142,11 @@ def _build_user_message(query: str, context_block: str) -> str:
         f"{query}\n\n"
         f"## Retrieved Veterinary Literature\n"
         f"{context_block}\n\n"
-        f"STRICT INSTRUCTIONS — you MUST follow these exactly:\n"
-        f"1. Answer ONLY using the retrieved literature above. Do NOT draw on your training knowledge.\n"
-        f"2. Every factual claim MUST be cited inline with [N] notation referencing a source above.\n"
-        f"3. If the literature above does not directly support a claim, do NOT make that claim.\n"
-        f"4. If the retrieved passages are insufficient to answer the question, output this exact message and nothing else: "
-        f'"I was unable to find peer-reviewed research that directly addresses your question. '
-        f'Please try rephrasing your question or ask about a related veterinary topic."\n'
-        f"5. A response with no [N] citations is not acceptable under any circumstances."
+        f"Instructions:\n"
+        f"- Answer using the retrieved literature above. Cite every factual claim with [N] notation.\n"
+        f"- If a source is a journal directory entry (no article text), you may mention the journal name "
+        f"and URL as a resource the vet can consult, and cite it with [N].\n"
+        f"- Do not make clinical claims that are not supported by the retrieved sources.\n"
+        f"- If the retrieved content is insufficient to answer, say so clearly and suggest the vet "
+        f"consult the listed journals directly."
     )

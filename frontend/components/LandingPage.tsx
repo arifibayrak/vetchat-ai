@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import DogLogo from "./DogLogo";
 
 // ─── Nav ───────────────────────────────────────────────────────────────────────
 function Navbar() {
@@ -25,8 +26,8 @@ function Navbar() {
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <a href="#" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center shadow-sm group-hover:shadow-teal-200 transition-shadow">
-            <span className="text-white text-sm">🐾</span>
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center shadow-sm group-hover:shadow-teal-200 transition-shadow overflow-hidden">
+            <DogLogo size={26} />
           </div>
           <span className={`font-semibold text-[15px] tracking-tight transition-colors ${scrolled ? "text-slate-900" : "text-white"}`}>
             Lenny
