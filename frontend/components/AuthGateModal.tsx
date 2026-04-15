@@ -26,12 +26,17 @@ export default function AuthGateModal({ query, onClose }: AuthGateModalProps) {
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full animate-scale-in">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-modal-title"
+        className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full animate-scale-in"
+      >
         <div className="text-center space-y-4">
           <span className="text-4xl block">🐾</span>
 
           <div>
-            <h2 className="text-xl font-bold text-gray-800">
+            <h2 id="auth-modal-title" className="text-xl font-bold text-gray-800">
               Sign in to search veterinary literature
             </h2>
             <p className="mt-1 text-sm text-gray-500">
@@ -62,11 +67,15 @@ export default function AuthGateModal({ query, onClose }: AuthGateModalProps) {
             </Link>
           </div>
 
+          <p className="text-xs text-gray-400 mt-1">
+            Free during beta — no credit card required
+          </p>
+
           <button
             onClick={onClose}
-            className="text-xs text-gray-400 hover:text-gray-600 transition-colors mt-1"
+            className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
           >
-            Continue browsing without signing in
+            Not now
           </button>
         </div>
       </div>

@@ -115,7 +115,7 @@ export default function ChatPage() {
             <div className="ml-auto flex items-center gap-2">
               <Link
                 href="/login"
-                className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                className="text-sm text-slate-300 hover:text-white transition-colors"
               >
                 Sign in
               </Link>

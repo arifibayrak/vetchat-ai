@@ -62,10 +62,11 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+            <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 mb-1.5">
               Email
             </label>
             <input
+              id="login-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -77,10 +78,11 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+            <label htmlFor="login-password" className="block text-sm font-medium text-slate-700 mb-1.5">
               Password
             </label>
             <input
+              id="login-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -89,6 +91,15 @@ export default function LoginPage() {
               placeholder="••••••••"
               className="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-shadow"
             />
+          </div>
+
+          <div className="flex justify-end">
+            <Link
+              href="#"
+              className="text-xs text-slate-500 hover:text-teal-600 transition-colors"
+            >
+              Forgot password?
+            </Link>
           </div>
 
           {error && (
@@ -105,14 +116,22 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors shadow-sm mt-2"
           >
-            {loading ? "Signing in…" : "Sign in"}
+            <span className="flex items-center justify-center gap-2">
+              {loading && (
+                <svg className="animate-spin w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+              )}
+              Sign in
+            </span>
           </button>
         </form>
 
         <p className="text-center text-sm text-slate-500 mt-6">
           New to Lenny?{" "}
           <Link href="/register" className="text-teal-600 hover:text-teal-700 font-medium">
-            Create an account
+            Create free account
           </Link>
         </p>
       </div>

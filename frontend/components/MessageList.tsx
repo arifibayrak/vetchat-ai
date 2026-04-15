@@ -84,7 +84,7 @@ export default function MessageList({ messages, onSend, isAuthenticated, onAuthG
           <div className="space-y-1 animate-slide-up">
             <p className="text-3xl sm:text-4xl">🐾</p>
             <p className="text-gray-600 font-medium text-sm sm:text-base">
-              Ask a clinical question to access veterinary literature evidence.
+              Ask any clinical question — Lenny searches peer-reviewed veterinary literature for you.
             </p>
             <p className="text-xs text-gray-400">
               Powered by ScienceDirect · Springer Nature
@@ -96,7 +96,8 @@ export default function MessageList({ messages, onSend, isAuthenticated, onAuthG
               <button
                 key={p.label}
                 onClick={() => handlePromptClick(p.query)}
-                className={`text-left rounded-xl border border-gray-200 bg-white px-3 py-2.5 sm:px-4 sm:py-3 text-sm text-gray-700 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 active:bg-blue-100 transition-colors shadow-sm animate-slide-up ${DELAY_CLASSES[i] ?? ""}`}
+                aria-label={`Ask: ${p.query}`}
+                className={`text-left rounded-xl border border-gray-200 bg-white px-3 py-2.5 sm:px-4 sm:py-3 text-sm text-gray-700 hover:border-teal-400 hover:bg-teal-50 hover:text-teal-700 active:bg-teal-100 transition-colors shadow-sm animate-slide-up ${DELAY_CLASSES[i] ?? ""}`}
               >
                 <span className="font-medium leading-snug block">{p.label}</span>
               </button>

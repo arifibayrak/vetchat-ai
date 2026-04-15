@@ -3,6 +3,7 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Message } from "@/types/chat";
+import AlgoFlow from "./AlgoFlow";
 import EmergencyBanner from "./EmergencyBanner";
 import ReferencesPanel from "./ReferencesPanel";
 import LoadingSteps from "./LoadingSteps";
@@ -12,11 +13,11 @@ interface MessageBubbleProps {
 }
 
 const SECTION_COLORS: Record<string, string> = {
-  "Overview":                "border-blue-400 bg-blue-50 text-blue-900",
-  "What the Research Shows": "border-indigo-400 bg-indigo-50 text-indigo-900",
-  "Clinical Signs":          "border-amber-400 bg-amber-50 text-amber-900",
-  "Management Approach":     "border-teal-400 bg-teal-50 text-teal-900",
-  "Veterinary Recommendation":"border-green-400 bg-green-50 text-green-900",
+  "Overview":                 "border-slate-400 bg-slate-50 text-slate-800",
+  "What the Research Shows":  "border-slate-400 bg-slate-50 text-slate-800",
+  "Clinical Signs":           "border-slate-400 bg-slate-50 text-slate-800",
+  "Management Approach":      "border-teal-400  bg-teal-50  text-teal-900",
+  "Veterinary Recommendation":"border-teal-400  bg-teal-50  text-teal-900",
 };
 
 const SECTION_ICONS: Record<string, string> = {
@@ -37,7 +38,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
   if (isUser) {
     return (
       <div className="flex justify-end animate-slide-up">
-        <div className="max-w-xl rounded-2xl bg-blue-600 px-4 py-2 text-white text-sm shadow">
+        <div className="max-w-xl rounded-2xl bg-teal-600 px-4 py-2 text-white text-sm shadow">
           {message.content}
         </div>
       </div>
@@ -70,7 +71,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
               components={{
                 h2({ children }) {
                   const label = String(children);
-                  const colorClass = SECTION_COLORS[label] ?? "border-gray-300 bg-gray-50 text-gray-800";
+                  const colorClass = SECTION_COLORS[label] ?? "border-slate-300 bg-slate-50 text-slate-800";
                   const icon = SECTION_ICONS[label] ?? "•";
                   return (
                     <div className={`rounded-lg border-l-4 px-4 py-2 mt-4 mb-2 font-semibold text-sm ${colorClass}`}>
@@ -87,7 +88,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                 li({ children }) {
                   return (
                     <li className="flex gap-2 text-gray-700 text-sm leading-relaxed">
-                      <span className="text-blue-400 mt-0.5 shrink-0">▸</span>
+                      <span className="text-teal-500 mt-0.5 shrink-0">▸</span>
                       <span>{children}</span>
                     </li>
                   );
@@ -104,7 +105,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                       rel={isAnchor ? undefined : "noopener noreferrer"}
                       className={isAnchor
                         ? "inline-flex items-center justify-center w-5 h-5 rounded-full bg-violet-600 text-white text-xs font-bold hover:bg-violet-800 transition-colors cursor-pointer align-baseline mx-0.5"
-                        : "text-blue-600 underline hover:text-blue-800"
+                        : "text-teal-600 underline hover:text-teal-800"
                       }
                     >
                       {children}
@@ -120,6 +121,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             </ReactMarkdown>
 
             <ReferencesPanel citations={message.citations} liveResources={message.liveResources} />
+            {message.flow && <AlgoFlow flow={message.flow} />}
           </>
       </div>
     </div>

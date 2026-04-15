@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Spinner from "./Spinner";
 
 interface InputBarProps {
   onSend: (query: string) => void;
@@ -26,14 +27,19 @@ export default function InputBar({ onSend, disabled }: InputBarProps) {
         onChange={(e) => setValue(e.target.value)}
         placeholder="Ask a clinical question…"
         disabled={disabled}
-        className="flex-1 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
+        aria-label="Clinical question"
+        className="flex-1 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400 disabled:opacity-50"
       />
       <button
         type="submit"
         disabled={disabled || !value.trim()}
-        className="rounded-full bg-blue-600 px-4 sm:px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-40 transition-colors shrink-0"
+        aria-label="Send message"
+        className="rounded-full bg-teal-600 px-4 sm:px-5 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-40 transition-colors shrink-0"
       >
-        {disabled ? "…" : "Send"}
+        <span className="flex items-center gap-1.5">
+          {disabled && <Spinner className="w-3.5 h-3.5 text-white" />}
+          Send
+        </span>
       </button>
     </form>
   );
