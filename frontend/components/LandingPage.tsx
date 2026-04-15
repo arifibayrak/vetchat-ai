@@ -19,17 +19,15 @@ function Navbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-white/95 backdrop-blur-sm border-b border-slate-100 shadow-sm"
+          ? "bg-slate-900/95 backdrop-blur-sm border-b border-slate-700/60 shadow-sm"
           : "bg-transparent"
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Logo */}
+        {/* Logo — dog only, no background box */}
         <a href="#" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center shadow-sm group-hover:shadow-teal-200 transition-shadow overflow-hidden">
-            <DogLogo size={26} />
-          </div>
-          <span className={`font-semibold text-[15px] tracking-tight transition-colors ${scrolled ? "text-slate-900" : "text-white"}`}>
+          <DogLogo size={36} />
+          <span className="font-bold text-[16px] tracking-tight text-teal-400 group-hover:text-teal-300 transition-colors">
             Lenny
           </span>
         </a>
@@ -40,11 +38,7 @@ function Navbar() {
             <a
               key={item}
               href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
-              className={`px-3.5 py-2 text-sm rounded-md transition-colors ${
-                scrolled
-                  ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                  : "text-white/80 hover:text-white hover:bg-white/10"
-              }`}
+              className="px-3.5 py-2 text-sm rounded-md transition-colors text-slate-300 hover:text-white hover:bg-white/10"
             >
               {item}
             </a>
@@ -55,9 +49,7 @@ function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           <Link
             href="/login"
-            className={`text-sm px-4 py-2 rounded-md transition-colors ${
-              scrolled ? "text-slate-600 hover:text-slate-900" : "text-white/80 hover:text-white"
-            }`}
+            className="text-sm px-4 py-2 rounded-md transition-colors text-slate-300 hover:text-white"
           >
             Log in
           </Link>
@@ -75,29 +67,29 @@ function Navbar() {
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
         >
-          <div className={`space-y-1.5 transition-all ${menuOpen ? "rotate-45" : ""}`}>
-            <span className={`block w-5 h-0.5 transition-colors ${scrolled ? "bg-slate-700" : "bg-white"}`} />
-            <span className={`block w-5 h-0.5 transition-colors ${scrolled ? "bg-slate-700" : "bg-white"} ${menuOpen ? "opacity-0" : ""}`} />
-            <span className={`block w-5 h-0.5 transition-colors ${scrolled ? "bg-slate-700" : "bg-white"}`} />
+          <div className="space-y-1.5">
+            <span className="block w-5 h-0.5 bg-slate-300" />
+            <span className={`block w-5 h-0.5 bg-slate-300 ${menuOpen ? "opacity-0" : ""}`} />
+            <span className="block w-5 h-0.5 bg-slate-300" />
           </div>
         </button>
       </div>
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden bg-white border-b border-slate-100 px-6 py-4 space-y-2">
+        <div className="md:hidden bg-slate-900 border-b border-slate-700 px-6 py-4 space-y-2">
           {["Features", "How it works", "For Clinics"].map((item) => (
             <a
               key={item}
               href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
-              className="block py-2 text-sm text-slate-700 hover:text-teal-600"
+              className="block py-2 text-sm text-slate-300 hover:text-teal-400"
               onClick={() => setMenuOpen(false)}
             >
               {item}
             </a>
           ))}
           <div className="pt-2 flex flex-col gap-2">
-            <Link href="/login" className="text-sm text-center py-2.5 border border-slate-200 rounded-lg text-slate-700">
+            <Link href="/login" className="text-sm text-center py-2.5 border border-slate-600 rounded-lg text-slate-300">
               Log in
             </Link>
             <Link href="/register" className="text-sm text-center py-2.5 bg-teal-600 rounded-lg text-white font-medium">

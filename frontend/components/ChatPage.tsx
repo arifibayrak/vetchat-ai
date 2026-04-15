@@ -87,9 +87,9 @@ export default function ChatPage() {
 
       <div className="flex flex-col flex-1 min-w-0">
         {/* Header */}
-        <header className="bg-white border-b px-4 py-3 flex items-center gap-3 shadow-sm">
+        <header className="bg-slate-900 border-b border-slate-700 px-4 py-3 flex items-center gap-3 shadow-sm">
           <button
-            className="md:hidden text-gray-500 hover:text-gray-800 text-xl leading-none"
+            className="md:hidden text-slate-400 hover:text-white text-xl leading-none"
             onClick={() => setSidebarOpen(true)}
             aria-label="Open sidebar"
           >
@@ -102,10 +102,10 @@ export default function ChatPage() {
           >
             <DogLogo size={36} />
             <div>
-              <h1 className="font-bold text-gray-800 text-lg leading-tight">
+              <h1 className="font-bold text-teal-400 text-lg leading-tight">
                 Lenny
               </h1>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-slate-400">
                 Evidence-based clinical reference for veterinary professionals
               </p>
             </div>
