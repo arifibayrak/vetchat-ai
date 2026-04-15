@@ -87,7 +87,7 @@ export default function MessageList({ messages, onSend, isAuthenticated, onAuthG
               Ask any clinical question — Lenny searches peer-reviewed veterinary literature for you.
             </p>
             <p className="text-xs text-gray-400">
-              Powered by ScienceDirect · Springer Nature
+              Powered by ScienceDirect · Springer Nature · Taylor &amp; Francis
             </p>
           </div>
           {/* 1 col on mobile, 2 cols on sm+ */}

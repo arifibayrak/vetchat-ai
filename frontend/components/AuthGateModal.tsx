@@ -40,7 +40,7 @@ export default function AuthGateModal({ query, onClose }: AuthGateModalProps) {
               Sign in to search veterinary literature
             </h2>
             <p className="mt-1 text-sm text-gray-500">
-              Access peer-reviewed evidence from ScienceDirect and Springer Nature
+              Access peer-reviewed evidence from ScienceDirect, Springer Nature &amp; Taylor &amp; Francis
             </p>
           </div>
 

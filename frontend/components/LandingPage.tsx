@@ -748,11 +748,11 @@ function FlowchartSection() {
 // ─── How it works (visual pipeline) ───────────────────────────────────────────
 function HowItWorks() {
   const sources = [
-    { label: "Plumb's Drug Handbook", icon: "📘" },
-    { label: "BSAVA Formulary", icon: "📗" },
-    { label: "ScienceDirect", icon: "🔬" },
+    { label: "ScienceDirect (Elsevier)", icon: "🔬" },
+    { label: "Scopus", icon: "📊" },
     { label: "Springer Nature", icon: "📙" },
-    { label: "Merck Vet Manual", icon: "📕" },
+    { label: "Taylor & Francis", icon: "📘" },
+    { label: "108 Vet Journals (T&F)", icon: "🐾" },
   ];
 
   return (
@@ -841,7 +841,7 @@ function HowItWorks() {
               </p>
               <div className="bg-amber-900/30 border border-amber-700/50 rounded-xl px-3 py-2 text-xs text-amber-200 text-left w-full">
                 <p className="font-semibold mb-1">2–4 mg/kg IV ketamine</p>
-                <p className="text-amber-400">📖 BSAVA Manual of Anaesthesia</p>
+                <p className="text-amber-400">📖 Veterinary Anaesthesia &amp; Analgesia — Springer Nature</p>
               </div>
             </div>
           </div>
