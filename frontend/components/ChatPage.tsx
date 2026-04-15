@@ -102,7 +102,7 @@ export default function ChatPage() {
           >
             <DogLogo size={36} />
             <div>
-              <h1 className="font-bold text-amber-400 text-lg leading-tight">
+              <h1 className="text-amber-400 text-[22px] leading-tight tracking-wide" style={{ fontFamily: "var(--font-oswald)", fontWeight: 700 }}>
                 Lenny
               </h1>
               <p className="text-xs text-slate-400">

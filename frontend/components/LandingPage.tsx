@@ -27,7 +27,7 @@ function Navbar() {
         {/* Logo — dog only, no background box */}
         <a href="#" className="flex items-center gap-1 group">
           <DogLogo size={36} />
-          <span className="font-bold text-[17px] tracking-tight transition-colors" style={{ color: "#C07030" }}>
+          <span className="text-[22px] tracking-wide transition-colors" style={{ color: "#C07030", fontFamily: "var(--font-oswald)", fontWeight: 700 }}>
             Lenny
           </span>
         </a>
