@@ -48,7 +48,7 @@ export default function RegisterPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 w-full max-w-md animate-slide-up">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <ArloLogo size={48} />
+            <ArloLogo height={48} />
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Create your account</h1>
           <p className="text-sm text-slate-500 mt-1">

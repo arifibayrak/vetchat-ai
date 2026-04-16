@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import ArloLogo from "@/components/ArloLogo";
 
 const NAV_LINKS = [
   { label: "Features",     id: "features"     },
@@ -35,15 +36,8 @@ function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <a href="#" className="flex items-center gap-1.5 shrink-0 group">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M12 1 L23 23 L1 23 Z" fill="#2dd4bf" />
-            <path d="M12 6 L19 23 L5 23 Z" fill="#0f172a" />
-            <rect x="5" y="15" width="14" height="3" fill="#2dd4bf" />
-          </svg>
-          <span className="text-[18px] font-black text-white tracking-tight group-hover:text-teal-100 transition-colors" style={{ letterSpacing: "-0.03em" }}>
-            Arlo
-          </span>
+        <a href="#" className="shrink-0">
+          <ArloLogo height={32} />
         </a>
 
         {/* Desktop Nav */}
