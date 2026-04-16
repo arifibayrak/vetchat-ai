@@ -27,7 +27,7 @@ function Navbar() {
         {/* Logo — dog only, no background box */}
         <a href="#" className="flex items-center gap-1 group">
           <DogLogo size={36} />
-          <span className="font-black text-[21px] tracking-wide transition-colors" style={{ color: "#C07030" }}>
+          <span className="font-black text-[21px] tracking-wide text-teal-400 transition-colors">
             Arlo
           </span>
         </a>
