@@ -4,6 +4,17 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import DogLogo from "./DogLogo";
 
+const TICKER_ITEMS = [
+  { icon: "📚", text: "108 Peer-Reviewed Journals" },
+  { icon: "🔬", text: "Evidence-Based Clinical Answers" },
+  { icon: "⚡", text: "Instant Differential Diagnoses" },
+  { icon: "🏥", text: "Built for Veterinary Professionals" },
+  { icon: "✅", text: "ScienceDirect · Springer · Taylor & Francis" },
+  { icon: "🛡️", text: "No Hallucinations — Source-Grounded Only" },
+  { icon: "🐾", text: "Trusted by 500+ Vets in Beta" },
+  { icon: "🔒", text: "Secure & Confidential" },
+];
+
 // ─── Nav ───────────────────────────────────────────────────────────────────────
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -15,6 +26,9 @@ function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Duplicate for seamless infinite loop
+  const tickerItems = [...TICKER_ITEMS, ...TICKER_ITEMS];
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -23,30 +37,36 @@ function Navbar() {
           : "bg-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Logo — dog only, no background box */}
-        <a href="#" className="flex items-center gap-1 group">
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
+        {/* Logo */}
+        <a href="#" className="flex items-center gap-1.5 shrink-0 group">
           <DogLogo size={36} />
-          <span className="font-black text-[21px] tracking-wide text-teal-400 transition-colors">
+          <span className="font-black text-[21px] tracking-wide text-teal-400 transition-colors group-hover:text-teal-300">
             Arlo
           </span>
         </a>
 
-        {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-1">
-          {["Features", "How it works", "For Clinics"].map((item) => (
-            <a
-              key={item}
-              href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
-              className="px-3.5 py-2 text-sm rounded-md transition-colors text-slate-300 hover:text-white hover:bg-white/10"
-            >
-              {item}
-            </a>
-          ))}
-        </nav>
+        {/* Animated ticker — center */}
+        <div className="hidden md:flex flex-1 overflow-hidden relative">
+          {/* fade edges */}
+          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-slate-900/80 to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-slate-900/80 to-transparent z-10 pointer-events-none" />
+          <div className="flex animate-marquee whitespace-nowrap">
+            {tickerItems.map((item, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center gap-1.5 mx-5 text-xs text-slate-400"
+              >
+                <span>{item.icon}</span>
+                <span className="font-medium">{item.text}</span>
+                <span className="ml-3 text-teal-700">·</span>
+              </span>
+            ))}
+          </div>
+        </div>
 
         {/* CTA */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-3 shrink-0">
           <Link
             href="/login"
             className="text-sm px-4 py-2 rounded-md transition-colors text-slate-300 hover:text-white"
@@ -55,7 +75,7 @@ function Navbar() {
           </Link>
           <Link
             href="/register"
-            className="text-sm px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-medium transition-all shadow-sm hover:shadow-teal-200/50 hover:shadow-md"
+            className="text-sm px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-medium transition-all shadow-sm hover:shadow-teal-500/25 hover:shadow-md"
           >
             Get started
           </Link>
@@ -63,13 +83,13 @@ function Navbar() {
 
         {/* Mobile hamburger */}
         <button
-          className="md:hidden p-2"
+          className="md:hidden p-2 shrink-0"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
         >
           <div className="space-y-1.5">
             <span className="block w-5 h-0.5 bg-slate-300" />
-            <span className={`block w-5 h-0.5 bg-slate-300 ${menuOpen ? "opacity-0" : ""}`} />
+            <span className={`block w-5 h-0.5 bg-slate-300 transition-opacity ${menuOpen ? "opacity-0" : ""}`} />
             <span className="block w-5 h-0.5 bg-slate-300" />
           </div>
         </button>
@@ -77,22 +97,20 @@ function Navbar() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden bg-slate-900 border-b border-slate-700 px-6 py-4 space-y-2">
-          {["Features", "How it works", "For Clinics"].map((item) => (
-            <a
-              key={item}
-              href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
-              className="block py-2 text-sm text-slate-300 hover:text-teal-400"
+        <div className="md:hidden bg-slate-900/95 backdrop-blur-sm border-b border-slate-700 px-6 py-4">
+          <div className="flex flex-col gap-2">
+            <Link
+              href="/login"
+              className="text-sm text-center py-2.5 border border-slate-600 rounded-lg text-slate-300 hover:text-white hover:border-slate-500 transition-colors"
               onClick={() => setMenuOpen(false)}
             >
-              {item}
-            </a>
-          ))}
-          <div className="pt-2 flex flex-col gap-2">
-            <Link href="/login" className="text-sm text-center py-2.5 border border-slate-600 rounded-lg text-slate-300">
               Log in
             </Link>
-            <Link href="/register" className="text-sm text-center py-2.5 bg-teal-600 rounded-lg text-white font-medium">
+            <Link
+              href="/register"
+              className="text-sm text-center py-2.5 bg-teal-600 hover:bg-teal-700 rounded-lg text-white font-medium transition-colors"
+              onClick={() => setMenuOpen(false)}
+            >
               Get started free
             </Link>
           </div>
