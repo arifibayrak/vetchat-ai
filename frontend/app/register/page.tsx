@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { useAuthContext } from "@/components/AuthProvider";
-import DogLogo from "@/components/DogLogo";
 
 export default function RegisterPage() {
   const { user, register } = useAuthContext();
@@ -47,8 +46,15 @@ export default function RegisterPage() {
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 w-full max-w-md animate-slide-up">
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <DogLogo size={52} />
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M12 1 L23 23 L1 23 Z" fill="#2dd4bf" />
+              <path d="M12 6 L19 23 L5 23 Z" fill="#f8fafc" />
+              <rect x="5" y="15" width="14" height="3" fill="#2dd4bf" />
+            </svg>
+            <span className="text-[32px] font-black text-teal-500 leading-none" style={{ letterSpacing: "-0.03em" }}>
+              arlo
+            </span>
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Create your account</h1>
           <p className="text-sm text-slate-500 mt-1">
