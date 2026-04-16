@@ -7,7 +7,7 @@ export default function ArloLogo({ height = 40, className = "" }: ArloLogoProps)
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src="/arlo-logo.png"
+      src="/arlo-logo.svg"
       alt="Arlo"
       height={height}
       style={{ height, width: "auto" }}
