@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import DogLogo from "./DogLogo";
 
 const TICKER_ITEMS = [
   { icon: "📚", text: "108 Peer-Reviewed Journals" },
@@ -39,11 +38,18 @@ function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
-        <a href="#" className="flex items-center gap-1.5 shrink-0 group">
-          <DogLogo size={36} />
-          <span className="font-black text-[21px] tracking-wide text-teal-400 transition-colors group-hover:text-teal-300">
-            Arlo
-          </span>
+        <a href="#" className="flex items-center gap-2.5 shrink-0 group">
+          <div className="w-8 h-8 rounded-lg bg-teal-500/15 border border-teal-500/30 flex items-center justify-center">
+            <span className="text-teal-400 text-xs font-black tracking-tighter">AR</span>
+          </div>
+          <div className="flex flex-col leading-none">
+            <span className="font-black text-[18px] tracking-wide text-white group-hover:text-teal-100 transition-colors">
+              Arlo
+            </span>
+            <span className="text-[9px] font-medium tracking-widest text-teal-500 uppercase">
+              Vet Intelligence
+            </span>
+          </div>
         </a>
 
         {/* Animated ticker — center */}

@@ -8,7 +8,6 @@ import { useChat } from "@/hooks/useChat";
 import { useConversations } from "@/hooks/useConversations";
 import AuthGateModal from "./AuthGateModal";
 import DisclaimerFooter from "./DisclaimerFooter";
-import DogLogo from "./DogLogo";
 import InputBar from "./InputBar";
 import MessageList from "./MessageList";
 import Sidebar from "./Sidebar";
@@ -98,15 +97,17 @@ export default function ChatPage() {
 
           <Link
             href="/"
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            className="flex items-center gap-2.5 hover:opacity-90 transition-opacity group"
           >
-            <DogLogo size={36} />
-            <div>
-              <h1 className="font-black text-teal-400 text-xl leading-tight tracking-wide">
+            <div className="w-8 h-8 rounded-lg bg-teal-500/15 border border-teal-500/30 flex items-center justify-center shrink-0">
+              <span className="text-teal-400 text-xs font-black tracking-tighter">AR</span>
+            </div>
+            <div className="flex flex-col leading-none">
+              <h1 className="font-black text-[18px] tracking-wide text-white group-hover:text-teal-100 transition-colors leading-tight">
                 Arlo
               </h1>
-              <p className="text-xs text-slate-400">
-                Evidence-based clinical reference for veterinary professionals
+              <p className="text-[9px] font-medium tracking-widest text-teal-500 uppercase">
+                Vet Intelligence
               </p>
             </div>
           </Link>
