@@ -46,14 +46,14 @@ export default function RegisterPage() {
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 w-full max-w-md animate-slide-up">
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <div className="flex items-end justify-center gap-0 mb-4">
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M12 1 L23 23 L1 23 Z" fill="#2dd4bf" />
               <path d="M12 6 L19 23 L5 23 Z" fill="#ffffff" />
               <rect x="5" y="15" width="14" height="3" fill="#2dd4bf" />
             </svg>
-            <span className="text-[30px] font-black text-teal-400 leading-none" style={{ letterSpacing: "-0.03em" }}>
-              Arlo
+            <span className="text-[34px] font-black text-teal-400 leading-none pb-[3px]" style={{ letterSpacing: "-0.04em" }}>
+              RLO
             </span>
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Create your account</h1>
