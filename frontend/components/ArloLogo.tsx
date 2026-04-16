@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 interface ArloLogoProps {
   height?: number;
   className?: string;
@@ -7,13 +5,13 @@ interface ArloLogoProps {
 
 export default function ArloLogo({ height = 40, className = "" }: ArloLogoProps) {
   return (
-    <Image
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
       src="/arlo-logo.png"
       alt="Arlo"
       height={height}
-      width={height * 3.2}
+      style={{ height, width: "auto" }}
       className={className}
-      priority
     />
   );
 }
