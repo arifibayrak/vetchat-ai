@@ -95,16 +95,13 @@ export default function ChatPage() {
             ☰
           </button>
 
-          <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity group">
+          <Link href="/" className="flex items-center gap-1.5 hover:opacity-90 transition-opacity group">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M12 1 L23 23 L1 23 Z M12 6 L19 23 L5 23 Z M5 15 L19 15 L19 18 L5 18 Z"
-                fill="#2dd4bf"
-              />
+              <path d="M12 1 L23 23 L1 23 Z" fill="#2dd4bf" />
+              <path d="M12 6 L19 23 L5 23 Z" fill="#0f172a" />
+              <rect x="5" y="15" width="14" height="3" fill="#2dd4bf" />
             </svg>
-            <h1 className="text-[17px] font-semibold text-white tracking-tight group-hover:text-teal-100 transition-colors">
+            <h1 className="text-[18px] font-black text-white tracking-tight group-hover:text-teal-100 transition-colors" style={{ letterSpacing: "-0.03em" }}>
               Arlo
             </h1>
           </Link>
