@@ -1,6 +1,7 @@
 """
 Auth endpoints: register, login, me.
 """
+import secrets
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -21,10 +22,6 @@ def _require_db():
 
 class RegisterRequest(BaseModel):
     email: str
-    password: str
-    full_name: str
-    clinic: str = ""
-    country: str = ""
 
 
 class LoginRequest(BaseModel):
@@ -47,10 +44,10 @@ async def register(body: RegisterRequest):
             insert(users).values(
                 id=user_id,
                 email=body.email,
-                password_hash=hash_password(body.password),
-                full_name=body.full_name,
-                clinic=body.clinic or None,
-                country=body.country or None,
+                password_hash=hash_password(secrets.token_urlsafe(32)),
+                full_name="",
+                clinic=None,
+                country=None,
             )
         )
         await session.commit()
@@ -59,7 +56,7 @@ async def register(body: RegisterRequest):
     return {
         "user_id": user_id,
         "email": body.email,
-        "full_name": body.full_name,
+        "full_name": "",
         "token": token,
     }
 

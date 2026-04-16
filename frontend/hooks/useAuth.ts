@@ -53,29 +53,20 @@ export function useAuth() {
     return data;
   }, []);
 
-  const register = useCallback(
-    async (
-      email: string,
-      password: string,
-      full_name: string,
-      clinic: string,
-      country: string,
-    ) => {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, full_name, clinic, country }),
-      });
-      const text = await res.text();
-      const data = text ? JSON.parse(text) : {};
-      if (!res.ok) throw new Error(data.detail || "Registration failed");
-      localStorage.setItem("vetchat_token", data.token);
-      setToken(data.token);
-      setUser({ id: data.user_id, email: data.email, full_name: data.full_name });
-      return data;
-    },
-    [],
-  );
+  const register = useCallback(async (email: string) => {
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const text = await res.text();
+    const data = text ? JSON.parse(text) : {};
+    if (!res.ok) throw new Error(data.detail || "Registration failed");
+    localStorage.setItem("vetchat_token", data.token);
+    setToken(data.token);
+    setUser({ id: data.user_id, email: data.email, full_name: data.full_name });
+    return data;
+  }, []);
 
   const logout = useCallback(() => {
     if (typeof window !== "undefined") localStorage.removeItem("vetchat_token");
