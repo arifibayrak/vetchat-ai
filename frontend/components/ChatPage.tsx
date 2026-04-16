@@ -95,21 +95,18 @@ export default function ChatPage() {
             ☰
           </button>
 
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 hover:opacity-90 transition-opacity group"
-          >
-            <div className="w-8 h-8 rounded-lg bg-teal-500/15 border border-teal-500/30 flex items-center justify-center shrink-0">
-              <span className="text-teal-400 text-xs font-black tracking-tighter">AR</span>
-            </div>
-            <div className="flex flex-col leading-none">
-              <h1 className="font-black text-[18px] tracking-wide text-white group-hover:text-teal-100 transition-colors leading-tight">
-                Arlo
-              </h1>
-              <p className="text-[9px] font-medium tracking-widest text-teal-500 uppercase">
-                Vet Intelligence
-              </p>
-            </div>
+          <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity group">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M12 1 L23 23 L1 23 Z M12 6 L19 23 L5 23 Z M5 15 L19 15 L19 18 L5 18 Z"
+                fill="#2dd4bf"
+              />
+            </svg>
+            <h1 className="text-[17px] font-semibold text-white tracking-tight group-hover:text-teal-100 transition-colors">
+              Arlo
+            </h1>
           </Link>
 
           {!user && (
