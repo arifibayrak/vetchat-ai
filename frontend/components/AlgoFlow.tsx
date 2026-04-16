@@ -5,7 +5,7 @@ import type { FlowData, FlowStep } from "@/types/chat";
 function Arrow() {
   return (
     <div className="flex flex-col items-center my-0.5">
-      <div className="w-px h-3 bg-amber-400/60" />
+      <div className="w-px h-3 bg-teal-400/60" />
       <svg width="10" height="6" viewBox="0 0 10 6">
         <polygon points="0,0 10,0 5,6" fill="#2dd4bf" opacity="0.8" />
       </svg>
@@ -20,7 +20,7 @@ function FlowNode({ step, isLast }: { step: FlowStep; isLast: boolean }) {
         <div
           className={`w-full rounded-xl px-3 py-2 text-center border ${
             step.highlight
-              ? "bg-amber-50 border-amber-400 text-amber-800"
+              ? "bg-teal-50 border-teal-400 text-teal-800"
               : "bg-gray-50 border-gray-200 text-gray-700"
           }`}
         >
@@ -59,7 +59,7 @@ function FlowNode({ step, isLast }: { step: FlowStep; isLast: boolean }) {
       <div className="flex flex-col items-center">
         <div className="flex items-center gap-2 w-full py-0.5">
           <div className="flex-1 h-px bg-gray-200" />
-          <span className="text-[10px] text-amber-600 italic flex-shrink-0">{step.text}</span>
+          <span className="text-[10px] text-teal-600 italic flex-shrink-0">{step.text}</span>
           <div className="flex-1 h-px bg-gray-200" />
         </div>
         {!isLast && <Arrow />}

@@ -102,8 +102,8 @@ export default function ChatPage() {
           >
             <DogLogo size={36} />
             <div>
-              <h1 className="font-black text-amber-400 text-xl leading-tight tracking-wide">
-                Lenny
+              <h1 className="font-black text-teal-400 text-xl leading-tight tracking-wide">
+                Arlo
               </h1>
               <p className="text-xs text-slate-400">
                 Evidence-based clinical reference for veterinary professionals
@@ -121,7 +121,7 @@ export default function ChatPage() {
               </Link>
               <Link
                 href="/register"
-                className="text-sm bg-amber-600 hover:bg-amber-700 text-white rounded-lg px-3 py-1.5 font-medium transition-colors"
+                className="text-sm bg-teal-600 hover:bg-teal-700 text-white rounded-lg px-3 py-1.5 font-medium transition-colors"
               >
                 Register
               </Link>

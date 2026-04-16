@@ -15,7 +15,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Lenny | Clinical intelligence built for vets",
+  title: "Arlo | Clinical intelligence built for vets",
   description: "Evidence-based clinical reference for veterinary professionals",
 };
 

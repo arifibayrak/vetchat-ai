@@ -28,13 +28,13 @@ export default function InputBar({ onSend, disabled }: InputBarProps) {
         placeholder="Ask a clinical question…"
         disabled={disabled}
         aria-label="Clinical question"
-        className="flex-1 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 disabled:opacity-50"
+        className="flex-1 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400 disabled:opacity-50"
       />
       <button
         type="submit"
         disabled={disabled || !value.trim()}
         aria-label="Send message"
-        className="rounded-full bg-amber-600 px-4 sm:px-5 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-40 transition-colors shrink-0"
+        className="rounded-full bg-teal-600 px-4 sm:px-5 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-40 transition-colors shrink-0"
       >
         <span className="flex items-center gap-1.5">
           {disabled && <Spinner className="w-3.5 h-3.5 text-white" />}

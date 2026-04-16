@@ -6,7 +6,7 @@ interface DogLogoProps {
 }
 
 /**
- * Lenny — sitting dog logo, wider/bolder horizontal proportions.
+ * Arlo — sitting dog logo, wider/bolder horizontal proportions.
  * viewBox 280×218: x-coordinates scaled 1.4× vs original for a chunkier,
  * more horizontal silhouette. Stroke weights increased for boldness.
  */
@@ -17,7 +17,7 @@ export default function DogLogo({ size = 40, className = "" }: DogLogoProps) {
       height={size}
       viewBox="0 0 280 218"
       xmlns="http://www.w3.org/2000/svg"
-      aria-label="Lenny"
+      aria-label="Arlo"
       className={className}
     >
       {/* ── Tail (behind body, upper-left) ── */}

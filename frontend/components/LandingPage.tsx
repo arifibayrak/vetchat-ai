@@ -28,7 +28,7 @@ function Navbar() {
         <a href="#" className="flex items-center gap-1 group">
           <DogLogo size={36} />
           <span className="font-black text-[21px] tracking-wide transition-colors" style={{ color: "#C07030" }}>
-            Lenny
+            Arlo
           </span>
         </a>
 
@@ -55,7 +55,7 @@ function Navbar() {
           </Link>
           <Link
             href="/register"
-            className="text-sm px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-medium transition-all shadow-sm hover:shadow-amber-200/50 hover:shadow-md"
+            className="text-sm px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-medium transition-all shadow-sm hover:shadow-teal-200/50 hover:shadow-md"
           >
             Get started
           </Link>
@@ -82,7 +82,7 @@ function Navbar() {
             <a
               key={item}
               href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
-              className="block py-2 text-sm text-slate-300 hover:text-amber-400"
+              className="block py-2 text-sm text-slate-300 hover:text-teal-400"
               onClick={() => setMenuOpen(false)}
             >
               {item}
@@ -92,7 +92,7 @@ function Navbar() {
             <Link href="/login" className="text-sm text-center py-2.5 border border-slate-600 rounded-lg text-slate-300">
               Log in
             </Link>
-            <Link href="/register" className="text-sm text-center py-2.5 bg-amber-600 rounded-lg text-white font-medium">
+            <Link href="/register" className="text-sm text-center py-2.5 bg-teal-600 rounded-lg text-white font-medium">
               Get started free
             </Link>
           </div>
@@ -105,7 +105,7 @@ function Navbar() {
 // ─── Hero ──────────────────────────────────────────────────────────────────────
 function Hero() {
   return (
-    <section className="relative min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-amber-950 overflow-hidden flex items-center">
+    <section className="relative min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-teal-950 overflow-hidden flex items-center">
       {/* Background grid */}
       <div
         className="absolute inset-0 opacity-[0.07]"
@@ -117,20 +117,20 @@ function Hero() {
       />
 
       {/* Glow orbs */}
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-amber-500/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 right-0 w-80 h-80 bg-amber-400/10 rounded-full blur-3xl" />
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 right-0 w-80 h-80 bg-teal-400/10 rounded-full blur-3xl" />
 
       <div className="relative max-w-7xl mx-auto px-6 py-24 grid lg:grid-cols-2 gap-16 items-center">
         {/* Left – copy */}
         <div className="animate-slide-in">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-medium mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse2" />
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-xs font-medium mb-8">
+            <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse2" />
             Now in beta — free for licensed vets
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-[1.1] tracking-tight mb-6">
             Clinical intelligence{" "}
-            <span className="bg-gradient-to-r from-amber-400 to-amber-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-teal-400 to-teal-400 bg-clip-text text-transparent">
               built for vets
             </span>
           </h1>
@@ -143,7 +143,7 @@ function Hero() {
           <div className="flex flex-wrap gap-4">
             <Link
               href="/register"
-              className="px-6 py-3.5 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-amber-500/25 hover:-translate-y-0.5"
+              className="px-6 py-3.5 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-teal-500/25 hover:-translate-y-0.5"
             >
               Start for free
             </Link>
@@ -198,7 +198,7 @@ function ChatMockup() {
         <div className="w-3 h-3 rounded-full bg-green-500/70" />
         <div className="ml-3 flex items-center gap-1.5">
           <span className="text-white text-xs">🐾</span>
-          <span className="text-slate-400 text-xs font-medium">Lenny</span>
+          <span className="text-slate-400 text-xs font-medium">Arlo</span>
         </div>
       </div>
 
@@ -207,20 +207,20 @@ function ChatMockup() {
         {messages.map((msg, i) => (
           <div key={i} className={`flex gap-2.5 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
             {msg.role === "assistant" && (
-              <div className="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <div className="w-7 h-7 rounded-full bg-teal-600 flex items-center justify-center flex-shrink-0 mt-0.5">
                 <span className="text-xs">🐾</span>
               </div>
             )}
             <div className={`max-w-[82%] rounded-2xl px-3.5 py-2.5 ${
               msg.role === "user"
-                ? "bg-amber-600 text-white rounded-br-sm"
+                ? "bg-teal-600 text-white rounded-br-sm"
                 : "bg-slate-700/60 text-slate-200 rounded-bl-sm"
             }`}>
               <p className="leading-relaxed">{msg.text}</p>
               {msg.sources && (
                 <div className="mt-2 pt-2 border-t border-slate-600/50 space-y-0.5">
                   {msg.sources.map((s) => (
-                    <p key={s} className="text-[11px] text-amber-400 flex items-center gap-1">
+                    <p key={s} className="text-[11px] text-teal-400 flex items-center gap-1">
                       <span>📖</span> {s}
                     </p>
                   ))}
@@ -232,7 +232,7 @@ function ChatMockup() {
 
         {/* Typing indicator */}
         <div className="flex gap-2.5 items-center">
-          <div className="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center flex-shrink-0">
+          <div className="w-7 h-7 rounded-full bg-teal-600 flex items-center justify-center flex-shrink-0">
             <span className="text-xs">🐾</span>
           </div>
           <div className="bg-slate-700/60 rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1.5 items-center">
@@ -247,7 +247,7 @@ function ChatMockup() {
       <div className="px-4 pb-4">
         <div className="flex items-center gap-2 bg-slate-700/50 border border-slate-600/50 rounded-xl px-3.5 py-2.5">
           <span className="text-slate-500 text-xs flex-1">Ask a clinical question…</span>
-          <button className="w-7 h-7 rounded-lg bg-amber-600 flex items-center justify-center flex-shrink-0">
+          <button className="w-7 h-7 rounded-lg bg-teal-600 flex items-center justify-center flex-shrink-0">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="22" y1="2" x2="11" y2="13" />
               <polygon points="22 2 15 22 11 13 2 9 22 2" />
@@ -289,8 +289,8 @@ function FeaturesSection() {
     <section id="features" className="py-24 bg-slate-950">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
-          <p className="text-sm font-semibold text-amber-400 tracking-widest uppercase mb-3">
-            What Lenny does
+          <p className="text-sm font-semibold text-teal-400 tracking-widest uppercase mb-3">
+            What Arlo does
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
             Everything a vet needs,<br className="hidden sm:block" /> right at the point of care
@@ -304,17 +304,17 @@ function FeaturesSection() {
           {FEATURES.map((f) => (
             <div
               key={f.title}
-              className="group p-8 rounded-2xl border border-slate-700 bg-slate-800/50 hover:border-amber-500/40 hover:shadow-xl hover:shadow-amber-900/20 transition-all duration-300 hover:-translate-y-1"
+              className="group p-8 rounded-2xl border border-slate-700 bg-slate-800/50 hover:border-teal-500/40 hover:shadow-xl hover:shadow-teal-900/20 transition-all duration-300 hover:-translate-y-1"
             >
-              <div className="w-12 h-12 rounded-xl bg-amber-900/30 flex items-center justify-center text-2xl mb-5 group-hover:bg-amber-900/50 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-teal-900/30 flex items-center justify-center text-2xl mb-5 group-hover:bg-teal-900/50 transition-colors">
                 {f.icon}
               </div>
-              <div className="inline-block px-2.5 py-0.5 rounded-full bg-amber-900/30 text-amber-400 text-xs font-medium mb-3">
+              <div className="inline-block px-2.5 py-0.5 rounded-full bg-teal-900/30 text-teal-400 text-xs font-medium mb-3">
                 {f.tag}
               </div>
               <h3 className="text-lg font-semibold text-white mb-3">{f.title}</h3>
               <p className="text-slate-400 leading-relaxed text-sm">{f.description}</p>
-              <div className="mt-5 text-amber-400 text-sm font-medium group-hover:text-amber-300 flex items-center gap-1.5">
+              <div className="mt-5 text-teal-400 text-sm font-medium group-hover:text-teal-300 flex items-center gap-1.5">
                 Learn more <span className="group-hover:translate-x-0.5 transition-transform inline-block">→</span>
               </div>
             </div>
@@ -399,7 +399,7 @@ function ExamplesSection() {
       <div className="max-w-6xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-14">
-          <p className="text-sm font-semibold text-amber-400 tracking-widest uppercase mb-3">
+          <p className="text-sm font-semibold text-teal-400 tracking-widest uppercase mb-3">
             See it in action
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
@@ -418,7 +418,7 @@ function ExamplesSection() {
               onClick={() => setActive(i)}
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 active === i
-                  ? "bg-amber-600 text-white shadow-lg shadow-amber-900/40"
+                  ? "bg-teal-600 text-white shadow-lg shadow-teal-900/40"
                   : "bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white border border-white/10"
               }`}
             >
@@ -438,21 +438,21 @@ function ExamplesSection() {
             </div>
             <div className="ml-3 flex items-center gap-2 text-slate-400 text-xs">
               <span>🐾</span>
-              <span>Lenny — Clinical Query</span>
+              <span>Arlo — Clinical Query</span>
             </div>
           </div>
 
           <div className="p-6 space-y-5">
             {/* User message */}
             <div className="flex justify-end">
-              <div className="max-w-2xl bg-amber-600 text-white rounded-2xl rounded-br-sm px-4 py-3 text-sm leading-relaxed">
+              <div className="max-w-2xl bg-teal-600 text-white rounded-2xl rounded-br-sm px-4 py-3 text-sm leading-relaxed">
                 {ex.question}
               </div>
             </div>
 
             {/* AI response */}
             <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-md">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-md">
                 <span className="text-sm">🐾</span>
               </div>
               <div className="flex-1 space-y-3">
@@ -478,7 +478,7 @@ function ExamplesSection() {
                             {t.rows.map((row, ri) => (
                               <tr key={ri} className="border-t border-slate-700/40 hover:bg-slate-700/20 transition-colors">
                                 {row.map((cell, ci) => (
-                                  <td key={ci} className={`px-4 py-2.5 ${ci === 0 ? "text-amber-400 font-medium" : "text-slate-300"}`}>{cell}</td>
+                                  <td key={ci} className={`px-4 py-2.5 ${ci === 0 ? "text-teal-400 font-medium" : "text-slate-300"}`}>{cell}</td>
                                 ))}
                               </tr>
                             ))}
@@ -489,9 +489,9 @@ function ExamplesSection() {
                   }
                   if (block.type === "warning") {
                     return (
-                      <div key={i} className="flex gap-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3">
-                        <span className="text-amber-400 text-sm flex-shrink-0">⚠️</span>
-                        <p className="text-amber-200/90 text-xs leading-relaxed">{block.content as string}</p>
+                      <div key={i} className="flex gap-2.5 bg-teal-500/10 border border-teal-500/20 rounded-xl px-4 py-3">
+                        <span className="text-teal-400 text-sm flex-shrink-0">⚠️</span>
+                        <p className="text-teal-200/90 text-xs leading-relaxed">{block.content as string}</p>
                       </div>
                     );
                   }
@@ -501,7 +501,7 @@ function ExamplesSection() {
                       <ol key={i} className="space-y-2">
                         {s.items.map((item, si) => (
                           <li key={si} className="flex gap-3 items-start text-sm text-slate-300">
-                            <span className="w-5 h-5 rounded-full bg-amber-600/30 border border-amber-500/40 text-amber-400 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{si + 1}</span>
+                            <span className="w-5 h-5 rounded-full bg-teal-600/30 border border-teal-500/40 text-teal-400 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{si + 1}</span>
                             <span className="leading-relaxed">{item}</span>
                           </li>
                         ))}
@@ -515,7 +515,7 @@ function ExamplesSection() {
                         {d.items.map((item) => (
                           <div key={item.rank} className="flex items-start gap-3 p-3 rounded-xl bg-slate-900/40 border border-slate-700/40">
                             <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5 ${
-                              item.probability === "High" ? "bg-amber-600/30 text-amber-400 border border-amber-500/30" :
+                              item.probability === "High" ? "bg-teal-600/30 text-teal-400 border border-teal-500/30" :
                               item.probability === "Moderate" ? "bg-blue-600/20 text-blue-400 border border-blue-500/20" :
                               "bg-slate-700/50 text-slate-400 border border-slate-600/30"
                             }`}>{item.probability}</span>
@@ -534,7 +534,7 @@ function ExamplesSection() {
                 {/* Sources */}
                 <div className="pt-2 border-t border-slate-700/40 flex flex-wrap gap-2">
                   {ex.sources.map((s) => (
-                    <span key={s} className="inline-flex items-center gap-1.5 text-xs text-amber-400 bg-amber-900/30 border border-amber-800/40 rounded-lg px-2.5 py-1">
+                    <span key={s} className="inline-flex items-center gap-1.5 text-xs text-teal-400 bg-teal-900/30 border border-teal-800/40 rounded-lg px-2.5 py-1">
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                       {s}
                     </span>
@@ -626,7 +626,7 @@ const ALGORITHMS: {
 function Arrow() {
   return (
     <div className="flex flex-col items-center my-0.5">
-      <div className="w-px h-3 bg-amber-500/50" />
+      <div className="w-px h-3 bg-teal-500/50" />
       <svg width="10" height="6" viewBox="0 0 10 6">
         <polygon points="0,0 10,0 5,6" fill="#14b8a6" opacity="0.7" />
       </svg>
@@ -658,7 +658,7 @@ function AlgoCard({ algo }: { algo: typeof ALGORITHMS[0] }) {
               <div key={i} className="flex flex-col items-center">
                 <div className={`w-full rounded-xl px-3 py-2 text-center ${
                   step.highlight
-                    ? "bg-amber-600/25 border border-amber-500/40 text-amber-200"
+                    ? "bg-teal-600/25 border border-teal-500/40 text-teal-200"
                     : "bg-slate-700/40 border border-slate-600/30 text-slate-200"
                 }`}>
                   <p className={`text-xs leading-snug ${step.highlight ? "font-semibold" : ""}`}>{step.text}</p>
@@ -689,7 +689,7 @@ function AlgoCard({ algo }: { algo: typeof ALGORITHMS[0] }) {
               <div key={i} className="flex flex-col items-center">
                 <div className="flex items-center gap-2 w-full py-0.5">
                   <div className="flex-1 h-px bg-slate-600/40" />
-                  <span className="text-[10px] text-amber-500 italic flex-shrink-0">{step.text}</span>
+                  <span className="text-[10px] text-teal-500 italic flex-shrink-0">{step.text}</span>
                   <div className="flex-1 h-px bg-slate-600/40" />
                 </div>
                 {!isLast && <Arrow />}
@@ -720,7 +720,7 @@ function FlowchartSection() {
     <section className="py-24 bg-slate-900">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-14">
-          <p className="text-sm font-semibold text-amber-400 tracking-widest uppercase mb-3">
+          <p className="text-sm font-semibold text-teal-400 tracking-widest uppercase mb-3">
             Systematic output
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
@@ -760,21 +760,21 @@ function HowItWorks() {
       <div className="max-w-6xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-20">
-          <p className="text-sm font-semibold text-amber-400 tracking-widest uppercase mb-3">
+          <p className="text-sm font-semibold text-teal-400 tracking-widest uppercase mb-3">
             How it works
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
             From question to cited answer<br className="hidden sm:block" /> in under 10 seconds
           </h2>
           <p className="text-slate-400 text-sm max-w-md mx-auto">
-            Lenny retrieves, ranks, and synthesises evidence from trusted veterinary sources — then explains it clearly.
+            Arlo retrieves, ranks, and synthesises evidence from trusted veterinary sources — then explains it clearly.
           </p>
         </div>
 
         {/* Pipeline diagram */}
         <div className="relative">
           {/* Horizontal connector (desktop) */}
-          <div className="hidden lg:block absolute top-14 left-[12%] right-[12%] h-0.5 bg-gradient-to-r from-slate-700 via-amber-500 to-slate-700 z-0" />
+          <div className="hidden lg:block absolute top-14 left-[12%] right-[12%] h-0.5 bg-gradient-to-r from-slate-700 via-teal-500 to-slate-700 z-0" />
 
           <div className="grid lg:grid-cols-4 gap-6 relative z-10">
             {/* Node 1: You ask */}
@@ -794,7 +794,7 @@ function HowItWorks() {
 
             {/* Node 2: AI processes */}
             <div className="flex flex-col items-center text-center">
-              <div className="w-28 h-28 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex flex-col items-center justify-center gap-1 shadow-xl shadow-amber-900/50 mb-5">
+              <div className="w-28 h-28 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-700 flex flex-col items-center justify-center gap-1 shadow-xl shadow-teal-900/50 mb-5">
                 <span className="text-3xl">🧠</span>
                 <span className="text-white text-xs font-semibold mt-1">AI processes</span>
               </div>
@@ -804,7 +804,7 @@ function HowItWorks() {
               </p>
               <div className="mt-3 flex flex-col gap-1 w-full">
                 {["Species: Feline", "Drug: Ketamine", "Context: Anaesthesia"].map((t) => (
-                  <div key={t} className="bg-amber-900/40 border border-amber-700/50 rounded-lg px-2.5 py-1 text-xs text-amber-300 text-left">{t}</div>
+                  <div key={t} className="bg-teal-900/40 border border-teal-700/50 rounded-lg px-2.5 py-1 text-xs text-teal-300 text-left">{t}</div>
                 ))}
               </div>
             </div>
@@ -831,7 +831,7 @@ function HowItWorks() {
 
             {/* Node 4: Cited answer */}
             <div className="flex flex-col items-center text-center">
-              <div className="w-28 h-28 rounded-2xl bg-amber-600 flex flex-col items-center justify-center gap-1 shadow-xl shadow-amber-900/50 mb-5">
+              <div className="w-28 h-28 rounded-2xl bg-teal-600 flex flex-col items-center justify-center gap-1 shadow-xl shadow-teal-900/50 mb-5">
                 <span className="text-3xl">✅</span>
                 <span className="text-white text-xs font-semibold mt-1">You receive</span>
               </div>
@@ -839,15 +839,15 @@ function HowItWorks() {
               <p className="text-xs text-slate-400 leading-relaxed mb-3">
                 Clear, structured response with the exact sources cited — verifiable and shareable.
               </p>
-              <div className="bg-amber-900/30 border border-amber-700/50 rounded-xl px-3 py-2 text-xs text-amber-200 text-left w-full">
+              <div className="bg-teal-900/30 border border-teal-700/50 rounded-xl px-3 py-2 text-xs text-teal-200 text-left w-full">
                 <p className="font-semibold mb-1">2–4 mg/kg IV ketamine</p>
-                <p className="text-amber-400">📖 Veterinary Anaesthesia &amp; Analgesia — Springer Nature</p>
+                <p className="text-teal-400">📖 Veterinary Anaesthesia &amp; Analgesia — Springer Nature</p>
               </div>
             </div>
           </div>
 
           {/* Mobile vertical connector */}
-          <div className="lg:hidden absolute top-28 left-1/2 -translate-x-1/2 w-0.5 bg-gradient-to-b from-slate-700 via-amber-500 to-slate-700" style={{ height: "calc(100% - 7rem)" }} />
+          <div className="lg:hidden absolute top-28 left-1/2 -translate-x-1/2 w-0.5 bg-gradient-to-b from-slate-700 via-teal-500 to-slate-700" style={{ height: "calc(100% - 7rem)" }} />
         </div>
 
         {/* Bottom note */}
@@ -886,7 +886,7 @@ function ForClinics() {
               key={item.label}
               className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/8 transition-colors"
             >
-              <p className="text-4xl font-bold text-amber-400 mb-1">{item.stat}</p>
+              <p className="text-4xl font-bold text-teal-400 mb-1">{item.stat}</p>
               <p className="text-sm text-slate-400">{item.label}</p>
             </div>
           ))}
@@ -894,20 +894,20 @@ function ForClinics() {
 
         {/* Copy */}
         <div>
-          <p className="text-sm font-semibold text-amber-400 tracking-widest uppercase mb-4">
+          <p className="text-sm font-semibold text-teal-400 tracking-widest uppercase mb-4">
             For clinics &amp; practices
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-6">
             Equip your entire team with instant clinical intelligence
           </h2>
           <p className="text-slate-400 leading-relaxed mb-8">
-            Deploy Lenny across your clinic. Every vet, nurse, and student gets
+            Deploy Arlo across your clinic. Every vet, nurse, and student gets
             instant access to evidence-based answers — reducing errors, accelerating
             consultations, and improving patient outcomes.
           </p>
           <Link
             href="/register"
-            className="inline-flex items-center gap-2 px-6 py-3.5 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-amber-500/20"
+            className="inline-flex items-center gap-2 px-6 py-3.5 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-teal-500/20"
           >
             Get started for your clinic →
           </Link>
@@ -920,7 +920,7 @@ function ForClinics() {
 // ─── CTA ──────────────────────────────────────────────────────────────────────
 function CTASection() {
   return (
-    <section className="py-24 bg-gradient-to-br from-amber-600 to-amber-800 relative overflow-hidden">
+    <section className="py-24 bg-gradient-to-br from-teal-600 to-teal-800 relative overflow-hidden">
       <div
         className="absolute inset-0 opacity-10"
         style={{
@@ -933,13 +933,13 @@ function CTASection() {
         <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
           Ready to transform how you practise?
         </h2>
-        <p className="text-amber-100 mb-10 text-lg">
-          Join 500+ vets already using Lenny. Free during beta.
+        <p className="text-teal-100 mb-10 text-lg">
+          Join 500+ vets already using Arlo. Free during beta.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <Link
             href="/register"
-            className="px-8 py-4 bg-white text-amber-700 font-bold rounded-xl hover:bg-amber-50 transition-all shadow-xl hover:-translate-y-0.5"
+            className="px-8 py-4 bg-white text-teal-700 font-bold rounded-xl hover:bg-teal-50 transition-all shadow-xl hover:-translate-y-0.5"
           >
             Start for free
           </Link>
@@ -961,16 +961,16 @@ function Footer() {
     <footer className="bg-slate-900 text-slate-400 py-8">
       <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center">
+          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center">
             <span className="text-white text-xs">🐾</span>
           </div>
           <span className="text-slate-500">
-            &copy; {new Date().getFullYear()} Lenny. All rights reserved.
+            &copy; {new Date().getFullYear()} Arlo. All rights reserved.
           </span>
         </div>
         <div className="flex gap-6">
           {["Features", "How it works", "Privacy Policy", "Terms of Service"].map((l) => (
-            <a key={l} href="#" className="hover:text-amber-400 transition-colors">{l}</a>
+            <a key={l} href="#" className="hover:text-teal-400 transition-colors">{l}</a>
           ))}
         </div>
       </div>

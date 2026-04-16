@@ -24,14 +24,14 @@ export default function SignOutPage() {
         {/* Message */}
         <h1 className="text-2xl font-bold text-slate-900 mb-2">You&apos;ve been signed out</h1>
         <p className="text-sm text-slate-500 mb-8">
-          Thanks for using Lenny. Your session has been ended securely.
+          Thanks for using Arlo. Your session has been ended securely.
         </p>
 
         {/* Actions */}
         <div className="flex flex-col gap-3">
           <Link
             href="/login"
-            className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl text-sm transition-colors shadow-sm"
+            className="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl text-sm transition-colors shadow-sm"
           >
             Sign back in
           </Link>
