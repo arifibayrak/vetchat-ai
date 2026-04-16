@@ -3,16 +3,16 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-const TICKER_ITEMS = [
-  { icon: "📚", text: "108 Peer-Reviewed Journals" },
-  { icon: "🔬", text: "Evidence-Based Clinical Answers" },
-  { icon: "⚡", text: "Instant Differential Diagnoses" },
-  { icon: "🏥", text: "Built for Veterinary Professionals" },
-  { icon: "✅", text: "ScienceDirect · Springer · Taylor & Francis" },
-  { icon: "🛡️", text: "No Hallucinations — Source-Grounded Only" },
-  { icon: "🐾", text: "Trusted by 500+ Vets in Beta" },
-  { icon: "🔒", text: "Secure & Confidential" },
+const NAV_LINKS = [
+  { label: "Features",     id: "features"     },
+  { label: "How it works", id: "how-it-works" },
+  { label: "For Clinics",  id: "for-clinics"  },
 ];
+
+function scrollTo(id: string) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
 // ─── Nav ───────────────────────────────────────────────────────────────────────
 function Navbar() {
@@ -25,9 +25,6 @@ function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Duplicate for seamless infinite loop
-  const tickerItems = [...TICKER_ITEMS, ...TICKER_ITEMS];
-
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -36,7 +33,7 @@ function Navbar() {
           : "bg-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <a href="#" className="flex items-center gap-2.5 shrink-0 group">
           <div className="w-8 h-8 rounded-lg bg-teal-500/15 border border-teal-500/30 flex items-center justify-center">
@@ -52,27 +49,21 @@ function Navbar() {
           </div>
         </a>
 
-        {/* Animated ticker — center */}
-        <div className="hidden md:flex flex-1 overflow-hidden relative">
-          {/* fade edges */}
-          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-slate-900/80 to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-slate-900/80 to-transparent z-10 pointer-events-none" />
-          <div className="flex animate-marquee whitespace-nowrap">
-            {tickerItems.map((item, i) => (
-              <span
-                key={i}
-                className="inline-flex items-center gap-1.5 mx-5 text-xs text-slate-400"
-              >
-                <span>{item.icon}</span>
-                <span className="font-medium">{item.text}</span>
-                <span className="ml-3 text-teal-700">·</span>
-              </span>
-            ))}
-          </div>
-        </div>
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex items-center gap-1">
+          {NAV_LINKS.map(({ label, id }) => (
+            <button
+              key={id}
+              onClick={() => scrollTo(id)}
+              className="px-3.5 py-2 text-sm rounded-md transition-colors text-slate-300 hover:text-white hover:bg-white/10"
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
 
         {/* CTA */}
-        <div className="hidden md:flex items-center gap-3 shrink-0">
+        <div className="hidden md:flex items-center gap-3">
           <Link
             href="/login"
             className="text-sm px-4 py-2 rounded-md transition-colors text-slate-300 hover:text-white"
@@ -89,7 +80,7 @@ function Navbar() {
 
         {/* Mobile hamburger */}
         <button
-          className="md:hidden p-2 shrink-0"
+          className="md:hidden p-2"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
         >
@@ -103,20 +94,21 @@ function Navbar() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden bg-slate-900/95 backdrop-blur-sm border-b border-slate-700 px-6 py-4">
-          <div className="flex flex-col gap-2">
-            <Link
-              href="/login"
-              className="text-sm text-center py-2.5 border border-slate-600 rounded-lg text-slate-300 hover:text-white hover:border-slate-500 transition-colors"
-              onClick={() => setMenuOpen(false)}
+        <div className="md:hidden bg-slate-900/95 backdrop-blur-sm border-b border-slate-700 px-6 py-4 space-y-2">
+          {NAV_LINKS.map(({ label, id }) => (
+            <button
+              key={id}
+              onClick={() => { scrollTo(id); setMenuOpen(false); }}
+              className="block w-full text-left py-2 text-sm text-slate-300 hover:text-teal-400 transition-colors"
             >
+              {label}
+            </button>
+          ))}
+          <div className="pt-2 flex flex-col gap-2">
+            <Link href="/login" className="text-sm text-center py-2.5 border border-slate-600 rounded-lg text-slate-300 hover:border-slate-500 hover:text-white transition-colors">
               Log in
             </Link>
-            <Link
-              href="/register"
-              className="text-sm text-center py-2.5 bg-teal-600 hover:bg-teal-700 rounded-lg text-white font-medium transition-colors"
-              onClick={() => setMenuOpen(false)}
-            >
+            <Link href="/register" className="text-sm text-center py-2.5 bg-teal-600 hover:bg-teal-700 rounded-lg text-white font-medium transition-colors">
               Get started free
             </Link>
           </div>
