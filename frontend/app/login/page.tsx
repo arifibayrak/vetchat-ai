@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { useAuthContext } from "@/components/AuthProvider";
-import DogLogo from "@/components/DogLogo";
+import ArloLogo from "@/components/ArloLogo";
 
 export default function LoginPage() {
   const { user, login } = useAuthContext();
@@ -52,7 +52,7 @@ export default function LoginPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <DogLogo size={52} />
+            <ArloLogo size={48} />
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Welcome back</h1>
           <p className="text-sm text-slate-500 mt-1">
