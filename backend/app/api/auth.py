@@ -26,7 +26,6 @@ class RegisterRequest(BaseModel):
 
 class LoginRequest(BaseModel):
     email: str
-    password: str
 
 
 @router.post("/register", status_code=201)
@@ -70,8 +69,8 @@ async def login(body: LoginRequest):
         )
         row = result.fetchone()
 
-    if not row or not verify_password(body.password, row.password_hash):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+    if not row:
+        raise HTTPException(status_code=404, detail="email_not_registered")
 
     token = create_access_token(str(row.id), row.email)
     return {

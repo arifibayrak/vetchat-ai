@@ -132,19 +132,19 @@ function Hero() {
         <div className="animate-slide-in">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-xs font-medium mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse2" />
-            Now in beta — free for licensed vets
+            Now in beta. Free for licensed vets.
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-[1.1] tracking-tight mb-6">
-            Clinical intelligence{" "}
+            The AI clinical assistant{" "}
             <span className="bg-gradient-to-r from-teal-400 to-teal-400 bg-clip-text text-transparent">
               built for vets
             </span>
           </h1>
 
           <p className="text-lg text-slate-400 leading-relaxed mb-10 max-w-lg">
-            Evidence-based answers to your toughest clinical questions — drug dosages,
-            differential diagnoses, treatment protocols — instantly, at the point of care.
+            Ask Arlo about drug dosages, differential diagnoses, or emergency protocols.
+            Get structured, cited answers pulled from peer-reviewed veterinary journals in seconds.
           </p>
 
           <div className="flex flex-wrap gap-4">
@@ -152,13 +152,13 @@ function Hero() {
               href="/register"
               className="px-6 py-3.5 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-teal-500/25 hover:-translate-y-0.5"
             >
-              Start for free
+              Create free account
             </Link>
             <a
               href="#how-it-works"
               className="px-6 py-3.5 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl border border-white/10 hover:border-white/20 transition-all"
             >
-              See how it works →
+              See how it works
             </a>
           </div>
 
@@ -272,7 +272,7 @@ const FEATURES = [
     icon: "🔬",
     title: "Instant Clinical Answers",
     description:
-      "Ask any clinical question and receive evidence-based responses grounded in peer-reviewed literature, pharmacology references, and specialist guidelines — in seconds.",
+      "Ask any clinical question and receive evidence-based responses grounded in peer-reviewed literature, pharmacology references, and specialist guidelines. Delivered in seconds.",
     tag: "AI-powered",
   },
   {
@@ -303,7 +303,7 @@ function FeaturesSection() {
             Everything a vet needs,<br className="hidden sm:block" /> right at the point of care
           </h2>
           <p className="text-slate-400 max-w-xl mx-auto">
-            Built specifically for veterinary professionals — not a general-purpose chatbot repurposed for medicine.
+            Built specifically for veterinary professionals. Not a general-purpose chatbot repurposed for medicine.
           </p>
         </div>
 
@@ -774,7 +774,7 @@ function HowItWorks() {
             From question to cited answer<br className="hidden sm:block" /> in under 10 seconds
           </h2>
           <p className="text-slate-400 text-sm max-w-md mx-auto">
-            Arlo retrieves, ranks, and synthesises evidence from trusted veterinary sources — then explains it clearly.
+            Arlo retrieves, ranks, and synthesises evidence from trusted veterinary sources, then explains it clearly.
           </p>
         </div>
 
@@ -909,14 +909,14 @@ function ForClinics() {
           </h2>
           <p className="text-slate-400 leading-relaxed mb-8">
             Deploy Arlo across your clinic. Every vet, nurse, and student gets
-            instant access to evidence-based answers — reducing errors, accelerating
-            consultations, and improving patient outcomes.
+            instant access to evidence-based answers. Fewer lookup delays, faster consultations,
+            and better patient outcomes.
           </p>
           <Link
             href="/register"
             className="inline-flex items-center gap-2 px-6 py-3.5 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-teal-500/20"
           >
-            Get started for your clinic →
+            Get started for your clinic
           </Link>
         </div>
       </div>
@@ -938,23 +938,23 @@ function CTASection() {
       />
       <div className="relative max-w-3xl mx-auto px-6 text-center">
         <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
-          Ready to transform how you practise?
+          Give your clinical decisions a better foundation
         </h2>
         <p className="text-teal-100 mb-10 text-lg">
-          Join 500+ vets already using Arlo. Free during beta.
+          Join 500+ vets already using Arlo. Free during beta, no card needed.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <Link
             href="/register"
             className="px-8 py-4 bg-white text-teal-700 font-bold rounded-xl hover:bg-teal-50 transition-all shadow-xl hover:-translate-y-0.5"
           >
-            Start for free
+            Create free account
           </Link>
           <Link
             href="/login"
             className="px-8 py-4 bg-white/10 text-white font-semibold rounded-xl border border-white/20 hover:bg-white/20 transition-all"
           >
-            Log in to your account
+            Sign in
           </Link>
         </div>
       </div>

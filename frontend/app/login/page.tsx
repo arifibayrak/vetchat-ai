@@ -10,9 +10,9 @@ export default function LoginPage() {
   const { user, login } = useAuthContext();
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [notRegistered, setNotRegistered] = useState(false);
 
   // Redirect already-authenticated users to the app
   useEffect(() => {
@@ -22,12 +22,18 @@ export default function LoginPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
+    setNotRegistered(false);
     setLoading(true);
     try {
-      await login(email, password);
+      await login(email);
       router.replace("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      const msg = err instanceof Error ? err.message : "Login failed";
+      if (msg === "email_not_registered") {
+        setNotRegistered(true);
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -77,30 +83,20 @@ export default function LoginPage() {
             />
           </div>
 
-          <div>
-            <label htmlFor="login-password" className="block text-sm font-medium text-slate-700 mb-1.5">
-              Password
-            </label>
-            <input
-              id="login-password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-              placeholder="••••••••"
-              className="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-shadow"
-            />
-          </div>
-
-          <div className="flex justify-end">
-            <Link
-              href="#"
-              className="text-xs text-slate-500 hover:text-teal-600 transition-colors"
-            >
-              Forgot password?
-            </Link>
-          </div>
+          {notRegistered && (
+            <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-lg space-y-2">
+              <p className="text-sm text-amber-800 font-medium">No account found for this email.</p>
+              <p className="text-sm text-amber-700">
+                Create a free account to get started —{" "}
+                <Link
+                  href={`/register?email=${encodeURIComponent(email)}`}
+                  className="font-semibold text-teal-600 hover:text-teal-700 underline underline-offset-2"
+                >
+                  Create free account →
+                </Link>
+              </p>
+            </div>
+          )}
 
           {error && (
             <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">

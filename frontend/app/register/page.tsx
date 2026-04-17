@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { useAuthContext } from "@/components/AuthProvider";
 import ArloLogo from "@/components/ArloLogo";
@@ -9,7 +9,8 @@ import ArloLogo from "@/components/ArloLogo";
 export default function RegisterPage() {
   const { user, register } = useAuthContext();
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState(searchParams.get("email") ?? "");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
