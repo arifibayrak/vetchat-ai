@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState, Suspense } from "react";
 import { useAuthContext } from "@/components/AuthProvider";
 import ArloLogo from "@/components/ArloLogo";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const { user, register } = useAuthContext();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -107,5 +107,13 @@ export default function RegisterPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   );
 }
