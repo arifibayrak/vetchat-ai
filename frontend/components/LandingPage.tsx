@@ -59,13 +59,13 @@ function Navbar() {
             href="/login"
             className="text-sm px-4 py-2 rounded-md transition-colors text-slate-300 hover:text-white"
           >
-            Log in
+            Continue with your account
           </Link>
           <Link
             href="/register"
             className="text-sm px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-medium transition-all shadow-sm hover:shadow-teal-500/25 hover:shadow-md"
           >
-            Get started
+            Login via mail
           </Link>
         </div>
 
@@ -97,10 +97,10 @@ function Navbar() {
           ))}
           <div className="pt-2 flex flex-col gap-2">
             <Link href="/login" className="text-sm text-center py-2.5 border border-slate-600 rounded-lg text-slate-300 hover:border-slate-500 hover:text-white transition-colors">
-              Log in
+              Continue with your account
             </Link>
             <Link href="/register" className="text-sm text-center py-2.5 bg-teal-600 hover:bg-teal-700 rounded-lg text-white font-medium transition-colors">
-              Get started free
+              Login via mail free
             </Link>
           </div>
         </div>
@@ -152,7 +152,7 @@ function Hero() {
               href="/register"
               className="px-6 py-3.5 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-teal-500/25 hover:-translate-y-0.5"
             >
-              Create free account
+              Login via mail
             </Link>
             <a
               href="#how-it-works"
@@ -916,7 +916,7 @@ function ForClinics() {
             href="/register"
             className="inline-flex items-center gap-2 px-6 py-3.5 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-teal-500/20"
           >
-            Get started for your clinic
+            Login via mail for your clinic
           </Link>
         </div>
       </div>
@@ -948,13 +948,13 @@ function CTASection() {
             href="/register"
             className="px-8 py-4 bg-white text-teal-700 font-bold rounded-xl hover:bg-teal-50 transition-all shadow-xl hover:-translate-y-0.5"
           >
-            Create free account
+            Login via mail
           </Link>
           <Link
             href="/login"
             className="px-8 py-4 bg-white/10 text-white font-semibold rounded-xl border border-white/20 hover:bg-white/20 transition-all"
           >
-            Sign in
+            Continue with your account
           </Link>
         </div>
       </div>
