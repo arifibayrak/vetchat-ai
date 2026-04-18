@@ -6,12 +6,6 @@ class ChatTurn(BaseModel):
     content: str
 
 
-class ChatRequest(BaseModel):
-    query: str
-    session_id: str | None = None
-    history: list[ChatTurn] = []
-
-
 class CitationItem(BaseModel):
     ref: int
     title: str
@@ -32,6 +26,15 @@ class CitationItem(BaseModel):
     publisher: str = ""   # e.g. "Taylor & Francis", "Elsevier", "Springer Nature"
     source: str = ""      # e.g. "Scopus", "Springer Nature", "Taylor & Francis", "Literature"
     relevance: str = ""   # "high" | "moderate" | "tangential" — from cross-encoder rerank score
+
+
+class ChatRequest(BaseModel):
+    query: str
+    session_id: str | None = None
+    history: list[ChatTurn] = []
+    # When non-empty, backend reuses these citations instead of re-running retrieval.
+    # Frontend populates this from the parent assistant message on follow-ups.
+    prior_citations: list[CitationItem] = []
 
 
 class LiveResourceItem(BaseModel):

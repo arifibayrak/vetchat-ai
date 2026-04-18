@@ -86,6 +86,34 @@ def build(chunks: list[RetrievedChunk]) -> tuple[str, list[CitationItem]]:
     return "\n".join(lines), citations
 
 
+def build_from_prior(prior_citations: list[CitationItem]) -> tuple[str, list[CitationItem]]:
+    """
+    Rebuild the context block from the parent turn's citations — used on
+    follow-ups to skip fresh retrieval and keep the reference panel stable.
+
+    We only have title/journal/authors/abstract per prior citation (not the
+    full chunk text Claude saw originally), but combined with prior turns
+    already visible to Claude in the messages array, this is enough
+    context to continue the conversation without a re-retrieval roundtrip.
+    """
+    if not prior_citations:
+        return "No prior citations.", []
+
+    lines: list[str] = []
+    for c in prior_citations:
+        header = f'[{c.ref}] {c.authors} ({c.year}). "{c.title}" — {c.journal} [{c.publisher or "Literature"}].'
+        if c.doi:
+            header += f" DOI: {c.doi}"
+        elif c.url:
+            header += f" URL: {c.url}"
+        lines.append(header)
+        if c.abstract:
+            lines.append(c.abstract)
+        lines.append("")
+
+    return "\n".join(lines), list(prior_citations)
+
+
 def build_from_live(live_results: list) -> tuple[str, list[CitationItem]]:
     """
     Build context from live API results (Scopus / Springer Nature).

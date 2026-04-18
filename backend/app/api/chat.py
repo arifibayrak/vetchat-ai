@@ -143,6 +143,7 @@ async def _chat_stream(
     chroma_collection: chromadb.Collection | None = None,
     user_id: str | None = None,
     history: list | None = None,
+    prior_citations: list | None = None,
 ) -> AsyncGenerator[str, None]:
     settings = get_settings()
 
@@ -165,96 +166,118 @@ async def _chat_stream(
             },
         })
 
-    # ── Step 2: Refine query for academic search ──────────────────────────────
-    yield _event({"type": "progress", "step": 1, "label": "Understanding your question…", "icon": "🧠"})
-    search_query = await loop.run_in_executor(None, claude.refine_query, query)
+    # ── Follow-up fast path: reuse parent turn's evidence ─────────────────────
+    # For same-case follow-ups ("what are the cure molecules?" after an FIP
+    # answer), re-running retrieval is both slow and lower quality (terse
+    # follow-up text is a bad search query). When the frontend supplies the
+    # parent turn's citations we skip refinement + retrieval + rerank entirely
+    # and hand Claude the prior evidence directly. Latency drops ~7s; the
+    # reference panel stays visually stable across the conversation.
+    reuse_prior = bool(prior_citations) and bool(history)
 
-    # ── Step 3: Live API search + ChromaDB vector search (parallel) ───────────
-    live_sources = " & ".join(
-        s for s, key in [
-            ("ScienceDirect", settings.sciencedirect_api_key),
-            ("Springer Nature", settings.springer_nature_api_key),
-        ] if key
-    )
-    all_sources_label = ", ".join(filter(None, [live_sources or None, "Taylor & Francis journals"])) or "academic databases"
+    if reuse_prior:
+        yield _event({"type": "progress", "step": 1, "label": "Continuing with prior evidence…", "icon": "🧠"})
+        yield _event({
+            "type": "progress", "step": 2,
+            "label": f"Reusing {len(prior_citations)} references from earlier in this case…",
+            "icon": "📚",
+        })
+        yield _event({"type": "progress", "step": 3, "label": "Drafting case update…", "icon": "📄"})
+        search_query = query
+        api_errors: list[str] = []
+        live_results = []
+        chroma_chunks = []
+    else:
+        # ── Step 2: Refine query for academic search ──────────────────────────
+        yield _event({"type": "progress", "step": 1, "label": "Understanding your question…", "icon": "🧠"})
+        search_query = await loop.run_in_executor(None, claude.refine_query, query)
 
-    yield _event({
-        "type": "progress", "step": 2,
-        "label": f'Searching {all_sources_label} for "{search_query}"…',
-        "icon": "🔍",
-    })
-
-    # Run live API search and ChromaDB vector search concurrently
-    live_task = loop.run_in_executor(None, search_live, search_query, settings, 5)
-
-    chroma_chunks = []
-    if chroma_collection is not None:
-        chroma_raw = await loop.run_in_executor(
-            None, chroma_search, search_query, chroma_collection,
-            20, settings.embedding_model,
+    if not reuse_prior:
+        # ── Step 3: Live API search + ChromaDB vector search (parallel) ───────
+        live_sources = " & ".join(
+            s for s, key in [
+                ("ScienceDirect", settings.sciencedirect_api_key),
+                ("Springer Nature", settings.springer_nature_api_key),
+            ] if key
         )
-        # Rerank against the ORIGINAL user query (not the keyword-only search_query)
-        # so clinical intent ("stabilization", "first-line treatment") drives ranking
-        chroma_chunks = rerank(query, chroma_raw, top_k=8, use_reranker=settings.use_reranker)
+        all_sources_label = ", ".join(filter(None, [live_sources or None, "Taylor & Francis journals"])) or "academic databases"
 
-    search_result = await live_task
-    live_results = search_result.resources
-    api_errors   = search_result.errors
+        yield _event({
+            "type": "progress", "step": 2,
+            "label": f'Searching {all_sources_label} for "{search_query}"…',
+            "icon": "🔍",
+        })
 
-    # Apply the same cross-encoder relevance gate to live API results — closes
-    # the gap where off-topic papers (e.g. feline bronchial disease on a urethral
-    # obstruction query) could slip through just because they matched species.
-    if live_results:
-        live_results = await loop.run_in_executor(
-            None, rerank_live, query, live_results, 5, settings.use_reranker
-        )
+        # Run live API search and ChromaDB vector search concurrently
+        live_task = loop.run_in_executor(None, search_live, search_query, settings, 5)
 
-    # ── Species filter: remove human-medicine papers; reorder by species match ──
-    detected_species = detect_species(query)
-    if live_results:
-        live_results = filter_and_reorder(
-            live_results, detected_species,
-            get_text=lambda r: f"{r.title} {r.abstract}",
-        )
-    if chroma_chunks:
-        chroma_chunks = filter_and_reorder(
-            chroma_chunks, detected_species,
-            get_text=lambda c: f"{c.title} {c.text}",
-        )
+        chroma_chunks = []
+        if chroma_collection is not None:
+            chroma_raw = await loop.run_in_executor(
+                None, chroma_search, search_query, chroma_collection,
+                20, settings.embedding_model,
+            )
+            # Rerank against the ORIGINAL user query (not the keyword-only search_query)
+            # so clinical intent ("stabilization", "first-line treatment") drives ranking
+            chroma_chunks = rerank(query, chroma_raw, top_k=8, use_reranker=settings.use_reranker)
 
-    # ── No results from either source ─────────────────────────────────────────
-    if not live_results and not chroma_chunks:
-        error_hint = f" ({api_errors[0]})" if api_errors else ""
-        payload = {
-            "answer": (
-                f"I searched for **\"{search_query}\"** but could not retrieve papers "
-                f"from the academic databases{error_hint}.\n\n"
-                "Please verify your API keys in the `.env` file and try again:\n"
-                "- **ScienceDirect:** https://dev.elsevier.com\n"
-                "- **Springer Nature:** https://dev.springernature.com"
-            ),
-            "citations": [],
-            "live_resources": [],
-            "emergency": False,
-            "resources": [],
-            "disclaimer": DISCLAIMER,
-            "search_query": search_query,
-        }
-        yield _event({"type": "result", "payload": payload})
-        if user_id:
-            await _save_conversation(user_id, query, payload)
-        return
+        search_result = await live_task
+        live_results = search_result.resources
+        api_errors   = search_result.errors
 
-    total_sources = len(live_results) + len(chroma_chunks)
-    yield _event({
-        "type": "progress", "step": 3,
-        "label": f"Found {total_sources} source{'s' if total_sources != 1 else ''}. Analysing evidence…",
-        "icon": "📄",
-    })
+        # Apply the same cross-encoder relevance gate to live API results
+        if live_results:
+            live_results = await loop.run_in_executor(
+                None, rerank_live, query, live_results, 5, settings.use_reranker
+            )
+
+        # ── Species filter: remove human-medicine papers; reorder by species match ─
+        detected_species = detect_species(query)
+        if live_results:
+            live_results = filter_and_reorder(
+                live_results, detected_species,
+                get_text=lambda r: f"{r.title} {r.abstract}",
+            )
+        if chroma_chunks:
+            chroma_chunks = filter_and_reorder(
+                chroma_chunks, detected_species,
+                get_text=lambda c: f"{c.title} {c.text}",
+            )
+
+        # ── No results from either source ─────────────────────────────────────
+        if not live_results and not chroma_chunks:
+            error_hint = f" ({api_errors[0]})" if api_errors else ""
+            payload = {
+                "answer": (
+                    f"I searched for **\"{search_query}\"** but could not retrieve papers "
+                    f"from the academic databases{error_hint}.\n\n"
+                    "Please verify your API keys in the `.env` file and try again:\n"
+                    "- **ScienceDirect:** https://dev.elsevier.com\n"
+                    "- **Springer Nature:** https://dev.springernature.com"
+                ),
+                "citations": [],
+                "live_resources": [],
+                "emergency": False,
+                "resources": [],
+                "disclaimer": DISCLAIMER,
+                "search_query": search_query,
+            }
+            yield _event({"type": "result", "payload": payload})
+            if user_id:
+                await _save_conversation(user_id, query, payload)
+            return
+
+        total_sources = len(live_results) + len(chroma_chunks)
+        yield _event({
+            "type": "progress", "step": 3,
+            "label": f"Found {total_sources} source{'s' if total_sources != 1 else ''}. Analysing evidence…",
+            "icon": "📄",
+        })
 
     # ── Build unified context block ────────────────────────────────────────────
-    # Live results form the base; ChromaDB chunks (T&F + mock) are appended and deduplicated.
-    if live_results:
+    if reuse_prior:
+        context_block, citations = citation_builder.build_from_prior(prior_citations)
+    elif live_results:
         live_block, live_citations = citation_builder.build_from_live(live_results)
         context_block, citations = citation_builder.merge(live_citations, live_block, chroma_chunks)
     else:
@@ -283,7 +306,10 @@ async def _chat_stream(
     # ── Step 4: Claude generates the answer ──────────────────────────────────
     # Heartbeat pings are sent every 15s while Claude is running to prevent
     # Railway's TCP proxy from dropping the silent SSE connection mid-generation.
-    yield _event({"type": "progress", "step": 4, "label": "Generating evidence-based answer…", "icon": "🤖"})
+    if not reuse_prior:
+        yield _event({"type": "progress", "step": 4, "label": "Generating evidence-based answer…", "icon": "🤖"})
+    else:
+        yield _event({"type": "progress", "step": 4, "label": "Generating case update…", "icon": "🤖"})
 
     _ping_queue: asyncio.Queue[str | None] = asyncio.Queue()
 
@@ -415,6 +441,7 @@ async def chat(request: Request, body: ChatRequest) -> StreamingResponse:
             chroma_collection=chroma_collection,
             user_id=user_id,
             history=body.history,
+            prior_citations=body.prior_citations,
         ),
         media_type="text/event-stream",
         headers={

@@ -14,6 +14,7 @@ type HistoryTurn = { role: "user" | "assistant"; content: string };
 async function streamChat(
   query: string,
   history: HistoryTurn[],
+  priorCitations: unknown[],
   token: string | null,
   onProgress: (step: ProgressStep) => void,
   onResult: (response: ChatResponse) => void,
@@ -28,7 +29,7 @@ async function streamChat(
   const res = await fetch("/api/chat", {
     method: "POST",
     headers,
-    body: JSON.stringify({ query, history }),
+    body: JSON.stringify({ query, history, prior_citations: priorCitations }),
   });
 
   if (!res.ok || !res.body) {
@@ -156,12 +157,20 @@ export function useChat(onComplete?: () => void) {
       .filter((m) => !m.isLoading && m.content)
       .map((m) => ({ role: m.role, content: m.content }));
 
+    // Pull citations from the most recent completed assistant turn so the
+    // backend can reuse them instead of re-running retrieval on follow-ups
+    const lastAssistant = [...messages]
+      .reverse()
+      .find((m) => m.role === "assistant" && !m.isLoading && m.citations?.length);
+    const priorCitations = lastAssistant?.citations ?? [];
+
     setMessages((prev) => [...prev, userMsg, loadingMsg]);
     setIsLoading(true);
 
     await streamChat(
       query,
       history,
+      priorCitations,
       token,
       // onProgress
       (step) => {
