@@ -99,7 +99,7 @@ class ClaudeService:
         response = self._client.messages.create(
             model=self._model,
             max_tokens=max_tokens,
-            system=_load_system_prompt(),
+            system=_cached_system(_load_system_prompt()),
             messages=messages,
         )
         return response.content[0].text
@@ -113,7 +113,7 @@ class ClaudeService:
             response = self._client.messages.create(
                 model=self._model,
                 max_tokens=800,
-                system=_FLOW_SYSTEM,
+                system=_cached_system(_FLOW_SYSTEM),
                 messages=[{
                     "role": "user",
                     "content": f"Query: {query}\n\nAnswer:\n{answer[:2000]}",
@@ -144,7 +144,7 @@ class ClaudeService:
         with self._client.messages.stream(
             model=self._model,
             max_tokens=max_tokens,
-            system=_load_system_prompt(),
+            system=_cached_system(_load_system_prompt()),
             messages=messages,
         ) as stream:
             for text in stream.text_stream:
@@ -152,6 +152,19 @@ class ClaudeService:
 
 
 _MAX_ASSISTANT_CHARS = 1500
+
+
+def _cached_system(prompt_text: str) -> list[dict]:
+    """
+    Wrap a system prompt with ephemeral cache_control so Claude can reuse
+    the processed prompt across requests within ~5 min. Cuts latency on
+    repeat calls (same system prompt is reloaded from cache, not reprocessed).
+    """
+    return [{
+        "type": "text",
+        "text": prompt_text,
+        "cache_control": {"type": "ephemeral"},
+    }]
 
 
 def _truncate_assistant(text: str) -> str:

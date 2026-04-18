@@ -1,6 +1,12 @@
 """
 Builds numbered citation blocks for Claude prompts and API response payloads.
 Supports both Chroma chunks (offline/T&F) and live API results (online).
+
+Context budget strategy (keeps Claude fast without losing cite-ability):
+  - Top 3 sources (by reranker order) → up to 2500 chars (deep)
+  - Remaining sources → up to 900 chars head+tail (summary)
+  - Live abstracts are soft-capped at 1500 chars (most are already shorter)
+Hard per-source cap prevents oversized chunks blowing context budget.
 """
 from app.models.chat import CitationItem
 from app.services.retriever import RetrievedChunk
@@ -12,6 +18,28 @@ _PUBLISHER_MAP: dict[str, str] = {
     "Springer Nature": "Springer Nature",
     "Taylor & Francis": "Taylor & Francis",
 }
+
+# Context-budget knobs
+_PRIMARY_BUDGET = 2500   # chars per top-ranked chunk
+_SECONDARY_BUDGET = 900  # chars per lower-ranked chunk
+_PRIMARY_COUNT = 3       # how many chunks get the primary budget
+_LIVE_BUDGET = 1500      # soft cap for live abstracts
+
+
+def _budget_text(text: str, budget: int) -> str:
+    """Head + tail truncation; preserves opening context and conclusion."""
+    if not text or len(text) <= budget:
+        return text
+    head_size = int(budget * 0.6)
+    tail_size = max(budget - head_size - 40, 0)  # 40 chars for elision marker
+    head = text[:head_size].rstrip()
+    tail = text[-tail_size:].lstrip() if tail_size else ""
+    return f"{head}\n\n…[mid-section summarised for speed]…\n\n{tail}" if tail else head
+
+
+def _budget_for_rank(rank: int) -> int:
+    """Top ranked chunks get more room; tail chunks get a summary."""
+    return _PRIMARY_BUDGET if rank < _PRIMARY_COUNT else _SECONDARY_BUDGET
 
 
 def build(chunks: list[RetrievedChunk]) -> tuple[str, list[CitationItem]]:
@@ -38,7 +66,7 @@ def build(chunks: list[RetrievedChunk]) -> tuple[str, list[CitationItem]]:
         elif chunk.url:
             header += f" URL: {chunk.url}"
         lines.append(header)
-        lines.append(chunk.text)
+        lines.append(_budget_text(chunk.text, _budget_for_rank(i - 1)))
         lines.append("")
 
         citations.append(CitationItem(
@@ -77,7 +105,7 @@ def build_from_live(live_results: list) -> tuple[str, list[CitationItem]]:
         lines.append(header)
 
         if r.abstract:
-            lines.append(r.abstract)
+            lines.append(_budget_text(r.abstract, _LIVE_BUDGET))
         lines.append("")
 
         citations.append(CitationItem(
@@ -131,6 +159,7 @@ def merge(
     # — ChromaDB chunks (T&F journals, mock data) appended after
     offset = len(merged_citations)
     extra_lines: list[str] = []
+    chroma_rank = 0  # rank among chroma chunks that actually got added (for budgeting)
 
     for chunk in chroma_chunks:
         # Deduplicate
@@ -157,8 +186,9 @@ def merge(
         elif chunk.url:
             header += f" URL: {chunk.url}"
         extra_lines.append(header)
-        extra_lines.append(chunk.text)
+        extra_lines.append(_budget_text(chunk.text, _budget_for_rank(chroma_rank)))
         extra_lines.append("")
+        chroma_rank += 1
 
         merged_citations.append(CitationItem(
             ref=offset_idx,
