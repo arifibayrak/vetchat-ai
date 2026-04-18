@@ -32,7 +32,19 @@ async function streamChat(
   });
 
   if (!res.ok || !res.body) {
-    onError(`Server error: ${res.status}`);
+    const ct = res.headers.get("content-type") || "";
+    if (res.status === 502 || res.status === 503 || ct.startsWith("text/html")) {
+      onError("Service is starting up — please try again in 30 seconds.");
+    } else {
+      onError(`Server error: ${res.status}`);
+    }
+    return;
+  }
+
+  const ct = res.headers.get("content-type") || "";
+  if (!ct.includes("text/event-stream") && ct.startsWith("text/html")) {
+    // Reached an HTML error page mid-deploy (Railway 502 etc.)
+    onError("Service is starting up — please try again in 30 seconds.");
     return;
   }
 

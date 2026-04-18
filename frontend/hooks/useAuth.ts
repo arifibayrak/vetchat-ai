@@ -3,6 +3,23 @@
 import { useCallback, useEffect, useState } from "react";
 import type { User } from "@/types/chat";
 
+async function parseJsonOrHtmlError(res: Response, fallbackAction: string) {
+  const text = await res.text();
+  const ct = res.headers.get("content-type") || "";
+  if (ct.startsWith("text/html") || text.trim().startsWith("<")) {
+    throw new Error(
+      res.status === 502 || res.status === 503
+        ? "Service is starting up — please try again in 30 seconds."
+        : `${fallbackAction} failed — service unavailable.`,
+    );
+  }
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(`${fallbackAction} failed — invalid server response.`);
+  }
+}
+
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -44,8 +61,7 @@ export function useAuth() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
-    const text = await res.text();
-    const data = text ? JSON.parse(text) : {};
+    const data = await parseJsonOrHtmlError(res, "Login");
     if (!res.ok) throw new Error(data.detail || `Login failed (${res.status})`);
     localStorage.setItem("vetchat_token", data.token);
     setToken(data.token);
@@ -59,8 +75,7 @@ export function useAuth() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
-    const text = await res.text();
-    const data = text ? JSON.parse(text) : {};
+    const data = await parseJsonOrHtmlError(res, "Registration");
     if (!res.ok) throw new Error(data.detail || `Registration failed (${res.status})`);
     localStorage.setItem("vetchat_token", data.token);
     setToken(data.token);
