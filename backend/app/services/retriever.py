@@ -72,7 +72,7 @@ def search(
             authors=meta.get("authors", ""),
             chunk_index=int(meta.get("chunk_index", 0)),
             total_chunks=int(meta.get("total_chunks", 1)),
-            source_type=meta.get("source_type", "abstract"),
+            source_type=meta.get("source_type", "Literature"),
             publisher=meta.get("publisher", ""),
             url=meta.get("url", ""),
         ))

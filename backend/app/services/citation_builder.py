@@ -29,7 +29,8 @@ def build(chunks: list[RetrievedChunk]) -> tuple[str, list[CitationItem]]:
         # Prefer direct URL (e.g. tandfonline.com) over DOI for T&F journal entries
         doi_url = chunk.url or (f"https://doi.org/{chunk.doi}" if chunk.doi else "")
         publisher = chunk.publisher or "Literature"
-        source = "Taylor & Francis" if chunk.publisher == "Taylor & Francis" else chunk.source_type
+        raw_source = chunk.source_type if chunk.source_type not in ("abstract", "") else "Literature"
+        source = chunk.publisher if chunk.publisher else raw_source
 
         header = f"[{i}] {chunk.authors} ({chunk.year}). \"{chunk.title}\" — {chunk.journal} [{publisher}]."
         if chunk.doi:
@@ -147,7 +148,8 @@ def merge(
         offset_idx = len(merged_citations) + 1
         doi_url = chunk.url or (f"https://doi.org/{chunk.doi}" if chunk.doi else "")
         publisher = chunk.publisher or "Literature"
-        source = "Taylor & Francis" if chunk.publisher == "Taylor & Francis" else chunk.source_type
+        raw_source = chunk.source_type if chunk.source_type not in ("abstract", "") else "Literature"
+        source = chunk.publisher if chunk.publisher else raw_source
 
         header = f"[{offset_idx}] {chunk.authors} ({chunk.year}). \"{chunk.title}\" — {chunk.journal} [{publisher}]."
         if chunk.doi:
