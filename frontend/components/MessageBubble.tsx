@@ -12,6 +12,7 @@ import LoadingSteps from "./LoadingSteps";
 
 interface MessageBubbleProps {
   message: Message;
+  isFollowUp?: boolean;
 }
 
 const SECTION_COLORS: Record<string, string> = {
@@ -20,6 +21,12 @@ const SECTION_COLORS: Record<string, string> = {
   "Clinical Signs":           "border-slate-400 bg-slate-50 text-slate-800",
   "Management Approach":      "border-teal-400  bg-teal-50  text-teal-900",
   "Veterinary Recommendation":"border-teal-400  bg-teal-50  text-teal-900",
+  "What Changed":             "border-amber-400 bg-amber-50 text-amber-900",
+  "Updated Plan":             "border-teal-400  bg-teal-50  text-teal-900",
+  "Unchanged":                "border-slate-300 bg-slate-50 text-slate-700",
+  "Immediate Next Steps (next 30-60 min)": "border-rose-400 bg-rose-50 text-rose-900",
+  "Immediate Next Steps":     "border-rose-400 bg-rose-50 text-rose-900",
+  "Escalation Triggers":      "border-red-400  bg-red-50   text-red-900",
 };
 
 const SECTION_ICONS: Record<string, string> = {
@@ -28,13 +35,19 @@ const SECTION_ICONS: Record<string, string> = {
   "Clinical Signs":          "🩺",
   "Management Approach":     "💊",
   "Veterinary Recommendation":"✅",
+  "What Changed":            "🔄",
+  "Updated Plan":            "📋",
+  "Unchanged":               "✓",
+  "Immediate Next Steps (next 30-60 min)": "⏱️",
+  "Immediate Next Steps":    "⏱️",
+  "Escalation Triggers":     "🚨",
 };
 
 function linkifyCitations(content: string): string {
   return content.replace(/\[(\d+)\]/g, (_match, n) => `[[${n}]](#citation-${n})`);
 }
 
-export default function MessageBubble({ message }: MessageBubbleProps) {
+export default function MessageBubble({ message, isFollowUp = false }: MessageBubbleProps) {
   const isUser = message.role === "user";
 
   if (isUser) {
@@ -71,6 +84,13 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
   return (
     <div className="flex justify-start w-full animate-slide-up">
       <div className="w-full max-w-3xl rounded-2xl bg-white border border-gray-200 px-5 py-4 shadow-sm text-sm space-y-1">
+        {isFollowUp && (
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-1 text-[11px] font-semibold text-amber-800 mb-2">
+            <span aria-hidden>🔄</span>
+            <span>Case update</span>
+          </div>
+        )}
+
         {message.emergencyPreliminary && (
           <EmergencyPreliminaryCard card={message.emergencyPreliminary} />
         )}

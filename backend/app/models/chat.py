@@ -1,9 +1,15 @@
 from pydantic import BaseModel
 
 
+class ChatTurn(BaseModel):
+    role: str      # "user" | "assistant"
+    content: str
+
+
 class ChatRequest(BaseModel):
     query: str
     session_id: str | None = None
+    history: list[ChatTurn] = []
 
 
 class CitationItem(BaseModel):

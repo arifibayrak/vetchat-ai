@@ -266,7 +266,10 @@ async def _chat_stream(
 
     async def _run_claude() -> str:
         result = await loop.run_in_executor(
-            None, claude.complete, query, context_block, settings.claude_max_tokens
+            None,
+            lambda: claude.complete(
+                query, context_block, settings.claude_max_tokens, history=body.history
+            ),
         )
         await _ping_queue.put(None)  # sentinel — Claude finished
         return result

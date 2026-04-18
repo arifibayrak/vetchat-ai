@@ -113,11 +113,15 @@ export default function MessageList({ messages, onSend, isAuthenticated, onAuthG
     );
   }
 
+  // An assistant bubble is a follow-up if an earlier assistant message exists in this chat
+  let seenAssistant = false;
   return (
     <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-4 space-y-4">
-      {messages.map((msg) => (
-        <MessageBubble key={msg.id} message={msg} />
-      ))}
+      {messages.map((msg) => {
+        const isFollowUp = msg.role === "assistant" && seenAssistant;
+        if (msg.role === "assistant") seenAssistant = true;
+        return <MessageBubble key={msg.id} message={msg} isFollowUp={isFollowUp} />;
+      })}
       <div ref={bottomRef} />
     </div>
   );

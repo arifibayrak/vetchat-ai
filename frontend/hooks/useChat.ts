@@ -9,8 +9,11 @@ export const uid = () => String(++_idCounter);
 
 const SLOW_QUERY_MS = 45_000;
 
+type HistoryTurn = { role: "user" | "assistant"; content: string };
+
 async function streamChat(
   query: string,
+  history: HistoryTurn[],
   token: string | null,
   onProgress: (step: ProgressStep) => void,
   onResult: (response: ChatResponse) => void,
@@ -25,7 +28,7 @@ async function streamChat(
   const res = await fetch("/api/chat", {
     method: "POST",
     headers,
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({ query, history }),
   });
 
   if (!res.ok || !res.body) {
@@ -136,11 +139,17 @@ export function useChat(onComplete?: () => void) {
       currentStep: 0,
     };
 
+    // Build history from prior completed turns in this session
+    const history: HistoryTurn[] = messages
+      .filter((m) => !m.isLoading && m.content)
+      .map((m) => ({ role: m.role, content: m.content }));
+
     setMessages((prev) => [...prev, userMsg, loadingMsg]);
     setIsLoading(true);
 
     await streamChat(
       query,
+      history,
       token,
       // onProgress
       (step) => {
@@ -214,7 +223,7 @@ export function useChat(onComplete?: () => void) {
         );
       },
     );
-  }, [isLoading, token, onComplete]);
+  }, [isLoading, token, onComplete, messages]);
 
   return { messages, isLoading, error, sendMessage, resetMessages, loadMessages };
 }

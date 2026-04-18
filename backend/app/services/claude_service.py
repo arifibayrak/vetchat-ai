@@ -82,17 +82,25 @@ class ClaudeService:
         )
         return response.content[0].text.strip()
 
-    def complete(self, query: str, context_block: str, max_tokens: int = 4096) -> str:
+    def complete(
+        self,
+        query: str,
+        context_block: str,
+        max_tokens: int = 4096,
+        history: list | None = None,
+    ) -> str:
         """
         Non-streaming completion.
         Returns the full answer text (without disclaimer — caller adds that).
+        When history is provided, Claude sees a proper multi-turn conversation.
         """
-        user_message = _build_user_message(query, context_block)
+        user_message = _build_user_message(query, context_block, has_history=bool(history))
+        messages = _build_messages(user_message, history)
         response = self._client.messages.create(
             model=self._model,
             max_tokens=max_tokens,
             system=_load_system_prompt(),
-            messages=[{"role": "user", "content": user_message}],
+            messages=messages,
         )
         return response.content[0].text
 
@@ -120,23 +128,70 @@ class ClaudeService:
         except Exception:
             return None
 
-    def stream(self, query: str, context_block: str, max_tokens: int = 4096):
+    def stream(
+        self,
+        query: str,
+        context_block: str,
+        max_tokens: int = 4096,
+        history: list | None = None,
+    ):
         """
         Streaming completion — yields text chunks.
         Caller is responsible for injecting disclaimer after the stream ends.
         """
-        user_message = _build_user_message(query, context_block)
+        user_message = _build_user_message(query, context_block, has_history=bool(history))
+        messages = _build_messages(user_message, history)
         with self._client.messages.stream(
             model=self._model,
             max_tokens=max_tokens,
             system=_load_system_prompt(),
-            messages=[{"role": "user", "content": user_message}],
+            messages=messages,
         ) as stream:
             for text in stream.text_stream:
                 yield text
 
 
-def _build_user_message(query: str, context_block: str) -> str:
+_MAX_ASSISTANT_CHARS = 1500
+
+
+def _truncate_assistant(text: str) -> str:
+    """Keep assistant turns small so history doesn't blow the token budget."""
+    if len(text) <= _MAX_ASSISTANT_CHARS:
+        return text
+    head = _MAX_ASSISTANT_CHARS // 2
+    tail = _MAX_ASSISTANT_CHARS - head - 20  # 20 chars for elision marker
+    return f"{text[:head]}\n\n…[prior answer truncated]…\n\n{text[-tail:]}"
+
+
+def _build_messages(current_user_message: str, history: list | None) -> list[dict]:
+    """
+    Assemble the Claude messages array.
+    history: list of ChatTurn (pydantic) or dicts with role + content.
+    Empty/None → single-turn (identical to prior behavior).
+    """
+    messages: list[dict] = []
+    for turn in history or []:
+        if isinstance(turn, dict):
+            role = turn.get("role")
+            content = turn.get("content", "")
+        else:
+            role = getattr(turn, "role", None)
+            content = getattr(turn, "content", "") or ""
+        if role not in ("user", "assistant") or not content:
+            continue
+        if role == "assistant":
+            content = _truncate_assistant(content)
+        messages.append({"role": role, "content": content})
+    messages.append({"role": "user", "content": current_user_message})
+    return messages
+
+
+def _build_user_message(query: str, context_block: str, has_history: bool = False) -> str:
+    followup_note = (
+        "\n- This is a follow-up in an ongoing case. Use the compact FOLLOW-UP MODE "
+        "output format defined in the system prompt. Do not restate the initial plan.\n"
+        if has_history else ""
+    )
     return (
         f"{query}\n\n"
         f"## Retrieved Veterinary Literature\n"
@@ -148,4 +203,5 @@ def _build_user_message(query: str, context_block: str) -> str:
         f"- Do not make clinical claims that are not supported by the retrieved sources.\n"
         f"- If the retrieved content is insufficient to answer, say so clearly and suggest the vet "
         f"consult the listed journals directly."
+        f"{followup_note}"
     )
