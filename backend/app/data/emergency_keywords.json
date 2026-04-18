@@ -2,7 +2,7 @@
   "categories": {
     "toxicology": {
       "level": "EMERGENCY",
-      "message": "Suspected acute toxicosis — initiate decontamination (if indicated), IV access, and monitoring. Contact Pet Poison Helpline vet line (855) 764-7661 or consult ASPCA Pro (aspca.pro) for species-specific toxicology guidance.",
+      "message": "Suspected acute toxicosis — initiate decontamination if indicated, establish IV access, and monitor. Consult toxicology reference for species-specific protocols.",
       "keywords": [
         "xylitol", "sugar-free gum", "sugar free gum",
         "chocolate", "dark chocolate", "baking chocolate", "cocoa", "theobromine",
@@ -35,7 +35,7 @@
     },
     "respiratory": {
       "level": "EMERGENCY",
-      "message": "Acute respiratory compromise — ensure airway patency, provide supplemental O2, and prepare for thoracocentesis or intubation as indicated. Specialist referral recommended if aetiology is unclear.",
+      "message": "Acute respiratory compromise — ensure airway patency, provide supplemental O2, and prepare for thoracocentesis or intubation as indicated.",
       "keywords": [
         "can't breathe", "cannot breathe", "not breathing", "stopped breathing",
         "gasping", "choking", "suffocating",
@@ -57,7 +57,7 @@
     },
     "cardiovascular": {
       "level": "EMERGENCY",
-      "message": "Cardiovascular emergency — assess perfusion parameters (MM colour, CRT, pulse quality, BP) and prepare for CPR/CPCR if indicated. Emergency specialist referral recommended.",
+      "message": "Cardiovascular emergency — assess perfusion parameters (MM colour, CRT, pulse quality, BP) and prepare for CPR/CPCR if indicated.",
       "keywords": [
         "collapsed", "collapse", "collapsing",
         "unconscious", "unresponsive", "not responding",
@@ -81,7 +81,7 @@
     },
     "trauma": {
       "level": "EMERGENCY",
-      "message": "Traumatic injury — primary survey (ABC), control haemorrhage, IV access and fluid resuscitation as indicated. Emergency surgical consultation may be required.",
+      "message": "Traumatic injury — primary survey (ABC), control haemorrhage, establish IV access and fluid resuscitate as indicated. Surgical consultation may be required.",
       "keywords": [
         "hit by car", "hit by a car", "run over", "struck by car", "struck by a car",
         "broken bone", "bone sticking out", "open fracture",
@@ -104,7 +104,7 @@
     },
     "neurological": {
       "level": "EMERGENCY",
-      "message": "Acute neurological event — rule out metabolic causes (hypoglycaemia, hepatic encephalopathy, electrolyte disturbances), initiate seizure management as indicated. Emergency neurology referral recommended.",
+      "message": "Acute neurological event — rule out metabolic causes (hypoglycaemia, hepatic encephalopathy, electrolyte disturbances) and initiate seizure management as indicated.",
       "keywords": [
         "seizure", "seizing", "seizures",
         "convulsing", "convulsion", "convulsions",
@@ -130,7 +130,7 @@
     },
     "acute_abdomen": {
       "level": "EMERGENCY",
-      "message": "Acute abdominal emergency suspected — IV access, emergency imaging, and surgical consultation as indicated. Rule out GDV, urethral obstruction, splenic torsion, or intestinal obstruction.",
+      "message": "Acute abdominal emergency — establish IV access, obtain emergency imaging, and arrange surgical consultation as indicated. Rule out GDV, urethral obstruction, and intestinal obstruction.",
       "keywords": [
         "gdv", "gastric dilatation volvulus", "bloat emergency",
         "urethral obstruction", "blocked bladder", "cannot urinate", "unable to urinate",

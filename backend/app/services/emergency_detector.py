@@ -9,19 +9,14 @@ from pathlib import Path
 
 _KEYWORDS_PATH = Path(__file__).parent.parent / "data" / "emergency_keywords.json"
 
-EMERGENCY_RESOURCES = [
-    "Pet Poison Helpline — Vet Professional Line: (855) 764-7661 — 24/7",
-    "ASPCA Pro Veterinary Toxicology resources: aspca.pro",
-    "VIN/VSPN Specialist Consult: vin.com (peer consultation with board-certified specialists)",
-    "Consider specialist referral: emergency/critical care, internal medicine, or toxicology as indicated",
-]
+EMERGENCY_RESOURCES: list[str] = []
 
 EMERGENCY_PRELIMINARY: dict[str, dict] = {
     "toxicology": {
         "heading": "Toxicology Emergency — Immediate Actions",
         "priorities": [
             "Identify the toxin and dose ingested (owner history, product label, time of exposure)",
-            "Call Pet Poison Helpline vet line: (855) 764-7661 — 24/7 for species-specific decontamination guidance (fee applies)",
+            "Consult your toxicology reference for species-specific decontamination protocol and dose thresholds",
             "Induce emesis only if: <2h post-ingestion, patient is alert and asymptomatic, and toxin warrants it — do NOT induce for corrosives, hydrocarbons, or CNS toxins",
             "Establish IV access; collect baseline bloods (CBC, biochemistry, coagulation profile)",
             "Administer activated charcoal if indicated per toxin type (not for ethanol, heavy metals, corrosives)",

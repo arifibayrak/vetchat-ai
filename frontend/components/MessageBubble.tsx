@@ -75,8 +75,8 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           <EmergencyPreliminaryCard card={message.emergencyPreliminary} />
         )}
 
-        {message.emergency && message.resources.length > 0 && (
-          <EmergencyBanner resources={message.resources} />
+        {message.emergency && (
+          <EmergencyBanner />
         )}
 
         {message.retrievalQuality && (
