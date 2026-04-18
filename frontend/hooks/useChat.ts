@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { ChatResponse, FlowData, Message, ProgressStep } from "@/types/chat";
+import type { ChatResponse, EmergencyPreliminary, FlowData, Message, ProgressStep } from "@/types/chat";
 import { useAuthContext } from "@/components/AuthProvider";
 
 let _idCounter = 0;
 export const uid = () => String(++_idCounter);
+
+const SLOW_QUERY_MS = 45_000;
 
 async function streamChat(
   query: string,
@@ -14,6 +16,8 @@ async function streamChat(
   onResult: (response: ChatResponse) => void,
   onError: (msg: string) => void,
   onFlow: (flow: FlowData) => void,
+  onEmergencyPreliminary: (card: EmergencyPreliminary) => void,
+  onSlowQuery: () => void,
 ) {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -32,30 +36,43 @@ async function streamChat(
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
+  let resultReceived = false;
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+  const slowTimer = setTimeout(() => {
+    if (!resultReceived) onSlowQuery();
+  }, SLOW_QUERY_MS);
 
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-    for (const line of lines) {
-      if (!line.startsWith("data: ")) continue;
-      try {
-        const event = JSON.parse(line.slice(6));
-        if (event.type === "progress") {
-          onProgress({ step: event.step, label: event.label, icon: event.icon, done: false });
-        } else if (event.type === "result") {
-          onResult(event.payload as ChatResponse);
-        } else if (event.type === "flow") {
-          onFlow(event.payload as FlowData);
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        try {
+          const event = JSON.parse(line.slice(6));
+          if (event.type === "progress") {
+            onProgress({ step: event.step, label: event.label, icon: event.icon, done: false });
+          } else if (event.type === "result") {
+            resultReceived = true;
+            clearTimeout(slowTimer);
+            onResult(event.payload as ChatResponse);
+          } else if (event.type === "flow") {
+            onFlow(event.payload as FlowData);
+          } else if (event.type === "emergency_preliminary") {
+            onEmergencyPreliminary(event.payload as EmergencyPreliminary);
+          }
+        } catch {
+          // malformed line — skip
         }
-      } catch {
-        // malformed line — skip
       }
     }
+  } finally {
+    clearTimeout(slowTimer);
   }
 }
 
@@ -156,6 +173,9 @@ export function useChat(onComplete?: () => void) {
                   resources: response.resources,
                   isLoading: false,
                   steps: undefined,
+                  retrievalQuality: response.retrieval_quality,
+                  totalSources: response.total_sources,
+                  citedCount: response.cited_count,
                 }
               : msg,
           ),
@@ -174,6 +194,22 @@ export function useChat(onComplete?: () => void) {
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === assistantId ? { ...msg, flow } : msg,
+          ),
+        );
+      },
+      // onEmergencyPreliminary
+      (card) => {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantId ? { ...msg, emergencyPreliminary: card } : msg,
+          ),
+        );
+      },
+      // onSlowQuery
+      () => {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantId ? { ...msg, isSlowQuery: true } : msg,
           ),
         );
       },

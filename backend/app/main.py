@@ -61,7 +61,7 @@ def create_app() -> FastAPI:
     settings = get_settings()
 
     app = FastAPI(
-        title="Lenny",
+        title="Arlo",
         version="0.1.0",
         lifespan=lifespan,
     )

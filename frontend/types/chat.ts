@@ -62,6 +62,12 @@ export interface ConversationSummary {
   updated_at: string;
 }
 
+export interface EmergencyPreliminary {
+  category: string;
+  heading: string;
+  priorities: string[];
+}
+
 export interface ChatResponse {
   answer: string;
   citations: CitationItem[];
@@ -72,6 +78,9 @@ export interface ChatResponse {
   resources: string[];
   disclaimer: string;
   flow?: FlowData;
+  retrieval_quality?: "strong" | "moderate" | "weak";
+  total_sources?: number;
+  cited_count?: number;
 }
 
 export interface ProgressStep {
@@ -93,4 +102,9 @@ export interface Message {
   steps?: ProgressStep[];
   currentStep?: number;
   flow?: FlowData;
+  emergencyPreliminary?: EmergencyPreliminary;
+  retrievalQuality?: "strong" | "moderate" | "weak";
+  totalSources?: number;
+  citedCount?: number;
+  isSlowQuery?: boolean;
 }

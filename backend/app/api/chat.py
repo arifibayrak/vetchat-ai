@@ -18,6 +18,7 @@ from app.services.emergency_detector import DISCLAIMER, get_detector
 from app.services.live_search import search_live
 from app.services.retriever import search as chroma_search
 from app.services.reranker import rerank
+from app.services.species_filter import detect_species, filter_and_reorder
 
 _log = logging.getLogger(__name__)
 router = APIRouter()
@@ -124,9 +125,12 @@ async def _save_conversation(user_id: str, query: str, result: dict) -> None:
 
 
 _CITATION_PATTERN = re.compile(r"\[\d+\]")
+# Matches a structured clinical answer (has at least one ## section heading).
+# Used to distinguish hallucinated clinical prose from a deliberate "I can't answer" response.
+_STRUCTURED_ANSWER_PATTERN = re.compile(r"^##\s+\w", re.MULTILINE)
 
-# Response served when the model generates an answer but cites nothing —
-# this is a trust boundary: we never ship an uncited clinical answer.
+# Only served when Claude produces a fully structured clinical answer with zero citations —
+# meaning it hallucinated without grounding in any retrieved source.
 _NO_CITATION_ANSWER = (
     "I was unable to find peer-reviewed research that directly addresses your question "
     "in the retrieved literature. Please try rephrasing your question or ask about a "
@@ -148,6 +152,17 @@ async def _chat_stream(
 
     claude = ClaudeService(api_key=settings.anthropic_api_key, model=settings.claude_model)
     loop = asyncio.get_running_loop()
+
+    # ── Step 1b: Emergency preliminary card (fires instantly, before any network call) ──
+    if emergency.is_emergency and emergency.preliminary:
+        yield _event({
+            "type": "emergency_preliminary",
+            "payload": {
+                "category": emergency.category,
+                "heading": emergency.preliminary["heading"],
+                "priorities": emergency.preliminary["priorities"],
+            },
+        })
 
     # ── Step 2: Refine query for academic search ──────────────────────────────
     yield _event({"type": "progress", "step": 1, "label": "Understanding your question…", "icon": "🧠"})
@@ -182,6 +197,19 @@ async def _chat_stream(
     search_result = await live_task
     live_results = search_result.resources
     api_errors   = search_result.errors
+
+    # ── Species filter: reorder results so species-matched sources appear first ─
+    detected_species = detect_species(query)
+    if live_results:
+        live_results = filter_and_reorder(
+            live_results, detected_species,
+            get_text=lambda r: f"{r.title} {r.abstract}",
+        )
+    if chroma_chunks:
+        chroma_chunks = filter_and_reorder(
+            chroma_chunks, detected_species,
+            get_text=lambda c: f"{c.title} {c.text}",
+        )
 
     # ── No results from either source ─────────────────────────────────────────
     if not live_results and not chroma_chunks:
@@ -222,18 +250,62 @@ async def _chat_stream(
         context_block, citations = citation_builder.build(chroma_chunks)
 
     # ── Step 4: Claude generates the answer ──────────────────────────────────
+    # Heartbeat pings are sent every 15s while Claude is running to prevent
+    # Railway's TCP proxy from dropping the silent SSE connection mid-generation.
     yield _event({"type": "progress", "step": 4, "label": "Generating evidence-based answer…", "icon": "🤖"})
-    answer_raw = await loop.run_in_executor(
-        None, claude.complete, query, context_block, settings.claude_max_tokens
-    )
 
-    # ── Citation guard: never serve a clinically uncited answer ───────────────
-    # If Claude produced no [N] markers the answer is not grounded in retrieved
-    # sources — replace it with the standard "unable to find" message.
-    if not _CITATION_PATTERN.search(answer_raw):
-        _log.warning("Citation guard triggered for query: %s", query[:120])
+    _ping_queue: asyncio.Queue[str | None] = asyncio.Queue()
+
+    async def _ping_sender() -> None:
+        try:
+            while True:
+                await asyncio.sleep(15)
+                await _ping_queue.put(_event({"type": "ping"}))
+        except asyncio.CancelledError:
+            pass
+
+    async def _run_claude() -> str:
+        result = await loop.run_in_executor(
+            None, claude.complete, query, context_block, settings.claude_max_tokens
+        )
+        await _ping_queue.put(None)  # sentinel — Claude finished
+        return result
+
+    _ping_task = asyncio.create_task(_ping_sender())
+    _claude_task = asyncio.create_task(_run_claude())
+
+    while True:
+        item = await _ping_queue.get()
+        if item is None:
+            break
+        yield item  # forward keepalive ping to client
+
+    answer_raw = await _claude_task
+    _ping_task.cancel()
+
+    # ── Citation guard: block hallucinated structured answers with no citations ──
+    # Only fires when Claude produced a full structured clinical response (## headings)
+    # but included zero [N] citations — meaning it answered from training knowledge,
+    # not from retrieved sources. Deliberate "I can't answer" responses from Claude
+    # (no ## headings) are left through unchanged — they're already appropriate.
+    citation_guard_fired = (
+        not _CITATION_PATTERN.search(answer_raw)
+        and _STRUCTURED_ANSWER_PATTERN.search(answer_raw)
+    )
+    if citation_guard_fired:
+        _log.warning("Citation guard triggered (structured, uncited) for query: %s", query[:120])
         answer_raw = _NO_CITATION_ANSWER
         citations = []
+
+    # ── Retrieval quality signal ──────────────────────────────────────────────
+    cited_refs = set(re.findall(r"\[(\d+)\]", answer_raw))
+    n_cited = len(cited_refs)
+    if citation_guard_fired or n_cited <= 1:
+        retrieval_quality = "weak"
+    elif n_cited >= 5:
+        retrieval_quality = "strong"
+    else:
+        retrieval_quality = "moderate"
 
     answer = disclaimer_injector.inject(answer_raw)
 
@@ -270,6 +342,9 @@ async def _chat_stream(
         "resources": emergency_resources,
         "disclaimer": DISCLAIMER,
         "search_query": search_query,
+        "retrieval_quality": retrieval_quality,
+        "total_sources": total_sources,
+        "cited_count": n_cited,
     }
     yield _event({"type": "result", "payload": payload})
     if user_id:

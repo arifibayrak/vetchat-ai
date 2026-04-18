@@ -6,6 +6,7 @@ import type { CitationItem, LiveResourceItem } from "@/types/chat";
 interface ReferencesPanelProps {
   citations: CitationItem[];
   liveResources: LiveResourceItem[];
+  totalSources?: number;
 }
 
 const SOURCE_BADGE: Record<string, string> = {
@@ -53,7 +54,7 @@ function buildEntries(citations: CitationItem[], liveResources: LiveResourceItem
   });
 }
 
-export default function ReferencesPanel({ citations, liveResources }: ReferencesPanelProps) {
+export default function ReferencesPanel({ citations, liveResources, totalSources }: ReferencesPanelProps) {
   const [open, setOpen] = useState(true);
   const [expandedAbstracts, setExpandedAbstracts] = useState<Record<number, boolean>>({});
 
@@ -75,7 +76,13 @@ export default function ReferencesPanel({ citations, liveResources }: References
         onClick={() => setOpen((v) => !v)}
         className="w-full flex items-center justify-between px-4 py-2 bg-gray-50 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
       >
-        <span>📚 References ({entries.length})</span>
+        <span>
+          📚 References ({entries.length}
+          {totalSources && totalSources > entries.length
+            ? ` cited of ${totalSources} retrieved`
+            : ""}
+          )
+        </span>
         <span className="text-gray-400 text-xs">{open ? "▲ hide" : "▼ show"}</span>
       </button>
 

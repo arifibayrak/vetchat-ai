@@ -52,3 +52,6 @@ class ChatResponse(BaseModel):
     matched_term: str | None = None
     resources: list[str] = []
     disclaimer: str
+    retrieval_quality: str = "moderate"   # "strong" | "moderate" | "weak"
+    total_sources: int = 0
+    cited_count: int = 0

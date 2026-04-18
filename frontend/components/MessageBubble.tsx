@@ -5,6 +5,8 @@ import remarkGfm from "remark-gfm";
 import type { Message } from "@/types/chat";
 import AlgoFlow from "./AlgoFlow";
 import EmergencyBanner from "./EmergencyBanner";
+import EmergencyPreliminaryCard from "./EmergencyPreliminaryCard";
+import EvidenceQualityBadge from "./EvidenceQualityBadge";
 import ReferencesPanel from "./ReferencesPanel";
 import LoadingSteps from "./LoadingSteps";
 
@@ -49,6 +51,14 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
     return (
       <div className="flex justify-start w-full animate-fade-in">
         <div className="w-full max-w-md rounded-2xl bg-white border border-gray-200 px-5 py-4 shadow-sm">
+          {message.emergencyPreliminary && (
+            <EmergencyPreliminaryCard card={message.emergencyPreliminary} />
+          )}
+          {message.isSlowQuery && (
+            <div className="mb-3 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+              ⏳ Still searching… this query is taking longer than usual. Please wait.
+            </div>
+          )}
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
             Searching literature and preparing your answer…
           </p>
@@ -61,8 +71,22 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
   return (
     <div className="flex justify-start w-full animate-slide-up">
       <div className="w-full max-w-3xl rounded-2xl bg-white border border-gray-200 px-5 py-4 shadow-sm text-sm space-y-1">
+        {message.emergencyPreliminary && (
+          <EmergencyPreliminaryCard card={message.emergencyPreliminary} />
+        )}
+
         {message.emergency && message.resources.length > 0 && (
           <EmergencyBanner resources={message.resources} />
+        )}
+
+        {message.retrievalQuality && (
+          <div className="mb-3">
+            <EvidenceQualityBadge
+              quality={message.retrievalQuality}
+              citedCount={message.citedCount ?? 0}
+              totalSources={message.totalSources ?? 0}
+            />
+          </div>
         )}
 
         <>
@@ -120,7 +144,11 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
               {linkifyCitations(message.content)}
             </ReactMarkdown>
 
-            <ReferencesPanel citations={message.citations} liveResources={message.liveResources} />
+            <ReferencesPanel
+              citations={message.citations}
+              liveResources={message.liveResources}
+              totalSources={message.totalSources}
+            />
             {message.flow && <AlgoFlow flow={message.flow} />}
           </>
       </div>

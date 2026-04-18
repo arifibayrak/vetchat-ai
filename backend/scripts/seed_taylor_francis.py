@@ -2,7 +2,7 @@
 """
 Seed Taylor & Francis veterinary journals into ChromaDB.
 
-Each journal is embedded as a searchable reference entry so Lenny can
+Each journal is embedded as a searchable reference entry so Arlo can
 surface the correct journal/URL when vets ask about specific topics or publications.
 
 Usage:

@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 
-// Allow up to 60 s for the SSE pipeline (Vercel hobby tier max)
-export const maxDuration = 60;
+// Note: maxDuration is a Vercel-only setting (ignored on Railway/self-hosted).
+// Timeout resilience on Railway is handled via SSE heartbeat pings from the backend.
+export const maxDuration = 800;
 
 const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:8000";
 
