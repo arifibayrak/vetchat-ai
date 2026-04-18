@@ -25,8 +25,9 @@ class RetrievedChunk:
     chunk_index: int
     total_chunks: int
     source_type: str
-    publisher: str = ""   # e.g. "Taylor & Francis" for T&F-seeded entries
-    url: str = ""         # direct link (e.g. tandfonline.com for T&F journals)
+    publisher: str = ""     # e.g. "Taylor & Francis" for T&F-seeded entries
+    url: str = ""           # direct link (e.g. tandfonline.com for T&F journals)
+    rerank_score: float = 0.0  # cross-encoder relevance score (set by reranker)
 
 
 def search(

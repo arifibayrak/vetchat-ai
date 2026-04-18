@@ -17,6 +17,12 @@ const SOURCE_BADGE: Record<string, string> = {
   "Literature":       "bg-slate-100 text-slate-600",
 };
 
+const RELEVANCE_STYLES: Record<string, { dot: string; label: string; text: string }> = {
+  high:       { dot: "bg-emerald-500", label: "Directly relevant",   text: "text-emerald-700" },
+  moderate:   { dot: "bg-amber-400",   label: "Related",             text: "text-amber-700"  },
+  tangential: { dot: "bg-slate-400",   label: "Background context",  text: "text-slate-500"  },
+};
+
 function buildEntries(citations: CitationItem[], liveResources: LiveResourceItem[]) {
   return citations.map((c, i) => {
     const lr = liveResources[i];
@@ -39,6 +45,7 @@ function buildEntries(citations: CitationItem[], liveResources: LiveResourceItem
       pages:          c.pages  || lr?.pages  || "",
       doc_type:       c.doc_type || lr?.doc_type || "",
       cited_by:       c.cited_by ?? lr?.cited_by ?? 0,
+      relevance:      c.relevance || "",
     };
   });
 }
@@ -97,6 +104,16 @@ function RefCard({ e }: { e: ReturnType<typeof buildEntries>[number] }) {
       {/* Journal locator */}
       {locator && (
         <p className="text-[10px] text-gray-400 leading-snug italic">{locator}</p>
+      )}
+
+      {/* Relevance indicator */}
+      {e.relevance && RELEVANCE_STYLES[e.relevance] && (
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className={`w-1.5 h-1.5 rounded-full ${RELEVANCE_STYLES[e.relevance].dot}`} />
+          <span className={`text-[10px] font-medium ${RELEVANCE_STYLES[e.relevance].text}`}>
+            {RELEVANCE_STYLES[e.relevance].label}
+          </span>
+        </div>
       )}
 
       {/* Expand toggle */}

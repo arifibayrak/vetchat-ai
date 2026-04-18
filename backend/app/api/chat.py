@@ -17,7 +17,7 @@ from app.services.claude_service import ClaudeService, is_diagnostic_query
 from app.services.emergency_detector import DISCLAIMER, get_detector
 from app.services.live_search import search_live
 from app.services.retriever import search as chroma_search
-from app.services.reranker import rerank
+from app.services.reranker import rerank, rerank_live
 from app.services.species_filter import detect_species, filter_and_reorder
 
 _log = logging.getLogger(__name__)
@@ -193,13 +193,23 @@ async def _chat_stream(
             None, chroma_search, search_query, chroma_collection,
             20, settings.embedding_model,
         )
-        chroma_chunks = rerank(search_query, chroma_raw, top_k=8, use_reranker=settings.use_reranker)
+        # Rerank against the ORIGINAL user query (not the keyword-only search_query)
+        # so clinical intent ("stabilization", "first-line treatment") drives ranking
+        chroma_chunks = rerank(query, chroma_raw, top_k=8, use_reranker=settings.use_reranker)
 
     search_result = await live_task
     live_results = search_result.resources
     api_errors   = search_result.errors
 
-    # ── Species filter: reorder results so species-matched sources appear first ─
+    # Apply the same cross-encoder relevance gate to live API results — closes
+    # the gap where off-topic papers (e.g. feline bronchial disease on a urethral
+    # obstruction query) could slip through just because they matched species.
+    if live_results:
+        live_results = await loop.run_in_executor(
+            None, rerank_live, query, live_results, 5, settings.use_reranker
+        )
+
+    # ── Species filter: remove human-medicine papers; reorder by species match ──
     detected_species = detect_species(query)
     if live_results:
         live_results = filter_and_reorder(
@@ -249,6 +259,26 @@ async def _chat_stream(
         context_block, citations = citation_builder.merge(live_citations, live_block, chroma_chunks)
     else:
         context_block, citations = citation_builder.build(chroma_chunks)
+
+    # ── Evidence floor: flag low-relevance contexts so Claude is honest about it ──
+    _RELEVANT = lambda score: score >= 0.0  # moderate-or-better bucket
+    strong_live    = sum(1 for r in live_results    if _RELEVANT(getattr(r, "rerank_score", 0)))
+    strong_chroma  = sum(1 for c in chroma_chunks   if _RELEVANT(getattr(c, "rerank_score", 0)))
+    strong_sources = strong_live + strong_chroma
+
+    prefix_parts: list[str] = []
+    if emergency.is_emergency:
+        prefix_parts.append(f"[EMERGENCY: {emergency.category}] — use EMERGENCY MODE output format.")
+    if strong_sources < 3:
+        prefix_parts.append(
+            f"⚠️ LOW-EVIDENCE CONDITIONS — only {strong_sources} directly relevant "
+            f"source(s) were retrieved. You MUST: open with a brief "
+            f"'Limited Direct Evidence' note; lean on [Clinical consensus] tier "
+            f"where appropriate; keep the answer tight and do not pad with "
+            f"tangential findings."
+        )
+    if prefix_parts:
+        context_block = "\n".join(prefix_parts) + "\n\n" + context_block
 
     # ── Step 4: Claude generates the answer ──────────────────────────────────
     # Heartbeat pings are sent every 15s while Claude is running to prevent

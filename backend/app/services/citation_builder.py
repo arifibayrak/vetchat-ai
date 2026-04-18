@@ -10,6 +10,7 @@ Hard per-source cap prevents oversized chunks blowing context budget.
 """
 from app.models.chat import CitationItem
 from app.services.retriever import RetrievedChunk
+from app.services.reranker import score_to_bucket
 
 # Map API source names to their parent publishers
 _PUBLISHER_MAP: dict[str, str] = {
@@ -79,6 +80,7 @@ def build(chunks: list[RetrievedChunk]) -> tuple[str, list[CitationItem]]:
             authors=chunk.authors,
             publisher=publisher,
             source=source,
+            relevance=score_to_bucket(getattr(chunk, "rerank_score", 0.0)),
         ))
 
     return "\n".join(lines), citations
@@ -124,6 +126,7 @@ def build_from_live(live_results: list) -> tuple[str, list[CitationItem]]:
             cited_by=r.cited_by,
             publisher=publisher,
             source=r.source,
+            relevance=score_to_bucket(getattr(r, "rerank_score", 0.0)),
         ))
 
     return "\n".join(lines), citations
@@ -200,6 +203,7 @@ def merge(
             authors=chunk.authors,
             publisher=publisher,
             source=source,
+            relevance=score_to_bucket(getattr(chunk, "rerank_score", 0.0)),
         ))
 
     if extra_lines:

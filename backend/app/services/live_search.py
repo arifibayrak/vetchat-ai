@@ -42,6 +42,7 @@ class LiveResource:
     pages: str = ""
     doc_type: str = ""   # "Article", "Review", "Conference Paper", etc.
     cited_by: int = 0
+    rerank_score: float = 0.0  # cross-encoder relevance score (set by reranker)
 
 
 @dataclass

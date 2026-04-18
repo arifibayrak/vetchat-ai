@@ -31,6 +31,7 @@ class CitationItem(BaseModel):
     # Provenance — shown in UI so vets know exactly which publisher/database each source is from
     publisher: str = ""   # e.g. "Taylor & Francis", "Elsevier", "Springer Nature"
     source: str = ""      # e.g. "Scopus", "Springer Nature", "Taylor & Francis", "Literature"
+    relevance: str = ""   # "high" | "moderate" | "tangential" — from cross-encoder rerank score
 
 
 class LiveResourceItem(BaseModel):

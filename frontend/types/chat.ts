@@ -29,6 +29,7 @@ export interface CitationItem {
   // Provenance — which publisher/database this source came from
   publisher?: string;   // e.g. "Taylor & Francis", "Elsevier", "Springer Nature"
   source?: string;      // e.g. "Scopus", "Springer Nature", "Taylor & Francis"
+  relevance?: "high" | "moderate" | "tangential" | "";
 }
 
 export interface LiveResourceItem {

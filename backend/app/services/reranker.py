@@ -2,6 +2,9 @@
 Cross-encoder reranker.
 Model: cross-encoder/ms-marco-MiniLM-L-6-v2
 Falls back to cosine distance order if USE_RERANKER=false or model unavailable.
+
+Applied to BOTH Chroma chunks AND live API abstracts so off-topic sources
+can't slip through just by matching on species alone.
 """
 from __future__ import annotations
 
@@ -9,6 +12,12 @@ from app.services.retriever import RetrievedChunk
 
 _cross_encoder = None
 _load_attempted = False
+
+# ChromaDB: local data we trust; allow moderate threshold
+_CHROMA_THRESHOLD = -1.0
+# Live APIs: millions of papers, lots of tangential hits; stricter gate
+_LIVE_THRESHOLD = -0.5
+_MIN_RESULTS = 2
 
 
 def _get_cross_encoder():
@@ -24,6 +33,15 @@ def _get_cross_encoder():
     return _cross_encoder
 
 
+def score_to_bucket(score: float) -> str:
+    """Map a cross-encoder relevance score to a user-facing bucket."""
+    if score >= 3.0:
+        return "high"
+    if score >= 0.0:
+        return "moderate"
+    return "tangential"
+
+
 def rerank(
     query: str,
     chunks: list[RetrievedChunk],
@@ -31,8 +49,8 @@ def rerank(
     use_reranker: bool = True,
 ) -> list[RetrievedChunk]:
     """
-    Rerank chunks using cross-encoder. Falls back to cosine order.
-    Returns top_k results.
+    Rerank ChromaDB chunks. Attaches each chunk's cross-encoder score to
+    `.rerank_score`. Filters below threshold with a min-2 fallback.
     """
     if not chunks:
         return []
@@ -42,13 +60,45 @@ def rerank(
         if model is not None:
             pairs = [(query, chunk.text) for chunk in chunks]
             scores = model.predict(pairs)
+            # Attach scores to every chunk for downstream citation tagging
+            for chunk, score in zip(chunks, scores):
+                chunk.rerank_score = float(score)
             ranked = sorted(zip(scores, chunks), key=lambda x: x[0], reverse=True)
-            # Filter below relevance threshold; always keep at least 2 results
-            _THRESHOLD = -2.0
-            above = [(s, c) for s, c in ranked if s >= _THRESHOLD]
-            if len(above) < 2:
-                above = ranked[:2]
+            above = [(s, c) for s, c in ranked if s >= _CHROMA_THRESHOLD]
+            if len(above) < _MIN_RESULTS:
+                above = ranked[:_MIN_RESULTS]
             return [c for _, c in above[:top_k]]
 
-    # Fallback: return top_k by ascending distance (cosine similarity)
     return sorted(chunks, key=lambda c: c.distance)[:top_k]
+
+
+def rerank_live(query: str, resources: list, top_k: int = 5, use_reranker: bool = True) -> list:
+    """
+    Score live API abstracts with cross-encoder and drop below threshold.
+    Attaches score to each resource's `.rerank_score`. Prevents off-topic
+    papers (e.g. feline bronchial disease returned for a urethral obstruction
+    query) from ever reaching Claude or being displayed as sources.
+    """
+    if not resources:
+        return []
+    if not use_reranker:
+        for r in resources:
+            r.rerank_score = 0.0
+        return resources[:top_k]
+
+    model = _get_cross_encoder()
+    if model is None:
+        for r in resources:
+            r.rerank_score = 0.0
+        return resources[:top_k]
+
+    pairs = [(query, f"{r.title}. {r.abstract}") for r in resources]
+    scores = model.predict(pairs)
+    for r, s in zip(resources, scores):
+        r.rerank_score = float(s)
+
+    ranked = sorted(zip(scores, resources), key=lambda x: x[0], reverse=True)
+    above = [(s, r) for s, r in ranked if s >= _LIVE_THRESHOLD]
+    if len(above) < _MIN_RESULTS:
+        above = ranked[:_MIN_RESULTS]
+    return [r for _, r in above[:top_k]]
