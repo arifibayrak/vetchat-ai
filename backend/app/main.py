@@ -17,23 +17,40 @@ async def _background_boot(app: FastAPI, collection, settings) -> None:
     Non-blocking post-startup work: ChromaDB auto-seed + DB table creation.
     Runs AFTER the server binds the port so Railway's healthcheck passes
     immediately and users never hit the 502 window during deploys.
+
+    Critical: the entire heavy-work path is pushed through run_in_executor
+    so sentence-transformers model loading and ChromaDB upserts (both
+    GIL-heavy / blocking) do NOT stall the event loop before uvicorn
+    finishes declaring startup complete.
     """
-    # Auto-seed content if collection is empty (first deploy / fresh environment)
-    if collection.count() == 0:
-        _log.info("ChromaDB is empty — seeding mock clinical data and T&F journals in background…")
+    # Yield the event loop so uvicorn can finish startup BEFORE we start
+    # blocking work. Without this, sync embedder/model-load calls inside
+    # the first seeding step can stall the lifespan yield → 502 window.
+    await asyncio.sleep(2)
+    _log.info("Background boot starting…")
+
+    loop = asyncio.get_running_loop()
+
+    def _sync_seed() -> None:
+        """All the blocking seed work runs in a worker thread with its own loop."""
         try:
-            from app.ingestion.pipeline import seed_mock, seed_taylor_francis
-            loop = asyncio.get_running_loop()
-            n_mock = await seed_mock(collection, settings)
-            _log.info("Seeded %d mock clinical chunks.", n_mock)
-            n_tf = await loop.run_in_executor(None, seed_taylor_francis, collection, settings.embedding_model)
-            _log.info("Seeded %d Taylor & Francis journal entries.", n_tf)
+            if collection.count() == 0:
+                _log.info("ChromaDB is empty — seeding mock clinical data and T&F journals…")
+                from app.ingestion.pipeline import seed_mock, seed_taylor_francis
+                # seed_mock is async-declared but all internal work is sync;
+                # a fresh event loop in this worker thread runs it safely.
+                n_mock = asyncio.run(seed_mock(collection, settings))
+                _log.info("Seeded %d mock clinical chunks.", n_mock)
+                n_tf = seed_taylor_francis(collection, settings.embedding_model)
+                _log.info("Seeded %d Taylor & Francis journal entries.", n_tf)
+            else:
+                _log.info("ChromaDB has %d documents — skipping seed.", collection.count())
         except Exception as exc:
             _log.warning("Background auto-seed failed (service still healthy): %s", exc)
-    else:
-        _log.info("ChromaDB has %d documents — skipping seed.", collection.count())
 
-    # Initialise PostgreSQL if DATABASE_URL is configured
+    await loop.run_in_executor(None, _sync_seed)
+
+    # DB tables (separate, fast, uses asyncpg)
     if settings.database_url:
         from app.database import create_tables, init_db
         init_db(settings.database_url)
@@ -44,6 +61,8 @@ async def _background_boot(app: FastAPI, collection, settings) -> None:
             _log.warning("DB table creation failed (app still healthy): %s", exc)
     else:
         _log.info("DATABASE_URL not set — auth and chat history disabled.")
+
+    _log.info("Background boot complete.")
 
 
 @asynccontextmanager
