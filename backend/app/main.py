@@ -18,10 +18,9 @@ async def _background_boot(app: FastAPI, collection, settings) -> None:
     Runs AFTER the server binds the port so Railway's healthcheck passes
     immediately and users never hit the 502 window during deploys.
 
-    Critical: the entire heavy-work path is pushed through run_in_executor
-    so sentence-transformers model loading and ChromaDB upserts (both
-    GIL-heavy / blocking) do NOT stall the event loop before uvicorn
-    finishes declaring startup complete.
+    NOTE: init_db() is NOT here — it's initialized synchronously in lifespan
+    so auth endpoints don't get "Database not configured" during the boot
+    window. Only the slower create_tables() lives here.
     """
     # Yield the event loop so uvicorn can finish startup BEFORE we start
     # blocking work. Without this, sync embedder/model-load calls inside
@@ -50,17 +49,15 @@ async def _background_boot(app: FastAPI, collection, settings) -> None:
 
     await loop.run_in_executor(None, _sync_seed)
 
-    # DB tables (separate, fast, uses asyncpg)
+    # Database table creation (migrations). init_db already ran in lifespan;
+    # this just ensures the schema exists — safe to run on every boot.
     if settings.database_url:
-        from app.database import create_tables, init_db
-        init_db(settings.database_url)
         try:
+            from app.database import create_tables
             await create_tables()
             _log.info("Database tables ready.")
         except Exception as exc:
             _log.warning("DB table creation failed (app still healthy): %s", exc)
-    else:
-        _log.info("DATABASE_URL not set — auth and chat history disabled.")
 
     _log.info("Background boot complete.")
 
@@ -77,6 +74,17 @@ async def lifespan(app: FastAPI):
     )
     app.state.chroma_client = client
     app.state.chroma_collection = collection
+
+    # DB session factory must be ready BEFORE serving requests — auth/conversations
+    # endpoints depend on it. init_db() is fast (no connection, no query) — just
+    # creates the engine + sessionmaker. The slow schema migration lives in the
+    # background boot task instead.
+    if settings.database_url:
+        from app.database import init_db
+        init_db(settings.database_url)
+        _log.info("Database session factory initialised.")
+    else:
+        _log.info("DATABASE_URL not set — auth and chat history disabled.")
 
     # Kick off slow boot work (auto-seed, DB migrations) in the background —
     # the server binds the port and answers /health immediately
