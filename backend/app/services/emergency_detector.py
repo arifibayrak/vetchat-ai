@@ -10,10 +10,10 @@ from pathlib import Path
 _KEYWORDS_PATH = Path(__file__).parent.parent / "data" / "emergency_keywords.json"
 
 EMERGENCY_RESOURCES = [
-    "ASPCA Animal Poison Control Center (toxicology consultation): (888) 426-4435 — 24/7",
+    "Pet Poison Helpline — Vet Professional Line: (855) 764-7661 — 24/7",
     "ASPCA Pro Veterinary Toxicology resources: aspca.pro",
-    "Activate in-clinic emergency stabilisation protocol immediately",
-    "Consider specialist referral (internal medicine, toxicology, emergency/critical care) as indicated",
+    "VIN/VSPN Specialist Consult: vin.com (peer consultation with board-certified specialists)",
+    "Consider specialist referral: emergency/critical care, internal medicine, or toxicology as indicated",
 ]
 
 EMERGENCY_PRELIMINARY: dict[str, dict] = {
@@ -21,7 +21,7 @@ EMERGENCY_PRELIMINARY: dict[str, dict] = {
         "heading": "Toxicology Emergency — Immediate Actions",
         "priorities": [
             "Identify the toxin and dose ingested (owner history, product label, time of exposure)",
-            "Call ASPCA Animal Poison Control: (888) 426-4435 — 24/7 for species-specific decontamination guidance",
+            "Call Pet Poison Helpline vet line: (855) 764-7661 — 24/7 for species-specific decontamination guidance (fee applies)",
             "Induce emesis only if: <2h post-ingestion, patient is alert and asymptomatic, and toxin warrants it — do NOT induce for corrosives, hydrocarbons, or CNS toxins",
             "Establish IV access; collect baseline bloods (CBC, biochemistry, coagulation profile)",
             "Administer activated charcoal if indicated per toxin type (not for ethanol, heavy metals, corrosives)",
@@ -103,6 +103,41 @@ class EmergencyResult:
     preliminary: dict | None = None
 
 
+# Clinical presentation terms that appear in both academic queries ("differentials for dyspnoea")
+# and active emergencies ("my patient is dyspnoeic"). Suppressed when academic framing is detected.
+# Active-incident terms (e.g. "seizing", "hit by car", "ate xylitol") are never suppressed.
+_CLINICAL_TERMS_ONLY: frozenset[str] = frozenset({
+    # Respiratory
+    "respiratory distress", "dyspnoea", "dyspnea", "tachypnoea", "tachypnea",
+    "labored breathing", "laboured breathing", "breathing hard", "open mouth breathing",
+    "pleural effusion acute", "pneumothorax", "pulmonary oedema", "pulmonary edema",
+    # Neurological — noun/abstract forms only ("seizing"/"convulsing" are always-trigger)
+    "seizure", "seizures", "convulsion", "convulsions", "tremors", "shaking uncontrollably",
+    "paralyzed", "paralysis", "can't walk", "unable to walk",
+    "stroke", "sudden blindness", "sudden loss of vision",
+    "head tilt sudden", "falling over", "rolling", "loss of consciousness",
+    "vestibular acute", "acute vestibular", "spinal cord injury acute", "cluster seizures",
+    "syncope acute",
+    # Cardiovascular — noun forms only ("collapsed"/"collapsing" are always-trigger via regex)
+    "collapse", "pericardial effusion acute", "cardiac tamponade",
+    "haemoabdomen", "hemoabdomen",
+    # Abdominal
+    "splenic torsion", "mesenteric torsion", "intestinal obstruction acute",
+    "uroabdomen", "bile peritonitis",
+})
+
+# Patterns that indicate the vet is asking an academic/knowledge question
+_ACADEMIC_PATTERNS: list[re.Pattern] = [
+    re.compile(r"(?i)\bdifferentials?\b"),
+    re.compile(r"(?i)\bddx\b"),
+    re.compile(r"(?i)\bhow\s+(do\s+i|should\s+i|to)\s+(approach|manage|treat|work[\s-]up|diagnose|stabili[sz]e)"),
+    re.compile(r"(?i)\bwhat\s+are\s+(the\s+)?(common\s+)?(causes?|differentials?|signs?)\b"),
+    re.compile(r"(?i)\b(management|treatment|diagnosis|workup|protocol|approach)\s+(of|for)\b"),
+    re.compile(r"(?i)\b(diagnostic|clinical)\s+approach\b"),
+    re.compile(r"(?i)\bcommon\s+(causes?|differentials?)\b"),
+]
+
+
 class EmergencyDetector:
     def __init__(self, keywords_path: Path = _KEYWORDS_PATH) -> None:
         with open(keywords_path) as f:
@@ -119,11 +154,15 @@ class EmergencyDetector:
 
     def check(self, query: str) -> EmergencyResult:
         lowered = query.lower()
+        is_academic = any(p.search(query) for p in _ACADEMIC_PATTERNS)
 
         for cat, cfg in self._categories.items():
             # Keyword scan (word-boundary aware for multi-word phrases)
             for kw in cfg.get("keywords", []):
                 if kw in lowered:
+                    # Suppress clinical presentation terms when query is clearly academic
+                    if is_academic and kw in _CLINICAL_TERMS_ONLY:
+                        continue
                     return EmergencyResult(
                         is_emergency=True,
                         category=cat,
@@ -133,7 +172,7 @@ class EmergencyDetector:
                         preliminary=EMERGENCY_PRELIMINARY.get(cat),
                     )
 
-            # Regex pattern scan
+            # Regex pattern scan — always trigger (these match active-incident phrasing)
             for pattern in self._compiled[cat]:
                 m = pattern.search(query)
                 if m:
