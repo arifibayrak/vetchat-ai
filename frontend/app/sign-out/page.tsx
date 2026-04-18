@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { useAuthContext } from "@/components/AuthProvider";
-import DogLogo from "@/components/DogLogo";
+import ArloLogo from "@/components/ArloLogo";
 
 export default function SignOutPage() {
   const { logout } = useAuthContext();
@@ -18,7 +18,7 @@ export default function SignOutPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-10 w-full max-w-md text-center animate-slide-up">
         {/* Icon */}
         <div className="flex justify-center mb-6">
-          <DogLogo size={64} />
+          <ArloLogo height={48} />
         </div>
 
         {/* Message */}

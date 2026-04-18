@@ -163,7 +163,7 @@ function Hero() {
           </div>
 
           <p className="mt-6 text-xs text-slate-500">
-            No credit card required · GDPR compliant · Used by 500+ veterinary professionals
+            No credit card required · Free during beta
           </p>
         </div>
 
@@ -862,7 +862,7 @@ function HowItWorks() {
           {[
             { icon: "⚡", label: "< 10 second response time" },
             { icon: "📖", label: "Every answer is cited" },
-            { icon: "🔒", label: "GDPR compliant" },
+            { icon: "🔒", label: "Secure & private" },
             { icon: "🌐", label: "Works on any device" },
           ].map((i) => (
             <div key={i.label} className="flex items-center justify-center gap-2 text-center">
@@ -881,20 +881,39 @@ function ForClinics() {
   return (
     <section id="for-clinics" className="py-24 bg-slate-900">
       <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-5">
+        {/* Clinic features */}
+        <div className="grid grid-cols-1 gap-4">
           {[
-            { stat: "10×", label: "faster than manual lookup" },
-            { stat: "500+", label: "veterinary professionals" },
-            { stat: "98%", label: "answer accuracy rate" },
-            { stat: "24/7", label: "available, no downtime" },
+            {
+              icon: "📚",
+              title: "Evidence-based answers",
+              desc: "Every response is grounded in peer-reviewed veterinary journals — not general web content.",
+            },
+            {
+              icon: "⚡",
+              title: "Available at the point of care",
+              desc: "Ask a clinical question mid-consultation and get a structured answer before the client leaves the room.",
+            },
+            {
+              icon: "👥",
+              title: "Works for the whole team",
+              desc: "Vets, nurses, and students can all query Arlo — no specialist knowledge needed to get started.",
+            },
+            {
+              icon: "🔒",
+              title: "Secure by design",
+              desc: "Your queries are not stored or used for training. Built with clinical privacy in mind.",
+            },
           ].map((item) => (
             <div
-              key={item.label}
-              className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/8 transition-colors"
+              key={item.title}
+              className="flex items-start gap-4 p-5 rounded-2xl bg-white/5 border border-white/10"
             >
-              <p className="text-4xl font-bold text-teal-400 mb-1">{item.stat}</p>
-              <p className="text-sm text-slate-400">{item.label}</p>
+              <span className="text-2xl flex-shrink-0 mt-0.5">{item.icon}</span>
+              <div>
+                <p className="text-sm font-semibold text-white mb-1">{item.title}</p>
+                <p className="text-sm text-slate-400 leading-relaxed">{item.desc}</p>
+              </div>
             </div>
           ))}
         </div>
@@ -941,7 +960,7 @@ function CTASection() {
           Give your clinical decisions a better foundation
         </h2>
         <p className="text-teal-100 mb-10 text-lg">
-          Join 500+ vets already using Arlo. Free during beta, no card needed.
+          Free during beta. No card needed.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <Link
