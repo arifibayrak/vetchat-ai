@@ -142,6 +142,7 @@ async def _chat_stream(
     query: str,
     chroma_collection: chromadb.Collection | None = None,
     user_id: str | None = None,
+    history: list | None = None,
 ) -> AsyncGenerator[str, None]:
     settings = get_settings()
 
@@ -265,14 +266,17 @@ async def _chat_stream(
             pass
 
     async def _run_claude() -> str:
-        result = await loop.run_in_executor(
-            None,
-            lambda: claude.complete(
-                query, context_block, settings.claude_max_tokens, history=body.history
-            ),
-        )
-        await _ping_queue.put(None)  # sentinel — Claude finished
-        return result
+        try:
+            result = await loop.run_in_executor(
+                None,
+                lambda: claude.complete(
+                    query, context_block, settings.claude_max_tokens, history=history
+                ),
+            )
+            return result
+        finally:
+            # Always release the heartbeat loop, even on exception
+            await _ping_queue.put(None)
 
     _ping_task = asyncio.create_task(_ping_sender())
     _claude_task = asyncio.create_task(_run_claude())
@@ -283,8 +287,15 @@ async def _chat_stream(
             break
         yield item  # forward keepalive ping to client
 
-    answer_raw = await _claude_task
     _ping_task.cancel()
+    try:
+        answer_raw = await _claude_task
+    except Exception as exc:
+        _log.exception("Claude generation failed: %s", exc)
+        answer_raw = (
+            "I wasn't able to generate an answer due to a temporary error. "
+            "Please try again in a moment."
+        )
 
     # ── Citation guard: block hallucinated structured answers with no citations ──
     # Only fires when Claude produced a full structured clinical response (## headings)
@@ -369,7 +380,12 @@ async def chat(request: Request, body: ChatRequest) -> StreamingResponse:
     chroma_collection = getattr(request.app.state, "chroma_collection", None)
 
     return StreamingResponse(
-        _chat_stream(body.query.strip(), chroma_collection=chroma_collection, user_id=user_id),
+        _chat_stream(
+            body.query.strip(),
+            chroma_collection=chroma_collection,
+            user_id=user_id,
+            history=body.history,
+        ),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
