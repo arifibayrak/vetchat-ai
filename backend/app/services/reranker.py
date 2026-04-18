@@ -43,7 +43,12 @@ def rerank(
             pairs = [(query, chunk.text) for chunk in chunks]
             scores = model.predict(pairs)
             ranked = sorted(zip(scores, chunks), key=lambda x: x[0], reverse=True)
-            return [chunk for _, chunk in ranked[:top_k]]
+            # Filter below relevance threshold; always keep at least 2 results
+            _THRESHOLD = -2.0
+            above = [(s, c) for s, c in ranked if s >= _THRESHOLD]
+            if len(above) < 2:
+                above = ranked[:2]
+            return [c for _, c in above[:top_k]]
 
     # Fallback: return top_k by ascending distance (cosine similarity)
     return sorted(chunks, key=lambda c: c.distance)[:top_k]

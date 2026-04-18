@@ -105,13 +105,21 @@ def filter_and_reorder(
     get_text: "callable[[T], str]",
 ) -> list[T]:
     """
-    Stable-sort resources so species-matched results come first and
-    human-medicine-only results come last. Never removes any result.
-    Returns the list unchanged when species is UNKNOWN or MIXED.
+    Reorder and, when species is known, remove confirmed human-medicine papers.
+
+    - UNKNOWN / MIXED: return unchanged (no removal risk)
+    - Known species: remove score=0 results (human-medicine signals, no vet cue).
+      Fallback: if removal would leave fewer than 2 results, reorder only.
     """
     if species in (Species.UNKNOWN, Species.MIXED):
         return resources
 
     scored = [(r, _score(get_text(r), species)) for r in resources]
-    scored.sort(key=lambda x: x[1], reverse=True)
-    return [r for r, _ in scored]
+    cleaned = [(r, s) for r, s in scored if s > 0]
+
+    # Fallback: don't remove if it would empty (or nearly empty) the result set
+    if len(cleaned) < 2:
+        cleaned = scored
+
+    cleaned.sort(key=lambda x: x[1], reverse=True)
+    return [r for r, _ in cleaned]

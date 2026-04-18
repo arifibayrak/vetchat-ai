@@ -184,15 +184,15 @@ async def _chat_stream(
     })
 
     # Run live API search and ChromaDB vector search concurrently
-    live_task = loop.run_in_executor(None, search_live, search_query, settings, 3)
+    live_task = loop.run_in_executor(None, search_live, search_query, settings, 5)
 
     chroma_chunks = []
     if chroma_collection is not None:
         chroma_raw = await loop.run_in_executor(
             None, chroma_search, search_query, chroma_collection,
-            10, settings.embedding_model,
+            20, settings.embedding_model,
         )
-        chroma_chunks = rerank(search_query, chroma_raw, top_k=5, use_reranker=settings.use_reranker)
+        chroma_chunks = rerank(search_query, chroma_raw, top_k=8, use_reranker=settings.use_reranker)
 
     search_result = await live_task
     live_results = search_result.resources
