@@ -46,7 +46,7 @@ export function useAuth() {
     });
     const text = await res.text();
     const data = text ? JSON.parse(text) : {};
-    if (!res.ok) throw new Error(data.detail || "Login failed");
+    if (!res.ok) throw new Error(data.detail || `Login failed (${res.status})`);
     localStorage.setItem("vetchat_token", data.token);
     setToken(data.token);
     setUser({ id: data.user_id, email: data.email, full_name: data.full_name });
@@ -61,7 +61,7 @@ export function useAuth() {
     });
     const text = await res.text();
     const data = text ? JSON.parse(text) : {};
-    if (!res.ok) throw new Error(data.detail || "Registration failed");
+    if (!res.ok) throw new Error(data.detail || `Registration failed (${res.status})`);
     localStorage.setItem("vetchat_token", data.token);
     setToken(data.token);
     setUser({ id: data.user_id, email: data.email, full_name: data.full_name });

@@ -10,17 +10,17 @@ from app.services.emergency_detector import DISCLAIMER
 
 _SYSTEM_PROMPT_PATH = Path(__file__).parent.parent / "data" / "system_prompt.txt"
 
-_FLOW_KEYWORDS = frozenset({
-    "workup", "approach", "protocol", "algorithm", "diagnostic",
-    "management", "treatment", "emergency", "differential", "triage",
-    "assessment", "evaluation", "step", "procedure", "how to",
-})
-
 _FLOW_SYSTEM = (
     "You are a veterinary clinical decision support tool. "
-    "Given a query and a clinical answer, produce a structured step-by-step clinical algorithm as JSON. "
-    "Output ONLY valid JSON — no markdown fences, no explanation. "
-    'Format: {"title": "Short title", "icon": "one emoji", "steps": [...], "source": "Reference if known"}\n'
+    "Given a query and a clinical answer, decide whether a structured clinical algorithm card adds real value.\n\n"
+    "Return the literal string null (no quotes, no JSON wrapper) if the query is:\n"
+    "- A simple factual or yes/no question (e.g. 'Is X toxic to cats?', 'What is the half-life of Y?')\n"
+    "- A single-concept knowledge question with a direct answer\n"
+    "- A question where a sequential flow would be redundant or forced\n\n"
+    "Return a JSON algorithm ONLY when there is a genuine multi-step clinical process to illustrate — "
+    "e.g. a diagnostic workup, treatment protocol, triage algorithm, anaesthesia plan, or monitoring pathway.\n\n"
+    "Output ONLY valid JSON or the literal null — no markdown fences, no explanation.\n"
+    'JSON format: {"title": "Short title", "icon": "one emoji", "steps": [...], "source": "Reference if known"}\n'
     "Step types:\n"
     '- {"type": "node", "text": "≤8 words", "sub": "optional detail ≤12 words", "highlight": true/false}\n'
     '- {"type": "branch", "items": ["Option A", "Option B", "Option C"]}\n'
@@ -31,9 +31,8 @@ _FLOW_SYSTEM = (
 )
 
 
-def is_diagnostic_query(query: str) -> bool:
-    q = query.lower()
-    return any(kw in q for kw in _FLOW_KEYWORDS)
+def is_diagnostic_query(_query: str) -> bool:
+    return True  # Claude decides — _FLOW_SYSTEM instructs it to return null when no flow is warranted
 _system_prompt: str | None = None
 
 

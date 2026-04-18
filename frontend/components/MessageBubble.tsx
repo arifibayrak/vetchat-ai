@@ -136,6 +136,33 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                     </a>
                   );
                 },
+                table({ children }) {
+                  return (
+                    <div className="overflow-x-auto my-3">
+                      <table className="w-full text-xs border-collapse">{children}</table>
+                    </div>
+                  );
+                },
+                thead({ children }) {
+                  return <thead className="bg-teal-50">{children}</thead>;
+                },
+                th({ children }) {
+                  return (
+                    <th className="border border-gray-200 px-3 py-1.5 text-left font-semibold text-teal-800 whitespace-nowrap">
+                      {children}
+                    </th>
+                  );
+                },
+                td({ children }) {
+                  return (
+                    <td className="border border-gray-200 px-3 py-1.5 text-gray-700 leading-snug">
+                      {children}
+                    </td>
+                  );
+                },
+                tr({ children }) {
+                  return <tr className="even:bg-gray-50">{children}</tr>;
+                },
                 hr() {
                   return <hr className="border-gray-200 my-3" />;
                 },

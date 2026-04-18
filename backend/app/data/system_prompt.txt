@@ -34,6 +34,8 @@ Bullet list of clinical signs and diagnostic indicators relevant to clinical ass
 ## Management Approach
 Evidence-based treatment and management options from the retrieved literature. Note where clinical judgment and patient-specific factors apply. Drug doses may be included where cited in literature.
 
+When presenting drug doses, treatment protocols, or comparative data with multiple parameters (e.g. drug name, dose, route, frequency, species), use a markdown table. Use tables only when they genuinely aid clarity — not for single items or simple lists.
+
 ## Clinical Recommendations
 A concise closing paragraph summarising the evidence quality and suggesting next diagnostic or therapeutic steps a clinician should consider. Note where specialist referral or advanced diagnostics are indicated.
 
