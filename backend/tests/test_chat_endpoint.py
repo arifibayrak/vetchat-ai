@@ -161,22 +161,31 @@ def test_result_event_is_last(test_client):
 
 # ─── No-results path ─────────────────────────────────────────────────────────
 
-def test_no_api_results_returns_informative_message(test_client):
+def test_no_api_results_returns_consensus_fallback(test_client):
+    """With empty retrieval, the stream now returns a consensus fallback
+    (fallback_kind='no_retrieval') instead of dumping an error. The vet gets
+    something actionable at point of care."""
+    fallback_text = (
+        "**Literature synthesis incomplete — consensus-based summary only.**\n\n"
+        "## Safe Clinical Summary\n\n- Step 1 [Guideline/Consensus]\n"
+    )
     with _mock_refine("canine pruritus"), \
          _mock_search(resources=[], errors=["ScienceDirect: 401 Unauthorized"]), \
-         patch("app.api.chat.ClaudeService.complete") as mock_complete:
+         patch("app.api.chat.generate_consensus_fallback", return_value=fallback_text):
         resp = test_client.post("/chat", json={"query": "dog itching"})
     result = _get_result(_parse_sse(resp.text))
-    mock_complete.assert_not_called()
     assert result["emergency"] is False
     assert result["citations"] == []
-    # Should mention the search query and the error
-    assert "canine pruritus" in result["answer"]
+    assert result["fallback_kind"] == "no_retrieval"
+    assert result["evidence_mode"] == "consensus"
+    assert "Literature synthesis incomplete" in result["answer"]
 
 
 def test_no_results_path_does_not_call_claude_complete(test_client):
+    """The consensus fallback uses a dedicated generator, not ClaudeService.complete."""
     with _mock_refine(), \
          _mock_search(resources=[], errors=[]), \
+         patch("app.api.chat.generate_consensus_fallback", return_value="**Literature synthesis incomplete.**"), \
          patch("app.api.chat.ClaudeService.complete") as mock_complete:
         test_client.post("/chat", json={"query": "quantum physics"})
     mock_complete.assert_not_called()

@@ -55,9 +55,18 @@ interface MessageListProps {
   onSend: (query: string) => void;
   isAuthenticated?: boolean;
   onAuthGate?: (query: string) => void;
+  onRetry?: (originalQuery?: string, messageId?: string) => void;
+  onExpandSearch?: (originalQuery?: string, messageId?: string) => void;
 }
 
-export default function MessageList({ messages, onSend, isAuthenticated, onAuthGate }: MessageListProps) {
+export default function MessageList({
+  messages,
+  onSend,
+  isAuthenticated,
+  onAuthGate,
+  onRetry,
+  onExpandSearch,
+}: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Only auto-scroll while a response is loading (isLoading messages present),
@@ -120,7 +129,15 @@ export default function MessageList({ messages, onSend, isAuthenticated, onAuthG
       {messages.map((msg) => {
         const isFollowUp = msg.role === "assistant" && seenAssistant;
         if (msg.role === "assistant") seenAssistant = true;
-        return <MessageBubble key={msg.id} message={msg} isFollowUp={isFollowUp} />;
+        return (
+          <MessageBubble
+            key={msg.id}
+            message={msg}
+            isFollowUp={isFollowUp}
+            onRetry={(q) => onRetry?.(q, msg.id)}
+            onExpandSearch={(q) => onExpandSearch?.(q, msg.id)}
+          />
+        );
       })}
       <div ref={bottomRef} />
     </div>

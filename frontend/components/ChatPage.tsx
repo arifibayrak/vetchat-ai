@@ -18,10 +18,18 @@ export default function ChatPage() {
   const { conversations, fetchConversations, loadConversation, deleteConversation } =
     useConversations();
 
-  const { messages, isLoading, error, sendMessage, resetMessages, loadMessages } =
-    useChat(() => {
-      fetchConversations();
-    });
+  const {
+    messages,
+    isLoading,
+    error,
+    sendMessage,
+    retryMessage,
+    expandSearch,
+    resetMessages,
+    loadMessages,
+  } = useChat(() => {
+    fetchConversations();
+  });
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
@@ -124,6 +132,8 @@ export default function ChatPage() {
           )}
         </header>
 
+        {/* Per-message failure bubbles carry their own recovery UI.
+            The top banner is reserved for global errors (auth, conversation-load, etc.). */}
         {error && (
           <div className="bg-red-50 border-b border-red-200 px-4 py-2 text-sm text-red-700 animate-fade-in">
             {error}
@@ -135,6 +145,8 @@ export default function ChatPage() {
           onSend={handleSendOrGate}
           isAuthenticated={!!user}
           onAuthGate={(q) => setAuthGateQuery(q)}
+          onRetry={retryMessage}
+          onExpandSearch={expandSearch}
         />
 
         <InputBar

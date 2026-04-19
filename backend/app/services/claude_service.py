@@ -201,8 +201,11 @@ def _build_messages(current_user_message: str, history: list | None) -> list[dic
 
 def _build_user_message(query: str, context_block: str, has_history: bool = False) -> str:
     followup_note = (
-        "\n- This is a follow-up in an ongoing case. Use the compact FOLLOW-UP MODE "
-        "output format defined in the system prompt. Do not restate the initial plan.\n"
+        "\n- This is a FOLLOW-UP in an ongoing case. Produce a DELTA, not a re-statement. "
+        "Use the FOLLOW-UP MODE sections exactly as defined in the system prompt "
+        "(What Changed / What Changes in Management Now / What Stays the Same / "
+        "Monitoring for the Next Interval / Escalation / Referral Triggers / "
+        "Evidence Quality Note). Do NOT repeat the initial plan. Target 150-350 words.\n"
         if has_history else ""
     )
     return (
@@ -210,11 +213,13 @@ def _build_user_message(query: str, context_block: str, has_history: bool = Fals
         f"## Retrieved Veterinary Literature\n"
         f"{context_block}\n\n"
         f"Instructions:\n"
-        f"- Answer using the retrieved literature above. Cite every factual claim with [N] notation.\n"
-        f"- If a source is a journal directory entry (no article text), you may mention the journal name "
-        f"and URL as a resource the vet can consult, and cite it with [N].\n"
-        f"- Do not make clinical claims that are not supported by the retrieved sources.\n"
-        f"- If the retrieved content is insufficient to answer, say so clearly and suggest the vet "
-        f"consult the listed journals directly."
+        f"- Tag every factual claim using the evidence-tag system from the prompt "
+        f"([N] / [Direct evidence] / [Review] / [Guideline/Consensus] / [Weak indirect] / "
+        f"[No direct evidence] / [Gap]). Prefer [N] when a retrieved source supports the claim.\n"
+        f"- Do not cite a [N] number that is not present in the Retrieved Literature block.\n"
+        f"- If retrieved evidence is thin, lean on [Guideline/Consensus] — do not fabricate [N].\n"
+        f"- Journal directory entries (title/URL only, no article text) may be cited as a resource "
+        f"the vet can consult, but do not present them as directly supporting a clinical claim.\n"
+        f"- Omit the References section entirely if nothing was cited with [N] — the UI handles the reference panel."
         f"{followup_note}"
     )

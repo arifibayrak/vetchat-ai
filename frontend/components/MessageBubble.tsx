@@ -13,6 +13,8 @@ import LoadingSteps from "./LoadingSteps";
 interface MessageBubbleProps {
   message: Message;
   isFollowUp?: boolean;
+  onRetry?: (originalQuery?: string) => void;
+  onExpandSearch?: (originalQuery?: string) => void;
 }
 
 const SECTION_COLORS: Record<string, string> = {
@@ -23,28 +25,38 @@ const SECTION_COLORS: Record<string, string> = {
   "Management Approach":      "border-teal-400  bg-teal-50  text-teal-900",
   "Veterinary Recommendation":"border-teal-400  bg-teal-50  text-teal-900",
   "Clinical Recommendations": "border-teal-400  bg-teal-50  text-teal-900",
-  // Initial-query tiered schema (Round 7)
+  // Initial-query schema
+  "Immediate Priorities":      "border-rose-400  bg-rose-50  text-rose-900",
   "Clinical Frame":            "border-slate-400 bg-slate-50 text-slate-800",
-  "Evidence-Based Findings":   "border-teal-400  bg-teal-50  text-teal-900",
+  "Direct Evidence":           "border-emerald-400 bg-emerald-50 text-emerald-900",
+  "Evidence-Based Findings":   "border-emerald-400 bg-emerald-50 text-emerald-900",
   "Standard-of-Care Guidance": "border-blue-400  bg-blue-50  text-blue-900",
   "Monitoring & Escalation":   "border-amber-400 bg-amber-50 text-amber-900",
   "Evidence Gaps":             "border-orange-400 bg-orange-50 text-orange-900",
+  "References":                "border-violet-400 bg-violet-50 text-violet-900",
   // Emergency-mode sections
+  "Immediate Stabilisation":   "border-rose-400  bg-rose-50  text-rose-900",
   "Immediate Stabilization":   "border-rose-400  bg-rose-50  text-rose-900",
   "Targeted Diagnostics":      "border-slate-400 bg-slate-50 text-slate-800",
   "First-line Management":     "border-teal-400  bg-teal-50  text-teal-900",
   "Escalation Triggers":       "border-red-400   bg-red-50   text-red-900",
   // Follow-up sections
-  "What Changed":              "border-amber-400 bg-amber-50 text-amber-900",
-  "Updated Plan":              "border-teal-400  bg-teal-50  text-teal-900",
-  "Management Changes Now":    "border-teal-400  bg-teal-50  text-teal-900",
-  "Unchanged":                 "border-slate-300 bg-slate-50 text-slate-700",
-  "What Stays the Same":       "border-slate-300 bg-slate-50 text-slate-700",
-  "Monitoring Plan":           "border-amber-400 bg-amber-50 text-amber-900",
-  "Discharge / Escalation Triggers": "border-red-400 bg-red-50 text-red-900",
-  "Evidence Quality Note":     "border-slate-300 bg-slate-50 text-slate-600",
+  "What Changed":                      "border-amber-400 bg-amber-50 text-amber-900",
+  "What Changes in Management Now":    "border-teal-400  bg-teal-50  text-teal-900",
+  "Management Changes Now":            "border-teal-400  bg-teal-50  text-teal-900",
+  "Updated Plan":                      "border-teal-400  bg-teal-50  text-teal-900",
+  "Unchanged":                         "border-slate-300 bg-slate-50 text-slate-700",
+  "What Stays the Same":               "border-slate-300 bg-slate-50 text-slate-700",
+  "Monitoring for the Next Interval":  "border-amber-400 bg-amber-50 text-amber-900",
+  "Monitoring Plan":                   "border-amber-400 bg-amber-50 text-amber-900",
+  "Escalation / Referral Triggers":    "border-red-400   bg-red-50   text-red-900",
+  "Discharge / Escalation Triggers":   "border-red-400   bg-red-50   text-red-900",
+  "Evidence Quality Note":             "border-slate-300 bg-slate-50 text-slate-600",
   "Immediate Next Steps (next 30-60 min)": "border-rose-400 bg-rose-50 text-rose-900",
-  "Immediate Next Steps":      "border-rose-400 bg-rose-50 text-rose-900",
+  "Immediate Next Steps":              "border-rose-400 bg-rose-50 text-rose-900",
+  // Fallback-mode sections
+  "Safe Clinical Summary":             "border-amber-400 bg-amber-50 text-amber-900",
+  "What to Do Next":                   "border-teal-400  bg-teal-50  text-teal-900",
 };
 
 const SECTION_ICONS: Record<string, string> = {
@@ -54,32 +66,167 @@ const SECTION_ICONS: Record<string, string> = {
   "Management Approach":     "💊",
   "Veterinary Recommendation":"✅",
   "Clinical Recommendations":"✅",
+  "Immediate Priorities":     "⚡",
   "Clinical Frame":           "🔬",
+  "Direct Evidence":          "📄",
   "Evidence-Based Findings":  "📄",
   "Standard-of-Care Guidance":"💡",
   "Monitoring & Escalation":  "🩺",
   "Evidence Gaps":            "⚠️",
+  "References":               "📚",
+  "Immediate Stabilisation":  "🚑",
   "Immediate Stabilization":  "🚑",
   "Targeted Diagnostics":     "🔎",
   "First-line Management":    "💊",
   "Escalation Triggers":      "🚨",
-  "What Changed":             "🔄",
-  "Updated Plan":             "📋",
-  "Management Changes Now":   "📋",
-  "Unchanged":                "✓",
-  "What Stays the Same":      "✓",
-  "Monitoring Plan":          "📊",
-  "Discharge / Escalation Triggers": "🚨",
-  "Evidence Quality Note":    "📚",
+  "What Changed":                      "🔄",
+  "What Changes in Management Now":    "📋",
+  "Management Changes Now":            "📋",
+  "Updated Plan":                      "📋",
+  "Unchanged":                         "✓",
+  "What Stays the Same":               "✓",
+  "Monitoring for the Next Interval":  "📊",
+  "Monitoring Plan":                   "📊",
+  "Escalation / Referral Triggers":    "🚨",
+  "Discharge / Escalation Triggers":   "🚨",
+  "Evidence Quality Note":             "📚",
   "Immediate Next Steps (next 30-60 min)": "⏱️",
-  "Immediate Next Steps":     "⏱️",
+  "Immediate Next Steps":              "⏱️",
+  "Safe Clinical Summary":             "🛟",
+  "What to Do Next":                   "➡️",
 };
 
+// Inline evidence tags produced by the system prompt. Rendered as compact
+// coloured pills so they read as badges, not bracketed clutter in the prose.
+const EVIDENCE_TAG_STYLES: Record<string, string> = {
+  "Direct evidence":      "bg-emerald-100 text-emerald-800 ring-emerald-200",
+  "Review":               "bg-sky-100     text-sky-800     ring-sky-200",
+  "Guideline/Consensus":  "bg-violet-100  text-violet-800  ring-violet-200",
+  "Consensus":            "bg-violet-100  text-violet-800  ring-violet-200",
+  "Weak indirect":        "bg-amber-100   text-amber-800   ring-amber-200",
+  "No direct evidence":   "bg-slate-100   text-slate-600   ring-slate-200",
+  "Gap":                  "bg-orange-100  text-orange-800  ring-orange-200",
+};
+
+const EVIDENCE_TAG_PATTERN =
+  /\[(Direct evidence|Review|Guideline\/Consensus|Consensus|Weak indirect|No direct evidence|Gap)\]/g;
+
 function linkifyCitations(content: string): string {
-  return content.replace(/\[(\d+)\]/g, (_match, n) => `[[${n}]](#citation-${n})`);
+  // Numeric citations → anchor links to the reference panel
+  let out = content.replace(/\[(\d+)\]/g, (_m, n) => `[[${n}]](#citation-${n})`);
+  // Evidence tags → custom `<evtag>` pseudo-element; react-markdown rewrites
+  // it via the custom code component below. Using backticks keeps it in
+  // text phase so GFM tables + lists still parse normally.
+  out = out.replace(EVIDENCE_TAG_PATTERN, (_m, tag) => `\`evtag::${tag}\``);
+  return out;
 }
 
-export default function MessageBubble({ message, isFollowUp = false }: MessageBubbleProps) {
+function EvidenceTagPill({ tag }: { tag: string }) {
+  const style = EVIDENCE_TAG_STYLES[tag] ?? "bg-slate-100 text-slate-600 ring-slate-200";
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ring-1 align-baseline mx-0.5 ${style}`}
+    >
+      {tag}
+    </span>
+  );
+}
+
+function FailureBubble({
+  message,
+  onRetry,
+  onExpandSearch,
+}: {
+  message: Message;
+  onRetry?: (q?: string) => void;
+  onExpandSearch?: (q?: string) => void;
+}) {
+  const isTimeout = message.failureKind === "timeout";
+  const title = isTimeout
+    ? "Generation took too long"
+    : message.failureKind === "server"
+      ? "Service is starting up"
+      : "Something went wrong";
+  const body = message.failureMessage
+    || "We couldn't complete your answer. Here are safe next steps while you decide how to continue.";
+
+  return (
+    <div className="flex justify-start w-full animate-fade-in">
+      <div className="w-full max-w-2xl rounded-2xl bg-white border border-amber-200 px-5 py-4 shadow-sm">
+        <div className="flex items-start gap-2">
+          <span className="text-xl leading-none" aria-hidden>🛟</span>
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-amber-900">{title}</h3>
+            <p className="text-xs text-amber-800 mt-0.5 leading-relaxed">{body}</p>
+
+            <div className="mt-3 rounded-lg bg-amber-50 border border-amber-100 px-3 py-2 text-xs text-amber-900 leading-relaxed">
+              <p className="font-medium mb-0.5">Safe fallback guidance</p>
+              <p>
+                If this is an active case, fall back to your clinic's standard stabilisation
+                protocol and reassess in 10-15 minutes. Arlo's literature synthesis is
+                incomplete for this turn — don't act on inferred specifics until you've
+                re-queried with a cleaner context.
+              </p>
+            </div>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              {onRetry && (
+                <button
+                  onClick={() => onRetry(message.originalQuery)}
+                  className="px-3 py-1.5 rounded-lg bg-teal-600 text-white text-xs font-medium hover:bg-teal-700 transition-colors"
+                >
+                  ↻ Retry same query
+                </button>
+              )}
+              {onExpandSearch && (
+                <button
+                  onClick={() => onExpandSearch(message.originalQuery)}
+                  className="px-3 py-1.5 rounded-lg bg-white border border-teal-300 text-teal-700 text-xs font-medium hover:bg-teal-50 transition-colors"
+                >
+                  🔍 Expand search
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FallbackBanner({ kind }: { kind: NonNullable<Message["fallbackKind"]> }) {
+  const copy: Record<NonNullable<Message["fallbackKind"]>, { title: string; body: string; tint: string }> = {
+    no_retrieval: {
+      title: "Literature synthesis incomplete",
+      body: "No peer-reviewed sources were retrieved for this query. Answer below is consensus-based.",
+      tint: "bg-amber-50 border-amber-200 text-amber-900",
+    },
+    guard_blocked: {
+      title: "Answer rewritten for safety",
+      body: "The initial synthesis didn't ground in retrieved literature. Showing a consensus-based version instead.",
+      tint: "bg-amber-50 border-amber-200 text-amber-900",
+    },
+    timeout_partial: {
+      title: "Partial answer — generation interrupted",
+      body: "Synthesis ran long. The content below is what was produced before the timeout.",
+      tint: "bg-orange-50 border-orange-200 text-orange-900",
+    },
+  };
+  const c = copy[kind];
+  return (
+    <div className={`rounded-lg border px-3 py-2 mb-3 ${c.tint}`}>
+      <p className="text-xs font-semibold">⚠️ {c.title}</p>
+      <p className="text-[11px] mt-0.5 leading-relaxed">{c.body}</p>
+    </div>
+  );
+}
+
+export default function MessageBubble({
+  message,
+  isFollowUp = false,
+  onRetry,
+  onExpandSearch,
+}: MessageBubbleProps) {
   const isUser = message.role === "user";
 
   if (isUser) {
@@ -90,6 +237,13 @@ export default function MessageBubble({ message, isFollowUp = false }: MessageBu
         </div>
       </div>
     );
+  }
+
+  // ── Failure recovery bubble ────────────────────────────────────────────────
+  // Replaces the old "silently remove bubble + red banner" path. The user
+  // always gets a usable surface with Retry / Expand-search actions.
+  if (message.failureKind) {
+    return <FailureBubble message={message} onRetry={onRetry} onExpandSearch={onExpandSearch} />;
   }
 
   if (message.isLoading) {
@@ -131,6 +285,8 @@ export default function MessageBubble({ message, isFollowUp = false }: MessageBu
           <EmergencyBanner />
         )}
 
+        {message.fallbackKind && <FallbackBanner kind={message.fallbackKind} />}
+
         {message.retrievalQuality && (
           <div className="mb-3">
             <EvidenceQualityBadge
@@ -171,6 +327,18 @@ export default function MessageBubble({ message, isFollowUp = false }: MessageBu
                 },
                 strong({ children }) {
                   return <strong className="font-semibold text-gray-900">{children}</strong>;
+                },
+                code({ children, className }) {
+                  const text = String(children ?? "");
+                  // Evidence-tag pseudo-element produced by linkifyCitations
+                  if (text.startsWith("evtag::")) {
+                    return <EvidenceTagPill tag={text.slice(7)} />;
+                  }
+                  return (
+                    <code className={`bg-gray-100 text-gray-800 px-1 py-0.5 rounded text-[12px] font-mono ${className ?? ""}`}>
+                      {children}
+                    </code>
+                  );
                 },
                 a({ href, children }) {
                   const isAnchor = href?.startsWith("#");
@@ -231,6 +399,8 @@ export default function MessageBubble({ message, isFollowUp = false }: MessageBu
               citations={message.citations}
               liveResources={message.liveResources}
               totalSources={message.totalSources}
+              hiddenReferences={message.hiddenReferences}
+              evidenceCounts={message.evidenceCounts}
             />
             {message.flow && <AlgoFlow flow={message.flow} />}
           </>

@@ -12,9 +12,13 @@ from fastapi.responses import StreamingResponse
 from app.auth import get_optional_user
 from app.config import get_settings
 from app.models.chat import ChatRequest
-from app.services import citation_builder, disclaimer_injector
+from app.services import citation_builder, disclaimer_injector, evidence_tagger
 from app.services.claude_service import ClaudeService, is_diagnostic_query
 from app.services.emergency_detector import DISCLAIMER, get_detector
+from app.services.fallback_generator import (
+    generate_consensus_fallback,
+    generate_partial_fallback,
+)
 from app.services.live_search import search_live
 from app.services.retriever import search as chroma_search
 from app.services.reranker import rerank, rerank_live
@@ -125,9 +129,21 @@ async def _save_conversation(user_id: str, query: str, result: dict) -> None:
 
 
 _CITATION_PATTERN = re.compile(r"\[\d+\]")
-# Any trust tag — [N], [Consensus], [Gap]. Guard only fires if NONE of these appear
-# in a structured answer, meaning Claude ignored the tiered trust model entirely.
-_TRUST_TAG_PATTERN = re.compile(r"\[(?:\d+|Consensus|Gap)\]")
+# Any trust tag — [N], or any of the evidence-tier tags emitted by the
+# tiered-trust system prompt. Guard fires only if NONE of these appear in
+# a structured answer (i.e. Claude bypassed the trust model entirely).
+_TRUST_TAG_PATTERN = re.compile(
+    r"\[(?:"
+    r"\d+"
+    r"|Consensus"
+    r"|Guideline/Consensus"
+    r"|Direct evidence"
+    r"|Review"
+    r"|Weak indirect"
+    r"|No direct evidence"
+    r"|Gap"
+    r")\]"
+)
 # Matches a structured clinical answer (has at least one ## section heading).
 # Used to distinguish hallucinated clinical prose from a deliberate "I can't answer" response.
 _STRUCTURED_ANSWER_PATTERN = re.compile(r"^##\s+\w", re.MULTILINE)
@@ -190,6 +206,7 @@ async def _chat_stream(
         api_errors: list[str] = []
         live_results = []
         chroma_chunks = []
+        total_sources = len(prior_citations)
     else:
         # ── Step 2: Refine query for academic search ──────────────────────────
         yield _event({"type": "progress", "step": 1, "label": "Understanding your question…", "icon": "🧠"})
@@ -247,23 +264,52 @@ async def _chat_stream(
                 get_text=lambda c: f"{c.title} {c.text}",
             )
 
-        # ── No results from either source ─────────────────────────────────────
+        # ── No results from either source → graceful consensus fallback ───────
+        # Previously we dumped an "API key error" message and the frontend
+        # dropped the user back to the generic home state. Instead, generate
+        # a short, safe consensus-based summary so the vet gets something
+        # actionable at point of care. Explicit fallback_kind drives the
+        # frontend recovery UI (Retry / Expand search buttons).
         if not live_results and not chroma_chunks:
-            error_hint = f" ({api_errors[0]})" if api_errors else ""
+            yield _event({
+                "type": "progress", "step": 3,
+                "label": "No direct literature match — producing consensus-based summary…",
+                "icon": "🛟",
+            })
+            try:
+                fallback_answer = await loop.run_in_executor(
+                    None,
+                    generate_consensus_fallback,
+                    claude,
+                    query,
+                    emergency.category if emergency.is_emergency else None,
+                )
+            except Exception as exc:
+                _log.warning("Consensus fallback generation failed: %s", exc)
+                fallback_answer = (
+                    "**Literature synthesis incomplete — consensus-based summary only.**\n\n"
+                    "I was unable to retrieve peer-reviewed literature for this query and the "
+                    "consensus fallback service is unavailable. Please retry in a moment, or "
+                    "rephrase with more specific clinical context (species, signalment, presenting "
+                    "signs) so retrieval can match.\n\n"
+                    "If this is an active emergency, fall back to your clinic's standard "
+                    "stabilisation protocol and escalate if the patient is deteriorating."
+                )
             payload = {
-                "answer": (
-                    f"I searched for **\"{search_query}\"** but could not retrieve papers "
-                    f"from the academic databases{error_hint}.\n\n"
-                    "Please verify your API keys in the `.env` file and try again:\n"
-                    "- **ScienceDirect:** https://dev.elsevier.com\n"
-                    "- **Springer Nature:** https://dev.springernature.com"
-                ),
+                "answer": disclaimer_injector.inject(fallback_answer),
                 "citations": [],
                 "live_resources": [],
-                "emergency": False,
-                "resources": [],
+                "emergency": emergency.is_emergency,
+                "resources": emergency_resources,
                 "disclaimer": DISCLAIMER,
                 "search_query": search_query,
+                "retrieval_quality": "weak",
+                "total_sources": 0,
+                "cited_count": 0,
+                "evidence_mode": "consensus",
+                "fallback_kind": "no_retrieval",
+                "evidence_counts": {"direct": 0, "review": 0, "guideline": 0, "weak": 0},
+                "hidden_references": [],
             }
             yield _event({"type": "result", "payload": payload})
             if user_id:
@@ -415,20 +461,28 @@ async def _chat_stream(
             pass
 
     # ── Citation guard: block hallucinated structured answers with no citations ──
-    # Only fires when Claude produced a full structured clinical response (## headings)
-    # but included zero [N] citations — meaning it answered from training knowledge,
-    # not from retrieved sources. Deliberate "I can't answer" responses from Claude
-    # (no ## headings) are left through unchanged — they're already appropriate.
-    # Guard fires only if Claude produced structured headings AND used ZERO
-    # trust tags of any kind — meaning it bypassed the tiered trust model.
-    # Answers using only [Consensus] (no [N]) are legitimate for dosing/consensus questions.
+    # Fires only if Claude produced structured headings AND used ZERO trust tags.
+    # Answers using only [Consensus]/[Guideline] (no [N]) are legitimate for
+    # standard-of-care questions. When the guard fires we now generate a proper
+    # consensus fallback instead of dumping a generic "try again" message, so
+    # the vet still gets safe actionable guidance.
     citation_guard_fired = (
         not _TRUST_TAG_PATTERN.search(answer_raw)
         and _STRUCTURED_ANSWER_PATTERN.search(answer_raw)
     )
+    timeout_partial_fired = "*Partial answer —" in answer_raw
     if citation_guard_fired:
         _log.warning("Citation guard triggered (structured, uncited) for query: %s", query[:120])
-        answer_raw = _NO_CITATION_ANSWER
+        try:
+            answer_raw = await loop.run_in_executor(
+                None,
+                generate_consensus_fallback,
+                claude,
+                query,
+                emergency.category if emergency.is_emergency else None,
+            )
+        except Exception:
+            answer_raw = _NO_CITATION_ANSWER
         citations = []
 
     # ── Retrieval quality signal ──────────────────────────────────────────────
@@ -441,20 +495,25 @@ async def _chat_stream(
     else:
         retrieval_quality = "moderate"
 
-    # ── Reference hygiene: hide irrelevant, uncited references ────────────────
-    # Drop tangential/moderate refs that Claude didn't actually cite — these
-    # are the source of the "feline urethral obstruction answer shows feline
-    # bronchial disease references" trust break. Keep:
-    #   - anything Claude cited with [N] (it's part of the answer)
-    #   - anything with high relevance (even if uncited, vet may want to read)
-    # Hide:
-    #   - uncited papers tagged "moderate" or "tangential"
+    # ── Reference hygiene: separate cited / kept / hidden ─────────────────────
+    # Three buckets now (was two):
+    #   cited_refs          — Claude used [N] in the answer; always shown
+    #   kept (high rel)     — uncited but high cross-encoder relevance; shown
+    #   hidden (moderate-)  — uncited and only moderate/tangential; surfaced
+    #                         in the frontend's "Retrieved but not used"
+    #                         collapsible so the vet can see what was pulled
+    # This restores trust for the "where did my sources go?" UX pain point.
     cited_str_set = cited_refs  # already a set of strings from the regex
     _total_before = len(citations)
-    citations = [
-        c for c in citations
-        if str(c.ref) in cited_str_set or c.relevance == "high"
-    ]
+    _kept: list = []
+    _hidden: list = []
+    for c in citations:
+        if str(c.ref) in cited_str_set or c.relevance == "high":
+            _kept.append(c)
+        else:
+            _hidden.append(c)
+    citations = _kept
+    hidden_citations = _hidden
     live_results = [
         r for i, r in enumerate(live_results, start=1)
         if str(i) in cited_str_set or getattr(r, "rerank_score", 0.0) >= 3.0
@@ -471,6 +530,33 @@ async def _chat_stream(
     for c in citations:
         c.intext_passage = _extract_intext_passage(answer, c.ref)
         c.relevant_quote = _extract_relevant_quote(answer, c.ref, c.abstract)
+
+    # ── Enrich citations with clinician-readable metadata ─────────────────────
+    # study_type, species_relevance, evidence_tier, why_it_matters
+    # These drive the new reference-card UX in the frontend.
+    evidence_tagger.enrich(citations, query=query)
+    evidence_tagger.enrich(hidden_citations, query=query)
+
+    # ── Determine evidence_mode + fallback_kind for the response envelope ─────
+    # evidence_mode tells the frontend what kind of answer this is so the UI
+    # can show the right framing (literature-grounded vs consensus-only etc).
+    if citation_guard_fired:
+        evidence_mode = "consensus"
+        fallback_kind: str | None = "guard_blocked"
+    elif timeout_partial_fired:
+        evidence_mode = "partial"
+        fallback_kind = "timeout_partial"
+    elif not citations:
+        evidence_mode = "gap"
+        fallback_kind = None
+    elif n_cited == 0:
+        evidence_mode = "consensus"
+        fallback_kind = None
+    else:
+        evidence_mode = "literature"
+        fallback_kind = None
+
+    evidence_counts = evidence_tagger.counts_by_tier(citations)
 
     yield _event({"type": "progress", "step": 5, "label": "Formatting answer…", "icon": "✍️"})
 
@@ -503,6 +589,10 @@ async def _chat_stream(
         "retrieval_quality": retrieval_quality,
         "total_sources": total_sources,
         "cited_count": n_cited,
+        "evidence_mode": evidence_mode,
+        "fallback_kind": fallback_kind,
+        "evidence_counts": evidence_counts,
+        "hidden_references": [c.model_dump() for c in hidden_citations],
     }
     yield _event({"type": "result", "payload": payload})
     if user_id:

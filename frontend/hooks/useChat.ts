@@ -8,8 +8,15 @@ let _idCounter = 0;
 export const uid = () => String(++_idCounter);
 
 const SLOW_QUERY_MS = 45_000;
+// Auto-retry transient 5xx once before surfacing a failure bubble. The short
+// pause lets Railway finish warming up the container without forcing the user
+// to click Retry themselves for the common cold-start case.
+const AUTO_RETRY_STATUSES = new Set([502, 503, 504]);
+const AUTO_RETRY_DELAY_MS = 1500;
 
 type HistoryTurn = { role: "user" | "assistant"; content: string };
+
+type FailureKind = NonNullable<Message["failureKind"]>;
 
 async function streamChat(
   query: string,
@@ -18,35 +25,52 @@ async function streamChat(
   token: string | null,
   onProgress: (step: ProgressStep) => void,
   onResult: (response: ChatResponse) => void,
-  onError: (msg: string) => void,
+  onError: (kind: FailureKind, msg: string) => void,
   onFlow: (flow: FlowData) => void,
   onEmergencyPreliminary: (card: EmergencyPreliminary) => void,
   onSlowQuery: () => void,
   onAnswerChunk: (delta: string) => void,
+  opts: { attempt?: number } = {},
 ) {
+  const attempt = opts.attempt ?? 0;
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetch("/api/chat", {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ query, history, prior_citations: priorCitations }),
-  });
+  let res: Response;
+  try {
+    res = await fetch("/api/chat", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ query, history, prior_citations: priorCitations }),
+    });
+  } catch {
+    // Network failure (offline, DNS, connection reset)
+    onError("network", "Lost connection to Arlo. Check your network and retry.");
+    return;
+  }
 
   if (!res.ok || !res.body) {
     const ct = res.headers.get("content-type") || "";
-    if (res.status === 502 || res.status === 503 || ct.startsWith("text/html")) {
-      onError("Service is starting up — please try again in 30 seconds.");
+    if (attempt === 0 && AUTO_RETRY_STATUSES.has(res.status)) {
+      // Transparent auto-retry — common during Railway cold starts.
+      await new Promise((r) => setTimeout(r, AUTO_RETRY_DELAY_MS));
+      return streamChat(
+        query, history, priorCitations, token,
+        onProgress, onResult, onError, onFlow, onEmergencyPreliminary, onSlowQuery, onAnswerChunk,
+        { attempt: attempt + 1 },
+      );
+    }
+    if (AUTO_RETRY_STATUSES.has(res.status) || ct.startsWith("text/html")) {
+      onError("server", "Arlo's backend is still starting up. Please retry in ~30 seconds.");
     } else {
-      onError(`Server error: ${res.status}`);
+      onError("server", `Server returned ${res.status}. Please retry.`);
     }
     return;
   }
 
   const ct = res.headers.get("content-type") || "";
   if (!ct.includes("text/event-stream") && ct.startsWith("text/html")) {
-    // Reached an HTML error page mid-deploy (Railway 502 etc.)
-    onError("Service is starting up — please try again in 30 seconds.");
+    onError("server", "Arlo's backend is still starting up. Please retry in ~30 seconds.");
     return;
   }
 
@@ -90,6 +114,15 @@ async function streamChat(
         }
       }
     }
+
+    // Stream closed without a `result` event — treat as a timeout so the
+    // user sees a recoverable failure bubble rather than a frozen loading
+    // state or silently-removed answer.
+    if (!resultReceived) {
+      onError("timeout", "The connection closed before an answer was produced.");
+    }
+  } catch {
+    onError("network", "The connection dropped mid-stream. Retry to continue.");
   } finally {
     clearTimeout(slowTimer);
   }
@@ -127,21 +160,18 @@ export function useChat(onComplete?: () => void) {
     setError(null);
   }, []);
 
-  const sendMessage = useCallback(async (query: string) => {
+  const sendMessage = useCallback(async (
+    query: string,
+    opts: { expand?: boolean; replaceMessageId?: string } = {},
+  ) => {
     if (!query.trim() || isLoading) return;
     setError(null);
 
-    const userMsg: Message = {
-      id: uid(),
-      role: "user",
-      content: query,
-      citations: [],
-      liveResources: [],
-      emergency: false,
-      resources: [],
-    };
-
+    // When a Retry/Expand button is clicked, replace the prior failure bubble
+    // in place rather than appending another user turn.
     const assistantId = uid();
+    const isReplacement = !!opts.replaceMessageId;
+
     const loadingMsg: Message = {
       id: assistantId,
       role: "assistant",
@@ -153,25 +183,50 @@ export function useChat(onComplete?: () => void) {
       isLoading: true,
       steps: [],
       currentStep: 0,
+      originalQuery: query,
     };
 
-    // Build history from prior completed turns in this session
-    const history: HistoryTurn[] = messages
-      .filter((m) => !m.isLoading && m.content)
-      .map((m) => ({ role: m.role, content: m.content }));
+    // Build history from prior completed turns (skip failure bubbles)
+    const historySource = messages.filter(
+      (m) => !m.isLoading && !m.failureKind && m.content,
+    );
+    const history: HistoryTurn[] = historySource.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
 
     // Pull citations from the most recent completed assistant turn so the
-    // backend can reuse them instead of re-running retrieval on follow-ups
+    // backend can reuse them instead of re-running retrieval on follow-ups.
+    // On "expand search", deliberately clear prior_citations so the backend
+    // does a fresh full retrieval instead of reusing the cached context.
     const lastAssistant = [...messages]
       .reverse()
-      .find((m) => m.role === "assistant" && !m.isLoading && m.citations?.length);
-    const priorCitations = lastAssistant?.citations ?? [];
+      .find((m) => m.role === "assistant" && !m.isLoading && !m.failureKind && m.citations?.length);
+    const priorCitations = opts.expand ? [] : (lastAssistant?.citations ?? []);
 
-    setMessages((prev) => [...prev, userMsg, loadingMsg]);
+    const effectiveQuery = opts.expand
+      ? `${query}\n\n(Expand search: pull a fresh set of sources even if similar was asked recently.)`
+      : query;
+
+    setMessages((prev) => {
+      if (isReplacement) {
+        return prev.map((m) => (m.id === opts.replaceMessageId ? loadingMsg : m));
+      }
+      const userMsg: Message = {
+        id: uid(),
+        role: "user",
+        content: query,
+        citations: [],
+        liveResources: [],
+        emergency: false,
+        resources: [],
+      };
+      return [...prev, userMsg, loadingMsg];
+    });
     setIsLoading(true);
 
     await streamChat(
-      query,
+      effectiveQuery,
       history,
       priorCitations,
       token,
@@ -192,15 +247,11 @@ export function useChat(onComplete?: () => void) {
           ),
         );
       },
-      // onResult — finalises citations + metadata. content was already built
-      // incrementally by answer_chunk events; only overwrite if backend sent
-      // a replacement (e.g. citation guard fired and swapped in a fallback).
+      // onResult — finalises citations + metadata.
       (response) => {
         setMessages((prev) =>
           prev.map((msg) => {
             if (msg.id !== assistantId) return msg;
-            // Prefer the streamed content if we accumulated any; fall back to
-            // response.answer (used when citation guard replaces the answer).
             const finalContent = msg.content && msg.content.length > 0
               ? (response.answer.length > msg.content.length * 0.5 ? response.answer : msg.content)
               : response.answer;
@@ -217,16 +268,36 @@ export function useChat(onComplete?: () => void) {
               retrievalQuality: response.retrieval_quality,
               totalSources: response.total_sources,
               citedCount: response.cited_count,
+              evidenceMode: response.evidence_mode,
+              fallbackKind: response.fallback_kind,
+              evidenceCounts: response.evidence_counts,
+              hiddenReferences: response.hidden_references ?? [],
+              failureKind: undefined,
+              failureMessage: undefined,
             };
           }),
         );
         setIsLoading(false);
         onComplete?.();
       },
-      // onError
-      (errMsg) => {
-        setError(errMsg);
-        setMessages((prev) => prev.filter((msg) => msg.id !== assistantId));
+      // onError — convert the loading bubble INTO a failure bubble so the
+      // user can click Retry or Expand search. Never silently remove it.
+      (kind, errMsg) => {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantId
+              ? {
+                  ...msg,
+                  isLoading: false,
+                  isStreaming: false,
+                  steps: undefined,
+                  failureKind: kind,
+                  failureMessage: errMsg,
+                  originalQuery: query,
+                }
+              : msg,
+          ),
+        );
         setIsLoading(false);
       },
       // onFlow
@@ -253,9 +324,7 @@ export function useChat(onComplete?: () => void) {
           ),
         );
       },
-      // onAnswerChunk — append streamed delta to the message body. On the
-      // first chunk, flip isLoading off so the bubble switches from step
-      // spinner to rendered content with a typing cursor.
+      // onAnswerChunk
       (delta) => {
         setMessages((prev) =>
           prev.map((msg) =>
@@ -274,5 +343,26 @@ export function useChat(onComplete?: () => void) {
     );
   }, [isLoading, token, onComplete, messages]);
 
-  return { messages, isLoading, error, sendMessage, resetMessages, loadMessages };
+  // Retry from a failure bubble — replaces that bubble in place.
+  const retryMessage = useCallback((originalQuery?: string, messageId?: string) => {
+    if (!originalQuery) return;
+    sendMessage(originalQuery, { replaceMessageId: messageId });
+  }, [sendMessage]);
+
+  // Expand search — re-ask with fresh retrieval, skipping cached prior_citations.
+  const expandSearch = useCallback((originalQuery?: string, messageId?: string) => {
+    if (!originalQuery) return;
+    sendMessage(originalQuery, { expand: true, replaceMessageId: messageId });
+  }, [sendMessage]);
+
+  return {
+    messages,
+    isLoading,
+    error,
+    sendMessage,
+    retryMessage,
+    expandSearch,
+    resetMessages,
+    loadMessages,
+  };
 }

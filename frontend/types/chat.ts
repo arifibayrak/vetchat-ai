@@ -10,6 +10,8 @@ export interface FlowData {
   source: string;
 }
 
+export type EvidenceTier = "direct" | "review" | "guideline" | "weak" | "none" | "";
+
 export interface CitationItem {
   ref: number;
   title: string;
@@ -27,9 +29,14 @@ export interface CitationItem {
   doc_type?: string;
   cited_by?: number;
   // Provenance — which publisher/database this source came from
-  publisher?: string;   // e.g. "Taylor & Francis", "Elsevier", "Springer Nature"
-  source?: string;      // e.g. "Scopus", "Springer Nature", "Taylor & Francis"
+  publisher?: string;
+  source?: string;
   relevance?: "high" | "moderate" | "tangential" | "";
+  // Clinician-friendly enrichment (populated server-side by evidence_tagger)
+  study_type?: string;          // "Review" | "RCT" | "Case series" | etc.
+  species_relevance?: string;   // "Dogs" | "Cats" | "Dogs & cats" | "Equine" | ...
+  why_it_matters?: string;      // one-line clinician-facing summary
+  evidence_tier?: EvidenceTier; // drives the coloured tier badge on each card
 }
 
 export interface LiveResourceItem {
@@ -69,6 +76,16 @@ export interface EmergencyPreliminary {
   priorities: string[];
 }
 
+export type EvidenceMode = "literature" | "consensus" | "partial" | "gap";
+export type FallbackKind = "no_retrieval" | "guard_blocked" | "timeout_partial" | null;
+
+export interface EvidenceCounts {
+  direct?: number;
+  review?: number;
+  guideline?: number;
+  weak?: number;
+}
+
 export interface ChatResponse {
   answer: string;
   citations: CitationItem[];
@@ -82,6 +99,10 @@ export interface ChatResponse {
   retrieval_quality?: "strong" | "moderate" | "weak";
   total_sources?: number;
   cited_count?: number;
+  evidence_mode?: EvidenceMode;
+  fallback_kind?: FallbackKind;
+  evidence_counts?: EvidenceCounts;
+  hidden_references?: CitationItem[];
 }
 
 export interface ProgressStep {
@@ -109,4 +130,14 @@ export interface Message {
   citedCount?: number;
   isSlowQuery?: boolean;
   isStreaming?: boolean;
+  evidenceMode?: EvidenceMode;
+  fallbackKind?: FallbackKind;
+  evidenceCounts?: EvidenceCounts;
+  hiddenReferences?: CitationItem[];
+  // Populated when the stream failed (network / 5xx / timeout) so the UI can
+  // render a recoverable fallback bubble with Retry / Safe-summary actions
+  // instead of silently removing the bubble.
+  failureKind?: "network" | "timeout" | "server";
+  failureMessage?: string;
+  originalQuery?: string;
 }
