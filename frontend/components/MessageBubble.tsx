@@ -16,17 +16,35 @@ interface MessageBubbleProps {
 }
 
 const SECTION_COLORS: Record<string, string> = {
+  // Legacy 5-section format (still supported for any legacy answers)
   "Overview":                 "border-slate-400 bg-slate-50 text-slate-800",
   "What the Research Shows":  "border-slate-400 bg-slate-50 text-slate-800",
   "Clinical Signs":           "border-slate-400 bg-slate-50 text-slate-800",
   "Management Approach":      "border-teal-400  bg-teal-50  text-teal-900",
   "Veterinary Recommendation":"border-teal-400  bg-teal-50  text-teal-900",
-  "What Changed":             "border-amber-400 bg-amber-50 text-amber-900",
-  "Updated Plan":             "border-teal-400  bg-teal-50  text-teal-900",
-  "Unchanged":                "border-slate-300 bg-slate-50 text-slate-700",
+  "Clinical Recommendations": "border-teal-400  bg-teal-50  text-teal-900",
+  // Initial-query tiered schema (Round 7)
+  "Clinical Frame":            "border-slate-400 bg-slate-50 text-slate-800",
+  "Evidence-Based Findings":   "border-teal-400  bg-teal-50  text-teal-900",
+  "Standard-of-Care Guidance": "border-blue-400  bg-blue-50  text-blue-900",
+  "Monitoring & Escalation":   "border-amber-400 bg-amber-50 text-amber-900",
+  "Evidence Gaps":             "border-orange-400 bg-orange-50 text-orange-900",
+  // Emergency-mode sections
+  "Immediate Stabilization":   "border-rose-400  bg-rose-50  text-rose-900",
+  "Targeted Diagnostics":      "border-slate-400 bg-slate-50 text-slate-800",
+  "First-line Management":     "border-teal-400  bg-teal-50  text-teal-900",
+  "Escalation Triggers":       "border-red-400   bg-red-50   text-red-900",
+  // Follow-up sections
+  "What Changed":              "border-amber-400 bg-amber-50 text-amber-900",
+  "Updated Plan":              "border-teal-400  bg-teal-50  text-teal-900",
+  "Management Changes Now":    "border-teal-400  bg-teal-50  text-teal-900",
+  "Unchanged":                 "border-slate-300 bg-slate-50 text-slate-700",
+  "What Stays the Same":       "border-slate-300 bg-slate-50 text-slate-700",
+  "Monitoring Plan":           "border-amber-400 bg-amber-50 text-amber-900",
+  "Discharge / Escalation Triggers": "border-red-400 bg-red-50 text-red-900",
+  "Evidence Quality Note":     "border-slate-300 bg-slate-50 text-slate-600",
   "Immediate Next Steps (next 30-60 min)": "border-rose-400 bg-rose-50 text-rose-900",
-  "Immediate Next Steps":     "border-rose-400 bg-rose-50 text-rose-900",
-  "Escalation Triggers":      "border-red-400  bg-red-50   text-red-900",
+  "Immediate Next Steps":      "border-rose-400 bg-rose-50 text-rose-900",
 };
 
 const SECTION_ICONS: Record<string, string> = {
@@ -35,12 +53,26 @@ const SECTION_ICONS: Record<string, string> = {
   "Clinical Signs":          "🩺",
   "Management Approach":     "💊",
   "Veterinary Recommendation":"✅",
-  "What Changed":            "🔄",
-  "Updated Plan":            "📋",
-  "Unchanged":               "✓",
+  "Clinical Recommendations":"✅",
+  "Clinical Frame":           "🔬",
+  "Evidence-Based Findings":  "📄",
+  "Standard-of-Care Guidance":"💡",
+  "Monitoring & Escalation":  "🩺",
+  "Evidence Gaps":            "⚠️",
+  "Immediate Stabilization":  "🚑",
+  "Targeted Diagnostics":     "🔎",
+  "First-line Management":    "💊",
+  "Escalation Triggers":      "🚨",
+  "What Changed":             "🔄",
+  "Updated Plan":             "📋",
+  "Management Changes Now":   "📋",
+  "Unchanged":                "✓",
+  "What Stays the Same":      "✓",
+  "Monitoring Plan":          "📊",
+  "Discharge / Escalation Triggers": "🚨",
+  "Evidence Quality Note":    "📚",
   "Immediate Next Steps (next 30-60 min)": "⏱️",
-  "Immediate Next Steps":    "⏱️",
-  "Escalation Triggers":     "🚨",
+  "Immediate Next Steps":     "⏱️",
 };
 
 function linkifyCitations(content: string): string {

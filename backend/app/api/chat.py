@@ -125,6 +125,9 @@ async def _save_conversation(user_id: str, query: str, result: dict) -> None:
 
 
 _CITATION_PATTERN = re.compile(r"\[\d+\]")
+# Any trust tag — [N], [Consensus], [Gap]. Guard only fires if NONE of these appear
+# in a structured answer, meaning Claude ignored the tiered trust model entirely.
+_TRUST_TAG_PATTERN = re.compile(r"\[(?:\d+|Consensus|Gap)\]")
 # Matches a structured clinical answer (has at least one ## section heading).
 # Used to distinguish hallucinated clinical prose from a deliberate "I can't answer" response.
 _STRUCTURED_ANSWER_PATTERN = re.compile(r"^##\s+\w", re.MULTILINE)
@@ -358,28 +361,54 @@ async def _chat_stream(
 
     ping_task = asyncio.create_task(_stream_heartbeat())
 
+    # Graceful fallback — if the stream stalls for >90 s of inactivity OR
+    # the overall generation exceeds 120 s, finalise with whatever we've
+    # accumulated plus an explicit "partial answer" marker. Users always
+    # get something back; they never stare at a frozen bubble.
+    _STREAM_IDLE_TIMEOUT = 90   # seconds of silence before giving up
+    _STREAM_HARD_CAP     = 120  # overall wall-clock safety net
+
+    accumulated: list[str] = []
     answer_raw = ""
+    start_ts = asyncio.get_event_loop().time()
+
     try:
         while True:
-            kind, payload = await _chunk_queue.get()
+            now = asyncio.get_event_loop().time()
+            if now - start_ts > _STREAM_HARD_CAP:
+                answer_raw = "".join(accumulated) + (
+                    "\n\n⚠️ *Partial answer — generation exceeded time limit. "
+                    "Please retry for full version.*"
+                )
+                break
+            try:
+                kind, payload = await asyncio.wait_for(
+                    _chunk_queue.get(), timeout=_STREAM_IDLE_TIMEOUT
+                )
+            except asyncio.TimeoutError:
+                answer_raw = "".join(accumulated) + (
+                    "\n\n⚠️ *Partial answer — generation stalled. "
+                    "Please retry for full version.*"
+                )
+                break
+
             last_activity[0] = asyncio.get_event_loop().time()
             if kind == "chunk":
+                accumulated.append(payload)
                 yield _event({"type": "answer_chunk", "delta": payload})
             elif kind == "ping":
                 yield _event({"type": "ping"})
             elif kind == "done":
-                answer_raw = payload
+                answer_raw = payload or "".join(accumulated)
                 break
             elif kind == "error":
-                # Partial or no content — surface a readable fallback
-                answer_raw = payload or (
+                answer_raw = "".join(accumulated) or (
                     "I wasn't able to generate an answer due to a temporary error. "
                     "Please try again in a moment."
                 )
                 break
     finally:
         ping_task.cancel()
-        # Ensure worker thread has finished before proceeding (should be instant)
         try:
             await stream_task
         except Exception:
@@ -390,8 +419,11 @@ async def _chat_stream(
     # but included zero [N] citations — meaning it answered from training knowledge,
     # not from retrieved sources. Deliberate "I can't answer" responses from Claude
     # (no ## headings) are left through unchanged — they're already appropriate.
+    # Guard fires only if Claude produced structured headings AND used ZERO
+    # trust tags of any kind — meaning it bypassed the tiered trust model.
+    # Answers using only [Consensus] (no [N]) are legitimate for dosing/consensus questions.
     citation_guard_fired = (
-        not _CITATION_PATTERN.search(answer_raw)
+        not _TRUST_TAG_PATTERN.search(answer_raw)
         and _STRUCTURED_ANSWER_PATTERN.search(answer_raw)
     )
     if citation_guard_fired:
@@ -408,6 +440,30 @@ async def _chat_stream(
         retrieval_quality = "strong"
     else:
         retrieval_quality = "moderate"
+
+    # ── Reference hygiene: hide irrelevant, uncited references ────────────────
+    # Drop tangential/moderate refs that Claude didn't actually cite — these
+    # are the source of the "feline urethral obstruction answer shows feline
+    # bronchial disease references" trust break. Keep:
+    #   - anything Claude cited with [N] (it's part of the answer)
+    #   - anything with high relevance (even if uncited, vet may want to read)
+    # Hide:
+    #   - uncited papers tagged "moderate" or "tangential"
+    cited_str_set = cited_refs  # already a set of strings from the regex
+    _total_before = len(citations)
+    citations = [
+        c for c in citations
+        if str(c.ref) in cited_str_set or c.relevance == "high"
+    ]
+    live_results = [
+        r for i, r in enumerate(live_results, start=1)
+        if str(i) in cited_str_set or getattr(r, "rerank_score", 0.0) >= 3.0
+    ]
+    if _total_before != len(citations):
+        _log.info(
+            "Reference hygiene: hid %d/%d off-topic refs from panel",
+            _total_before - len(citations), _total_before,
+        )
 
     answer = disclaimer_injector.inject(answer_raw)
 
