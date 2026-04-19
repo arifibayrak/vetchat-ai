@@ -303,55 +303,87 @@ async def _chat_stream(
     if prefix_parts:
         context_block = "\n".join(prefix_parts) + "\n\n" + context_block
 
-    # ── Step 4: Claude generates the answer ──────────────────────────────────
-    # Heartbeat pings are sent every 15s while Claude is running to prevent
-    # Railway's TCP proxy from dropping the silent SSE connection mid-generation.
-    if not reuse_prior:
-        yield _event({"type": "progress", "step": 4, "label": "Generating evidence-based answer…", "icon": "🤖"})
+    # ── Step 4: Stream Claude's answer as it generates ────────────────────────
+    # Streaming delivers text chunks to the client within ~3-5 s of step 4
+    # starting, replacing the previous "wait 40 s with zero feedback" UX
+    # that made the product look frozen to QA testers.
+    if reuse_prior:
+        yield _event({"type": "progress", "step": 4, "label": "Writing case update…", "icon": "✍️"})
     else:
-        yield _event({"type": "progress", "step": 4, "label": "Generating case update…", "icon": "🤖"})
+        yield _event({"type": "progress", "step": 4, "label": "Writing answer…", "icon": "✍️"})
 
-    _ping_queue: asyncio.Queue[str | None] = asyncio.Queue()
+    # Tighter max_tokens for follow-ups (delta format is short by design) —
+    # cuts the upper bound on generation time.
+    max_tokens = 1500 if (reuse_prior or history) else 3000
 
-    async def _ping_sender() -> None:
+    # Bridge between the sync Claude stream (runs in a worker thread) and
+    # the async SSE generator (this function). Items on the queue are one of:
+    #   ("chunk", text)  — a delta to forward to the client
+    #   ("done",  full)  — end of stream with accumulated text
+    #   ("error", msg)   — generation failed
+    #   ("ping",  "")    — keepalive ping tick (only when no chunks flowing)
+    _chunk_queue: asyncio.Queue = asyncio.Queue()
+
+    def _pump_stream() -> None:
+        """Runs in a worker thread; iterates the sync Claude stream and
+        pushes each chunk onto the asyncio queue using call_soon_threadsafe."""
+        parts: list[str] = []
+        try:
+            for delta in claude.stream(query, context_block, max_tokens, history=history):
+                parts.append(delta)
+                loop.call_soon_threadsafe(_chunk_queue.put_nowait, ("chunk", delta))
+            loop.call_soon_threadsafe(_chunk_queue.put_nowait, ("done", "".join(parts)))
+        except Exception as exc:
+            _log.exception("Claude stream failed: %s", exc)
+            loop.call_soon_threadsafe(
+                _chunk_queue.put_nowait,
+                ("error", "".join(parts) or ""),
+            )
+
+    # Kick off the stream in a worker thread
+    stream_task = loop.run_in_executor(None, _pump_stream)
+
+    # Heartbeat: fire a ping if no chunk has arrived for >20 s (Railway TCP
+    # idle-timeout protection). Cancelled as soon as the stream completes.
+    last_activity = [asyncio.get_event_loop().time()]
+
+    async def _stream_heartbeat() -> None:
         try:
             while True:
                 await asyncio.sleep(15)
-                await _ping_queue.put(_event({"type": "ping"}))
+                if asyncio.get_event_loop().time() - last_activity[0] > 15:
+                    await _chunk_queue.put(("ping", ""))
         except asyncio.CancelledError:
             pass
 
-    async def _run_claude() -> str:
-        try:
-            result = await loop.run_in_executor(
-                None,
-                lambda: claude.complete(
-                    query, context_block, settings.claude_max_tokens, history=history
-                ),
-            )
-            return result
-        finally:
-            # Always release the heartbeat loop, even on exception
-            await _ping_queue.put(None)
+    ping_task = asyncio.create_task(_stream_heartbeat())
 
-    _ping_task = asyncio.create_task(_ping_sender())
-    _claude_task = asyncio.create_task(_run_claude())
-
-    while True:
-        item = await _ping_queue.get()
-        if item is None:
-            break
-        yield item  # forward keepalive ping to client
-
-    _ping_task.cancel()
+    answer_raw = ""
     try:
-        answer_raw = await _claude_task
-    except Exception as exc:
-        _log.exception("Claude generation failed: %s", exc)
-        answer_raw = (
-            "I wasn't able to generate an answer due to a temporary error. "
-            "Please try again in a moment."
-        )
+        while True:
+            kind, payload = await _chunk_queue.get()
+            last_activity[0] = asyncio.get_event_loop().time()
+            if kind == "chunk":
+                yield _event({"type": "answer_chunk", "delta": payload})
+            elif kind == "ping":
+                yield _event({"type": "ping"})
+            elif kind == "done":
+                answer_raw = payload
+                break
+            elif kind == "error":
+                # Partial or no content — surface a readable fallback
+                answer_raw = payload or (
+                    "I wasn't able to generate an answer due to a temporary error. "
+                    "Please try again in a moment."
+                )
+                break
+    finally:
+        ping_task.cancel()
+        # Ensure worker thread has finished before proceeding (should be instant)
+        try:
+            await stream_task
+        except Exception:
+            pass
 
     # ── Citation guard: block hallucinated structured answers with no citations ──
     # Only fires when Claude produced a full structured clinical response (## headings)

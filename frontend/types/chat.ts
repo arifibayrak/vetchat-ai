@@ -108,4 +108,5 @@ export interface Message {
   totalSources?: number;
   citedCount?: number;
   isSlowQuery?: boolean;
+  isStreaming?: boolean;
 }

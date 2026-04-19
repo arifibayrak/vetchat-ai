@@ -22,6 +22,7 @@ async function streamChat(
   onFlow: (flow: FlowData) => void,
   onEmergencyPreliminary: (card: EmergencyPreliminary) => void,
   onSlowQuery: () => void,
+  onAnswerChunk: (delta: string) => void,
 ) {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -73,6 +74,8 @@ async function streamChat(
           const event = JSON.parse(line.slice(6));
           if (event.type === "progress") {
             onProgress({ step: event.step, label: event.label, icon: event.icon, done: false });
+          } else if (event.type === "answer_chunk") {
+            onAnswerChunk(event.delta as string);
           } else if (event.type === "result") {
             resultReceived = true;
             clearTimeout(slowTimer);
@@ -189,26 +192,33 @@ export function useChat(onComplete?: () => void) {
           ),
         );
       },
-      // onResult
+      // onResult — finalises citations + metadata. content was already built
+      // incrementally by answer_chunk events; only overwrite if backend sent
+      // a replacement (e.g. citation guard fired and swapped in a fallback).
       (response) => {
         setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === assistantId
-              ? {
-                  ...msg,
-                  content: response.answer,
-                  citations: response.citations,
-                  liveResources: response.live_resources ?? [],
-                  emergency: response.emergency,
-                  resources: response.resources,
-                  isLoading: false,
-                  steps: undefined,
-                  retrievalQuality: response.retrieval_quality,
-                  totalSources: response.total_sources,
-                  citedCount: response.cited_count,
-                }
-              : msg,
-          ),
+          prev.map((msg) => {
+            if (msg.id !== assistantId) return msg;
+            // Prefer the streamed content if we accumulated any; fall back to
+            // response.answer (used when citation guard replaces the answer).
+            const finalContent = msg.content && msg.content.length > 0
+              ? (response.answer.length > msg.content.length * 0.5 ? response.answer : msg.content)
+              : response.answer;
+            return {
+              ...msg,
+              content: finalContent,
+              citations: response.citations,
+              liveResources: response.live_resources ?? [],
+              emergency: response.emergency,
+              resources: response.resources,
+              isLoading: false,
+              isStreaming: false,
+              steps: undefined,
+              retrievalQuality: response.retrieval_quality,
+              totalSources: response.total_sources,
+              citedCount: response.cited_count,
+            };
+          }),
         );
         setIsLoading(false);
         onComplete?.();
@@ -240,6 +250,24 @@ export function useChat(onComplete?: () => void) {
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === assistantId ? { ...msg, isSlowQuery: true } : msg,
+          ),
+        );
+      },
+      // onAnswerChunk — append streamed delta to the message body. On the
+      // first chunk, flip isLoading off so the bubble switches from step
+      // spinner to rendered content with a typing cursor.
+      (delta) => {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantId
+              ? {
+                  ...msg,
+                  content: (msg.content ?? "") + delta,
+                  isLoading: false,
+                  isStreaming: true,
+                  steps: undefined,
+                }
+              : msg,
           ),
         );
       },

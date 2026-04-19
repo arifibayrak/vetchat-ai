@@ -191,6 +191,10 @@ export default function MessageBubble({ message, isFollowUp = false }: MessageBu
               {linkifyCitations(message.content)}
             </ReactMarkdown>
 
+            {message.isStreaming && (
+              <span className="inline-block w-1.5 h-4 bg-teal-600 align-middle ml-0.5 animate-pulse" aria-hidden />
+            )}
+
             <ReferencesPanel
               citations={message.citations}
               liveResources={message.liveResources}
