@@ -30,57 +30,61 @@ async def _background_boot(app: FastAPI, collection, settings) -> None:
 
     loop = asyncio.get_running_loop()
 
-    def _is_mock_meta(meta: dict) -> bool:
-        """A chunk is 'mock' if ANY of these are true."""
-        if not meta:
-            return False
-        doi = str(meta.get("doi", "") or "").lower()
-        if "mock" in doi:
-            return True
-        # Mock seeder tags every chunk with publisher="Literature". Real
-        # Crossref/Scopus/Springer/T&F chunks have an actual publisher name.
-        if meta.get("publisher") == "Literature":
-            return True
-        # Fabricated source type used only by the mock seeder
-        if meta.get("source_type") == "abstract" and not meta.get("publisher"):
-            return True
-        return False
+    def _collect_mock_ids() -> list[str]:
+        """Read the mock JSONL files shipped in the repo and return the exact
+        ids they use. Deleting by explicit id list is deterministic and avoids
+        any quirks with Chroma metadata filtering."""
+        import json as _json
+        from pathlib import Path as _Path
+        mock_dir = _Path(__file__).parent.parent / "data" / "mock"
+        ids: list[str] = []
+        if not mock_dir.exists():
+            return ids
+        for jsonl_file in mock_dir.glob("*.jsonl"):
+            try:
+                with open(jsonl_file) as fh:
+                    for line in fh:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        rec = _json.loads(line)
+                        rid = rec.get("id")
+                        if rid:
+                            ids.append(rid)
+            except Exception as exc:
+                _log.warning("Failed to read mock ids from %s: %s", jsonl_file, exc)
+        return ids
 
     def _sync_seed() -> None:
         """All the blocking seed work runs in a worker thread with its own loop."""
         try:
-            # Purge any mock/fabricated chunks left over from earlier seeds.
-            # Mock DOIs like "10.1016/mock.2019.xylitol.001" must never be
-            # cited to real users. Safe to run on every boot. Paginates in
-            # 500-chunk batches so the default Chroma get() limit can't
-            # silently leave mock data behind.
+            # Purge mock chunks by explicit id list (from the JSONL files in
+            # the repo). Mock DOIs like "10.1016/mock.2019.xylitol.001" must
+            # never be cited to real users. Runs on every boot.
             try:
-                total_scanned = 0
-                total_purged = 0
-                batch_size = 500
-                offset = 0
-                while True:
-                    existing = collection.get(
+                mock_ids = _collect_mock_ids()
+                if mock_ids:
+                    collection.delete(ids=mock_ids)
+                    _log.info("Purged %d mock chunks by id list.", len(mock_ids))
+                else:
+                    _log.info("No mock id list available — skipping explicit purge.")
+
+                # Defense-in-depth: also scan for any chunk whose DOI still
+                # contains "mock" (in case ids drifted from what JSONL ships).
+                try:
+                    hits = collection.get(
+                        where={"doi": {"$ne": ""}},
                         include=["metadatas"],
-                        limit=batch_size,
-                        offset=offset,
                     )
-                    ids = existing.get("ids", []) or []
-                    metas = existing.get("metadatas", []) or []
-                    if not ids:
-                        break
-                    total_scanned += len(ids)
-                    bad_ids = [i for i, m in zip(ids, metas) if _is_mock_meta(m)]
+                    bad_ids = [
+                        i for i, m in zip(hits.get("ids", []) or [], hits.get("metadatas", []) or [])
+                        if m and "mock" in str(m.get("doi", "")).lower()
+                    ]
                     if bad_ids:
                         collection.delete(ids=bad_ids)
-                        total_purged += len(bad_ids)
-                    if len(ids) < batch_size:
-                        break
-                    offset += batch_size
-                if total_purged:
-                    _log.info("Purged %d mock chunks (scanned %d).", total_purged, total_scanned)
-                else:
-                    _log.info("No mock chunks found (scanned %d).", total_scanned)
+                        _log.info("Purged %d additional chunks with mock DOIs.", len(bad_ids))
+                except Exception as exc:
+                    _log.warning("Secondary mock DOI scan failed (non-fatal): %s", exc)
             except Exception as exc:
                 _log.warning("Mock purge failed (non-fatal): %s", exc)
 
