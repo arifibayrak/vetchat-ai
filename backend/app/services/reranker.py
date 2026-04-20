@@ -14,10 +14,15 @@ _cross_encoder = None
 _load_attempted = False
 
 # ChromaDB: local data we trust; allow moderate threshold
-_CHROMA_THRESHOLD = -1.0
+# Tuned for MS-MARCO MiniLM against biomedical text — biomed abstracts
+# typically score ~2 points lower than web-search training distribution.
+_CHROMA_THRESHOLD = -2.0
 # Live APIs: millions of papers, lots of tangential hits; stricter gate
-_LIVE_THRESHOLD = -0.5
-_MIN_RESULTS = 2
+_LIVE_THRESHOLD = -1.5
+# Floor on how many results to return when threshold filter is too aggressive.
+# Previously 2 — which forced almost every query to its floor and produced
+# the chronic "only 4 sources" cap (2 live + 2 chroma).
+_MIN_RESULTS = 4
 
 
 def _get_cross_encoder():

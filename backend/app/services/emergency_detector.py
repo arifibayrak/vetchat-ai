@@ -132,6 +132,59 @@ _ACADEMIC_PATTERNS: list[re.Pattern] = [
     re.compile(r"(?i)\bcommon\s+(causes?|differentials?)\b"),
 ]
 
+# Context suppressions: keyword + nearby-word combos that reliably indicate
+# the toxin keyword is part of a breed/colour/human-patient phrase, not an
+# active toxicology case. Each entry is (toxin_keyword, set_of_nearby_words).
+# If the toxin keyword appears within 5 tokens of ANY nearby word, suppress.
+_CONTEXT_SUPPRESSIONS: list[tuple[str, frozenset[str]]] = [
+    # "chocolate lab/labrador/retriever" — colour, not ingestion
+    ("chocolate", frozenset({
+        "lab", "labrador", "labs", "retriever", "breed", "colour", "color",
+        "brown", "coat",
+    })),
+    # Human-medicine scope violations — any toxin near these words is out-of-scope
+    ("ibuprofen", frozenset({
+        "human", "toddler", "child", "children", "kid", "baby", "infant",
+        "pediatric", "paediatric", "person", "adult", "myself", "my son", "my daughter",
+    })),
+    ("paracetamol", frozenset({
+        "human", "toddler", "child", "children", "kid", "baby", "infant",
+        "pediatric", "paediatric", "person", "adult", "myself",
+    })),
+    ("acetaminophen", frozenset({
+        "human", "toddler", "child", "children", "kid", "baby", "infant",
+        "pediatric", "paediatric", "person", "adult", "myself",
+    })),
+    ("aspirin", frozenset({
+        "human", "toddler", "child", "children", "kid", "baby", "infant",
+        "pediatric", "paediatric", "person", "adult", "myself",
+    })),
+]
+
+
+def _is_suppressed_by_context(query: str, matched_term: str) -> bool:
+    """
+    Return True if the matched toxin term appears near a disambiguating word
+    that indicates it's NOT an active veterinary toxicology case.
+    """
+    lowered_match = matched_term.lower().strip()
+    tokens = re.findall(r"[a-zA-Z']+", query.lower())
+    if not tokens:
+        return False
+
+    for suppress_key, nearby_words in _CONTEXT_SUPPRESSIONS:
+        if suppress_key != lowered_match and suppress_key not in lowered_match:
+            continue
+        # Find positions of the toxin keyword
+        toxin_positions = [i for i, t in enumerate(tokens) if t == suppress_key]
+        if not toxin_positions:
+            continue
+        for pos in toxin_positions:
+            window = tokens[max(0, pos - 5): pos + 6]
+            if any(w in nearby_words for w in window):
+                return True
+    return False
+
 
 class EmergencyDetector:
     def __init__(self, keywords_path: Path = _KEYWORDS_PATH) -> None:
@@ -158,6 +211,10 @@ class EmergencyDetector:
                     # Suppress clinical presentation terms when query is clearly academic
                     if is_academic and kw in _CLINICAL_TERMS_ONLY:
                         continue
+                    # Suppress when the keyword is part of a breed name or
+                    # human-medicine context (e.g. "chocolate lab", "human toddler ibuprofen")
+                    if _is_suppressed_by_context(query, kw):
+                        continue
                     return EmergencyResult(
                         is_emergency=True,
                         category=cat,
@@ -171,6 +228,8 @@ class EmergencyDetector:
             for pattern in self._compiled[cat]:
                 m = pattern.search(query)
                 if m:
+                    if _is_suppressed_by_context(query, m.group(0)):
+                        continue
                     return EmergencyResult(
                         is_emergency=True,
                         category=cat,

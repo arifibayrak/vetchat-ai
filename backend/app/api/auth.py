@@ -30,13 +30,26 @@ class LoginRequest(BaseModel):
 
 @router.post("/register", status_code=201)
 async def register(body: RegisterRequest):
+    """
+    Passwordless register. If the email already exists, returns a login
+    token for that account instead of 409 — the auth flow is single-step
+    ("continue with email") and a duplicate email should never be a
+    user-facing error during a beta.
+    """
     _require_db()
     async with database.SessionLocal() as session:
         result = await session.execute(
             select(users).where(users.c.email == body.email)
         )
-        if result.fetchone():
-            raise HTTPException(status_code=409, detail="Email already registered")
+        existing = result.fetchone()
+        if existing:
+            token = create_access_token(str(existing.id), existing.email)
+            return {
+                "user_id": str(existing.id),
+                "email": existing.email,
+                "full_name": existing.full_name,
+                "token": token,
+            }
 
         user_id = str(uuid.uuid4())
         await session.execute(

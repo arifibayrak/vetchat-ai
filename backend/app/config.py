@@ -33,7 +33,10 @@ class Settings(BaseSettings):
     springer_nature_api_key: str = ""
 
     # App behaviour
-    use_mock_data: bool = True
+    # Default OFF in production — mock chunks contain fabricated DOIs that
+    # must never be cited to real veterinary users. Enable locally with
+    # USE_MOCK_DATA=true for dev smoke-tests only.
+    use_mock_data: bool = False
     chroma_path: str = "./chroma_store"
     embedding_model: str = "all-MiniLM-L6-v2"
     use_reranker: bool = True

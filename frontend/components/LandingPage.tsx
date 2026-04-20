@@ -65,7 +65,7 @@ function Navbar() {
             href="/register"
             className="text-sm px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-medium transition-all shadow-sm hover:shadow-teal-500/25 hover:shadow-md"
           >
-            Login via mail
+            Continue with email
           </Link>
         </div>
 
@@ -100,7 +100,7 @@ function Navbar() {
               Continue with your account
             </Link>
             <Link href="/register" className="text-sm text-center py-2.5 bg-teal-600 hover:bg-teal-700 rounded-lg text-white font-medium transition-colors">
-              Login via mail free
+              Continue with email free
             </Link>
           </div>
         </div>
@@ -144,7 +144,7 @@ function Hero() {
 
           <p className="text-lg text-slate-400 leading-relaxed mb-10 max-w-lg">
             Ask Arlo about drug dosages, differential diagnoses, or emergency protocols.
-            Get structured, cited answers pulled from peer-reviewed veterinary journals in seconds.
+            Get structured, cited answers pulled from peer-reviewed veterinary journals you can verify.
           </p>
 
           <div className="flex flex-wrap gap-4">
@@ -152,7 +152,7 @@ function Hero() {
               href="/register"
               className="px-6 py-3.5 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-teal-500/25 hover:-translate-y-0.5"
             >
-              Login via mail
+              Continue with email
             </Link>
             <a
               href="#how-it-works"
@@ -771,7 +771,7 @@ function HowItWorks() {
             How it works
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
-            From question to cited answer<br className="hidden sm:block" /> in under 10 seconds
+            From question to cited answer<br className="hidden sm:block" /> with sources you can check
           </h2>
           <p className="text-slate-400 text-sm max-w-md mx-auto">
             Arlo retrieves, ranks, and synthesises evidence from trusted veterinary sources, then explains it clearly.
@@ -860,7 +860,7 @@ function HowItWorks() {
         {/* Bottom note */}
         <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-sm text-slate-500 px-4 sm:px-0">
           {[
-            { icon: "⚡", label: "< 10 second response time" },
+            { icon: "⚡", label: "Cited answer, not guesses" },
             { icon: "📖", label: "Every answer is cited" },
             { icon: "🔒", label: "Secure & private" },
             { icon: "🌐", label: "Works on any device" },
@@ -935,7 +935,7 @@ function ForClinics() {
             href="/register"
             className="inline-flex items-center gap-2 px-6 py-3.5 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-teal-500/20"
           >
-            Login via mail for your clinic
+            Get your clinic started
           </Link>
         </div>
       </div>
@@ -967,7 +967,7 @@ function CTASection() {
             href="/register"
             className="px-8 py-4 bg-white text-teal-700 font-bold rounded-xl hover:bg-teal-50 transition-all shadow-xl hover:-translate-y-0.5"
           >
-            Login via mail
+            Continue with email
           </Link>
           <Link
             href="/login"

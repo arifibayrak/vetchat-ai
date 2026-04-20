@@ -35,10 +35,23 @@ _STOP_WORDS = {
 
 
 def _extract_intext_passage(answer: str, ref_num: int) -> str:
-    """Extract the exact sentence(s) from the answer that cite [ref_num]."""
-    # Match full sentence(s) containing the citation marker
+    """
+    Extract the exact sentence(s) from the answer body that cite [ref_num].
+
+    Strips out the References section (everything after the last "## References"
+    or "---" divider at end-of-answer) so we don't accidentally pull
+    "[2] Bandaranayaka et al." from the dump and present it as a clinical claim.
+    """
+    # Cut off the References section — keep only the body
+    body = answer
+    for marker_re in (r"\n##\s+References\s*\n", r"\n#\s+References\s*\n", r"\n##?\s+Works?\s+cited\s*\n"):
+        m = re.search(marker_re, body, re.I)
+        if m:
+            body = body[: m.start()]
+            break
+
     pattern = rf"[^.!?\n]*\[{ref_num}\][^.!?\n]*[.!?]"
-    matches = re.findall(pattern, answer)
+    matches = re.findall(pattern, body)
     if not matches:
         return ""
     # Clean up markdown artifacts (bold markers, leading bullets/spaces)
@@ -192,7 +205,10 @@ async def _chat_stream(
     # parent turn's citations we skip refinement + retrieval + rerank entirely
     # and hand Claude the prior evidence directly. Latency drops ~7s; the
     # reference panel stays visually stable across the conversation.
-    reuse_prior = bool(prior_citations) and bool(history)
+    # Prior-citations alone is sufficient signal — if the frontend populated
+    # it, the user is intentionally continuing the same case. History was
+    # previously required but that made the fast path fire inconsistently.
+    reuse_prior = bool(prior_citations)
 
     if reuse_prior:
         yield _event({"type": "progress", "step": 1, "label": "Continuing with prior evidence…", "icon": "🧠"})
@@ -239,7 +255,7 @@ async def _chat_stream(
             )
             # Rerank against the ORIGINAL user query (not the keyword-only search_query)
             # so clinical intent ("stabilization", "first-line treatment") drives ranking
-            chroma_chunks = rerank(query, chroma_raw, top_k=8, use_reranker=settings.use_reranker)
+            chroma_chunks = rerank(query, chroma_raw, top_k=10, use_reranker=settings.use_reranker)
 
         search_result = await live_task
         live_results = search_result.resources
@@ -248,7 +264,7 @@ async def _chat_stream(
         # Apply the same cross-encoder relevance gate to live API results
         if live_results:
             live_results = await loop.run_in_executor(
-                None, rerank_live, query, live_results, 5, settings.use_reranker
+                None, rerank_live, query, live_results, 8, settings.use_reranker
             )
 
         # ── Species filter: remove human-medicine papers; reorder by species match ─

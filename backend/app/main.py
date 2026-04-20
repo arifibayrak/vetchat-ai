@@ -33,13 +33,31 @@ async def _background_boot(app: FastAPI, collection, settings) -> None:
     def _sync_seed() -> None:
         """All the blocking seed work runs in a worker thread with its own loop."""
         try:
+            # Purge any mock/fabricated chunks left over from earlier seeds.
+            # Mock DOIs like "10.1016/mock.2019.xylitol.001" must never be
+            # cited to real users. Safe to run on every boot.
+            try:
+                existing = collection.get(include=["metadatas"])
+                bad_ids = [
+                    _id for _id, meta in zip(existing.get("ids", []), existing.get("metadatas", []) or [])
+                    if meta and (
+                        "mock" in str(meta.get("doi", "")).lower()
+                        or (meta.get("publisher") == "Literature" and meta.get("source_type") == "abstract")
+                    )
+                ]
+                if bad_ids:
+                    collection.delete(ids=bad_ids)
+                    _log.info("Purged %d mock/fabricated chunks from ChromaDB.", len(bad_ids))
+            except Exception as exc:
+                _log.warning("Mock purge failed (non-fatal): %s", exc)
+
             if collection.count() == 0:
-                _log.info("ChromaDB is empty — seeding mock clinical data and T&F journals…")
-                from app.ingestion.pipeline import seed_mock, seed_taylor_francis
-                # seed_mock is async-declared but all internal work is sync;
-                # a fresh event loop in this worker thread runs it safely.
-                n_mock = asyncio.run(seed_mock(collection, settings))
-                _log.info("Seeded %d mock clinical chunks.", n_mock)
+                from app.ingestion.pipeline import seed_taylor_francis
+                if settings.use_mock_data:
+                    _log.info("USE_MOCK_DATA=true — seeding mock clinical data (dev only)…")
+                    from app.ingestion.pipeline import seed_mock
+                    n_mock = asyncio.run(seed_mock(collection, settings))
+                    _log.info("Seeded %d mock clinical chunks.", n_mock)
                 n_tf = seed_taylor_francis(collection, settings.embedding_model)
                 _log.info("Seeded %d Taylor & Francis journal entries.", n_tf)
             else:

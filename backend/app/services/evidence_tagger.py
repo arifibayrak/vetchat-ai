@@ -163,17 +163,41 @@ def tier_label(tier: str) -> str:
 _MAX_WHY_LEN = 180
 
 
+def _looks_like_reference_dump(text: str, author_prefix: str = "") -> bool:
+    """
+    Detect fragments that are just a References-section echo like
+    "[2] Bandaranayaka et al." — these are useless as why_it_matters.
+    """
+    stripped = text.strip()
+    # Bare "author et al." or "author et al. (year)" with no clinical content
+    if len(stripped.split()) <= 5 and re.search(r"\bet\s+al\b", stripped, re.I):
+        return True
+    # Matches the References line format
+    if re.fullmatch(r"\[?\d+\]?\s*[A-Z][a-z]+(\s+[A-Z])?\s*(et\s+al\.?)?\s*\(?\d{0,4}\)?\s*\.?", stripped, re.I):
+        return True
+    # Starts with author prefix + nothing else substantive
+    if author_prefix and stripped.lower().startswith(author_prefix.lower()) and len(stripped) < 40:
+        return True
+    return False
+
+
 def build_why_it_matters(citation: CitationItem) -> str:
-    text = (citation.intext_passage or citation.relevant_quote or "").strip()
-    if text:
+    for source in (citation.intext_passage, citation.relevant_quote):
+        text = (source or "").strip()
+        if not text:
+            continue
+        if _looks_like_reference_dump(text, citation.authors):
+            continue
         # Strip citation markers and bullet glyphs
         text = re.sub(r"\[\d+\]|\[(Consensus|Gap|Direct evidence|Review|Guideline/Consensus|Weak indirect|No direct evidence)\]", "", text)
         text = re.sub(r"\s+", " ", text).strip().lstrip("▸•-— ").strip()
+        if len(text) < 20:
+            continue
         if len(text) > _MAX_WHY_LEN:
             text = text[: _MAX_WHY_LEN - 1].rsplit(" ", 1)[0] + "…"
         return text
 
-    # Default by study type
+    # Default by study type — keeps the card informative even without quotes
     st = citation.study_type or ""
     species = citation.species_relevance or "veterinary patients"
     if "Guideline" in st:
