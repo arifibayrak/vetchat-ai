@@ -17,8 +17,10 @@ _load_attempted = False
 # Tuned for MS-MARCO MiniLM against biomedical text — biomed abstracts
 # typically score ~2 points lower than web-search training distribution.
 _CHROMA_THRESHOLD = -2.0
-# Live APIs: millions of papers, lots of tangential hits; stricter gate
-_LIVE_THRESHOLD = -1.5
+# Live APIs: matched to chroma threshold so biomed-relevant abstracts from
+# Scopus/Springer that score in the -1.5 to -2.0 band can surface through
+# the reranker. Previously -1.5 — which was still too strict for biomed.
+_LIVE_THRESHOLD = -2.0
 # Floor on how many results to return when threshold filter is too aggressive.
 # Previously 2 — which forced almost every query to its floor and produced
 # the chronic "only 4 sources" cap (2 live + 2 chroma).
@@ -39,10 +41,16 @@ def _get_cross_encoder():
 
 
 def score_to_bucket(score: float) -> str:
-    """Map a cross-encoder relevance score to a user-facing bucket."""
-    if score >= 3.0:
+    """
+    Map a cross-encoder relevance score to a user-facing bucket.
+    Calibrated for MS-MARCO MiniLM against biomedical abstracts — a directly
+    relevant biomed paper typically scores 0.5-2.0, not 3+. The previous
+    >=3.0 threshold for "high" meant almost every useful match fell into
+    "moderate" and downstream evidence tiers collapsed to "weak".
+    """
+    if score >= 1.0:
         return "high"
-    if score >= 0.0:
+    if score >= -0.5:
         return "moderate"
     return "tangential"
 

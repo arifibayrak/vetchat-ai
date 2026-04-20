@@ -36,26 +36,48 @@ _STOP_WORDS = {
 
 def _extract_intext_passage(answer: str, ref_num: int) -> str:
     """
-    Extract the exact sentence(s) from the answer body that cite [ref_num].
+    Extract the per-claim sentence(s) from the answer body that cite [ref_num].
 
-    Strips out the References section (everything after the last "## References"
-    or "---" divider at end-of-answer) so we don't accidentally pull
-    "[2] Bandaranayaka et al." from the dump and present it as a clinical claim.
+    Strips out:
+      - The References section (post-"## References" or trailing "---" divider).
+      - The PREAMBLE before the first section header (##) — that's where the
+        "Limited Direct Evidence — Only sources [1], [2], [3], and [4] are
+        directly relevant…" banner lives, and it matches every ref.
+      - Summary sentences that cite 3+ distinct refs — those are guaranteed
+        to be evidence-mix summaries, not per-claim statements.
     """
-    # Cut off the References section — keep only the body
     body = answer
+
+    # 1. Cut off the References section
     for marker_re in (r"\n##\s+References\s*\n", r"\n#\s+References\s*\n", r"\n##?\s+Works?\s+cited\s*\n"):
         m = re.search(marker_re, body, re.I)
         if m:
             body = body[: m.start()]
             break
 
+    # 2. Skip the preamble — everything before the first section header.
+    # This is where the "Limited Direct Evidence" banner typically sits.
+    first_header = re.search(r"\n##\s+", body)
+    if first_header:
+        body = body[first_header.start():]
+
+    # 3. Gather candidate sentences citing this ref
     pattern = rf"[^.!?\n]*\[{ref_num}\][^.!?\n]*[.!?]"
     matches = re.findall(pattern, body)
     if not matches:
         return ""
-    # Clean up markdown artifacts (bold markers, leading bullets/spaces)
-    cleaned = " ".join(m.strip().lstrip("▸•- ").replace("**", "") for m in matches)
+
+    # 4. Drop sentences that cite 3+ distinct refs — those are summary lines
+    # ("Sources [1], [2], [3], and [4] document…") that leak the ugly
+    # ", , , and" artefact once [N] markers are stripped downstream.
+    claim_sentences = [
+        m for m in matches
+        if len(set(re.findall(r"\[(\d+)\]", m))) < 3
+    ]
+    if not claim_sentences:
+        return ""
+
+    cleaned = " ".join(s.strip().lstrip("▸•- ").replace("**", "") for s in claim_sentences)
     return cleaned
 
 

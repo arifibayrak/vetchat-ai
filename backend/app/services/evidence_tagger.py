@@ -123,20 +123,44 @@ def classify_species(citation: CitationItem, extra_text: str = "") -> str:
 # prompt is instructed to emit inline next to claims.
 # ─────────────────────────────────────────────────────────────────────────────
 
+_DIRECT_STUDY_TYPES = {
+    "rct", "prospective study", "retrospective study", "case series",
+    "case report", "research article", "experimental study",
+}
+
+
 def classify_evidence_tier(citation: CitationItem) -> str:
+    """
+    Map (relevance bucket, study_type) → one of:
+      direct | review | guideline | weak | none
+
+    A paper is direct evidence when it both (a) matched semantically
+    (survived the reranker threshold, i.e. relevance ∈ {high, moderate})
+    AND (b) is a primary study type (RCT, research article, case series,
+    prospective/retrospective study). Review and guideline study types
+    keep their own tiers. Tangential papers that only scraped through
+    the reranker floor stay "weak".
+    """
     relevance = (citation.relevance or "").lower()
     study = (citation.study_type or "").lower()
 
+    # Study-type-driven tiers take precedence for their intended categories
     if "guideline" in study:
         return "guideline"
     if "review" in study:  # covers "review" and "systematic review"
         return "review"
-    if relevance == "high":
+
+    # Primary-study relevance: both "high" and "moderate" are direct evidence
+    # when the study is clinical primary research and the species matches.
+    is_primary_study = any(t in study for t in _DIRECT_STUDY_TYPES) or study == ""
+    if relevance in ("high", "moderate") and is_primary_study:
         return "direct"
-    if relevance == "moderate":
-        return "weak"
+    if relevance in ("high", "moderate"):
+        # Moderate score on a non-primary study type → review-level confidence
+        return "review"
     if relevance == "tangential":
         return "weak"
+    # Empty relevance + empty study → be optimistic (retrieved at all = something)
     return "direct" if relevance == "" else "weak"
 
 
