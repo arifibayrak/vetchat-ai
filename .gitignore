@@ -17,11 +17,17 @@ htmlcov/
 .env.local
 .env.*.local
 
-# Vector store / ChromaDB (local data, never committed)
+# Vector store / ChromaDB
+# Local dev chroma_store is ignored, but the production seed store
+# at backend/chroma_store/ IS tracked so Railway gets a pre-baked
+# corpus of real T&F articles on every image build (no volume needed).
 chroma_store/
 **/chroma_store/
+!backend/chroma_store/
+!backend/chroma_store/**
 **/:memory:/
 **/*.sqlite3
+!backend/chroma_store/chroma.sqlite3
 
 # ScienceDirect response cache
 backend/data/cache/
