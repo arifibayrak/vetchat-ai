@@ -30,34 +30,72 @@ async def _background_boot(app: FastAPI, collection, settings) -> None:
 
     loop = asyncio.get_running_loop()
 
+    def _is_mock_meta(meta: dict) -> bool:
+        """A chunk is 'mock' if ANY of these are true."""
+        if not meta:
+            return False
+        doi = str(meta.get("doi", "") or "").lower()
+        if "mock" in doi:
+            return True
+        # Mock seeder tags every chunk with publisher="Literature". Real
+        # Crossref/Scopus/Springer/T&F chunks have an actual publisher name.
+        if meta.get("publisher") == "Literature":
+            return True
+        # Fabricated source type used only by the mock seeder
+        if meta.get("source_type") == "abstract" and not meta.get("publisher"):
+            return True
+        return False
+
     def _sync_seed() -> None:
         """All the blocking seed work runs in a worker thread with its own loop."""
         try:
             # Purge any mock/fabricated chunks left over from earlier seeds.
             # Mock DOIs like "10.1016/mock.2019.xylitol.001" must never be
-            # cited to real users. Safe to run on every boot.
+            # cited to real users. Safe to run on every boot. Paginates in
+            # 500-chunk batches so the default Chroma get() limit can't
+            # silently leave mock data behind.
             try:
-                existing = collection.get(include=["metadatas"])
-                bad_ids = [
-                    _id for _id, meta in zip(existing.get("ids", []), existing.get("metadatas", []) or [])
-                    if meta and (
-                        "mock" in str(meta.get("doi", "")).lower()
-                        or (meta.get("publisher") == "Literature" and meta.get("source_type") == "abstract")
+                total_scanned = 0
+                total_purged = 0
+                batch_size = 500
+                offset = 0
+                while True:
+                    existing = collection.get(
+                        include=["metadatas"],
+                        limit=batch_size,
+                        offset=offset,
                     )
-                ]
-                if bad_ids:
-                    collection.delete(ids=bad_ids)
-                    _log.info("Purged %d mock/fabricated chunks from ChromaDB.", len(bad_ids))
+                    ids = existing.get("ids", []) or []
+                    metas = existing.get("metadatas", []) or []
+                    if not ids:
+                        break
+                    total_scanned += len(ids)
+                    bad_ids = [i for i, m in zip(ids, metas) if _is_mock_meta(m)]
+                    if bad_ids:
+                        collection.delete(ids=bad_ids)
+                        total_purged += len(bad_ids)
+                    if len(ids) < batch_size:
+                        break
+                    offset += batch_size
+                if total_purged:
+                    _log.info("Purged %d mock chunks (scanned %d).", total_purged, total_scanned)
+                else:
+                    _log.info("No mock chunks found (scanned %d).", total_scanned)
             except Exception as exc:
                 _log.warning("Mock purge failed (non-fatal): %s", exc)
 
             if collection.count() == 0:
                 from app.ingestion.pipeline import seed_taylor_francis
-                if settings.use_mock_data:
-                    _log.info("USE_MOCK_DATA=true — seeding mock clinical data (dev only)…")
+                # Hard gate: seed_mock only runs in local dev. Even if Railway
+                # has USE_MOCK_DATA=true leftover in env vars, we require a
+                # second explicit signal. Prevents accidental re-seed on prod.
+                if settings.use_mock_data and settings.frontend_origin.startswith("http://localhost"):
+                    _log.info("USE_MOCK_DATA=true on localhost — seeding mock clinical data (dev only)…")
                     from app.ingestion.pipeline import seed_mock
                     n_mock = asyncio.run(seed_mock(collection, settings))
                     _log.info("Seeded %d mock clinical chunks.", n_mock)
+                elif settings.use_mock_data:
+                    _log.warning("USE_MOCK_DATA=true but frontend_origin is not localhost — refusing to seed mock data to avoid polluting prod Chroma.")
                 n_tf = seed_taylor_francis(collection, settings.embedding_model)
                 _log.info("Seeded %d Taylor & Francis journal entries.", n_tf)
             else:
