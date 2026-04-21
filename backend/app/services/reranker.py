@@ -17,13 +17,16 @@ _load_attempted = False
 # Tuned for MS-MARCO MiniLM against biomedical text — biomed abstracts
 # typically score ~2 points lower than web-search training distribution.
 _CHROMA_THRESHOLD = -2.0
-# Live APIs: matched to chroma threshold so biomed-relevant abstracts from
-# Scopus/Springer that score in the -1.5 to -2.0 band can surface through
-# the reranker. Previously -1.5 — which was still too strict for biomed.
-_LIVE_THRESHOLD = -2.0
-# Floor on how many results to return when threshold filter is too aggressive.
-# Previously 2 — which forced almost every query to its floor and produced
-# the chronic "only 4 sources" cap (2 live + 2 chroma).
+# Live APIs: tightened to -1.0 after empirical QA (2026-04-21) showed the
+# previous -2.0 + min-4 floor was dragging Scopus/Springer junk scored -5 to
+# -8 into the panel on weak-retrieval tox queries (T1/T3/T4). Local Chroma
+# is the backstop when live APIs have nothing relevant — letting junk
+# through here only degraded the reference panel.
+_LIVE_THRESHOLD = -1.0
+# Min-results floor applies ONLY to Chroma rerank. Live API has no floor —
+# if live can't score above -1.0 it's genuinely off-topic and should be
+# dropped entirely. Chroma keeps the min-4 so the consensus-fallback path
+# still has material when retrieval is sparse.
 _MIN_RESULTS = 4
 
 
@@ -119,7 +122,7 @@ def rerank_live(query: str, resources: list, top_k: int = 5, use_reranker: bool 
         r.rerank_score = float(s)
 
     ranked = sorted(zip(scores, resources), key=lambda x: x[0], reverse=True)
+    # No min-results floor for live: if nothing scores above _LIVE_THRESHOLD
+    # we return nothing and let Chroma + consensus fallback cover the query.
     above = [(s, r) for s, r in ranked if s >= _LIVE_THRESHOLD]
-    if len(above) < _MIN_RESULTS:
-        above = ranked[:_MIN_RESULTS]
     return [r for _, r in above[:top_k]]

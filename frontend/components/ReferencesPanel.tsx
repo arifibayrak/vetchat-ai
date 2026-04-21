@@ -25,18 +25,8 @@ const SOURCE_BADGE: Record<string, string> = {
   "Literature":       "bg-slate-50  text-slate-600  ring-1 ring-slate-200",
 };
 
-// Axis 1 — Relevance: how directly the source answers the query
-const RELEVANCE_STYLES: Record<
-  Exclude<RelevanceAxis, "">,
-  { label: string; dot: string; text: string; bg: string }
-> = {
-  direct:     { label: "Direct",     dot: "bg-emerald-500", text: "text-emerald-800", bg: "bg-emerald-50 ring-emerald-200" },
-  related:    { label: "Related",    dot: "bg-teal-500",    text: "text-teal-800",    bg: "bg-teal-50 ring-teal-200" },
-  background: { label: "Background", dot: "bg-slate-400",   text: "text-slate-700",   bg: "bg-slate-50 ring-slate-200" },
-  tangential: { label: "Tangential", dot: "bg-amber-400",   text: "text-amber-800",   bg: "bg-amber-50 ring-amber-200" },
-};
-
-// Axis 2 — Evidence strength: the study-design quality of the source
+// Evidence-strength chip styles (Axis 2). Relevance axis is now communicated
+// via the three-section grouping in the panel body, not per-card chip.
 const STRENGTH_STYLES: Record<
   Exclude<StrengthAxis, "">,
   { label: string; text: string; bg: string }
@@ -49,10 +39,35 @@ const STRENGTH_STYLES: Record<
   expert_consensus:  { label: "Expert consensus",  text: "text-stone-700",   bg: "bg-stone-50 ring-stone-200" },
 };
 
-const RELEVANCE_ORDER: Array<Exclude<RelevanceAxis, "">> = ["direct", "related", "background", "tangential"];
 const STRENGTH_ORDER: Array<Exclude<StrengthAxis, "">> = [
   "guideline", "systematic_review", "clinical_study", "case_series", "narrative_review", "expert_consensus",
 ];
+
+// Clinician-facing section headers. Internal enum values stay as-is so the
+// backend contract is unchanged — only display copy becomes vet-friendly.
+const SECTION_META: Record<
+  "direct" | "related" | "offtopic",
+  { title: string; subtitle: string; headerTone: string; dot: string }
+> = {
+  direct: {
+    title: "Directly addresses your question",
+    subtitle: "Strong topical match — lean on these when deciding treatment.",
+    headerTone: "text-emerald-900 bg-emerald-50 border-emerald-200",
+    dot: "bg-emerald-500",
+  },
+  related: {
+    title: "Supporting context",
+    subtitle: "Related to the topic but less direct — useful for background reasoning.",
+    headerTone: "text-teal-900 bg-teal-50 border-teal-200",
+    dot: "bg-teal-500",
+  },
+  offtopic: {
+    title: "Retrieved but off-topic",
+    subtitle: "Pulled during search; relevance is weak — treat with caution.",
+    headerTone: "text-slate-700 bg-slate-50 border-slate-200",
+    dot: "bg-slate-400",
+  },
+};
 
 type Entry = ReturnType<typeof buildEntries>[number];
 
@@ -93,20 +108,6 @@ function formatAuthors(authors: string): string {
   return `${parts[0]} et al.`;
 }
 
-function RelevanceChip({ value }: { value: RelevanceAxis }) {
-  if (!value) return null;
-  const s = RELEVANCE_STYLES[value];
-  return (
-    <span
-      className={`text-[10px] font-medium px-2 py-0.5 rounded-full inline-flex items-center gap-1 ring-1 ${s.bg} ${s.text}`}
-      title="How directly this source answers your question"
-    >
-      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} aria-hidden />
-      {s.label}
-    </span>
-  );
-}
-
 function StrengthChip({ value }: { value: StrengthAxis }) {
   if (!value) return null;
   const s = STRENGTH_STYLES[value];
@@ -120,21 +121,20 @@ function StrengthChip({ value }: { value: StrengthAxis }) {
   );
 }
 
-function RefCard({ e }: { e: Entry }) {
+function RefCard({ e, isDirect }: { e: Entry; isDirect: boolean }) {
   const [expanded, setExpanded] = useState(false);
-  const hasExtra = !!(e.abstract || e.relevantQuote || e.intextPassage || e.doi);
+  const hasExtra = !!(e.abstract || e.relevantQuote || (e.intextPassage && !isDirect) || e.doi);
 
   return (
     <li
       id={`citation-${e.ref}`}
       className="flex flex-col gap-1.5 bg-white border border-gray-200 rounded-xl px-3.5 py-3 scroll-mt-4 hover:border-teal-300 hover:shadow-sm transition-all"
     >
-      {/* Top strip: ref number + two-axis chips + source badge */}
+      {/* Top strip: ref number + strength chip + source badge */}
       <div className="flex items-center gap-1.5 flex-wrap">
         <span className="shrink-0 w-6 h-6 rounded-full bg-violet-600 text-white text-[11px] font-bold flex items-center justify-center">
           {e.ref}
         </span>
-        <RelevanceChip value={e.relevance} />
         <StrengthChip value={e.strength} />
         <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${SOURCE_BADGE[e.source] ?? "bg-gray-100 text-gray-600 ring-1 ring-gray-200"}`}>
           {e.source}
@@ -181,15 +181,26 @@ function RefCard({ e }: { e: Entry }) {
         <p className="text-[10px] text-gray-400 leading-tight truncate">{formatAuthors(e.authors)}</p>
       )}
 
+      {/* For DIRECT citations: inline claim-link from Claude's answer body,
+          shown above "Why it matters" so the vet sees the exact sentence
+          this reference supports. Non-direct citations keep the claim-link
+          inside the expandable. */}
+      {isDirect && e.intextPassage && (
+        <blockquote className="border-l-2 border-teal-300 bg-teal-50 px-2 py-1.5 rounded-r mt-0.5">
+          <p className="text-[9.5px] text-teal-700 uppercase tracking-wide mb-0.5">Cited here in the answer</p>
+          <p className="text-[11px] text-teal-900 italic leading-relaxed">&ldquo;{e.intextPassage}&rdquo;</p>
+        </blockquote>
+      )}
+
       {/* Why it matters — shown by default (no click required) */}
       {e.whyItMatters && (
-        <p className="text-[11.5px] text-gray-700 leading-snug mt-0.5">
+        <p className={`${isDirect ? "text-[12px]" : "text-[11.5px]"} text-gray-700 leading-snug mt-0.5`}>
           <span className="font-medium text-teal-700">Why it matters: </span>
           {e.whyItMatters}
         </p>
       )}
 
-      {/* Expand toggle (DOI, full abstract, and quote hidden by default) */}
+      {/* Expand toggle — DOI, full abstract, quote (non-direct), etc. */}
       {hasExtra && (
         <button
           onClick={() => setExpanded((v) => !v)}
@@ -202,7 +213,9 @@ function RefCard({ e }: { e: Entry }) {
 
       {expanded && (
         <div className="mt-1 space-y-2">
-          {e.intextPassage && (
+          {/* Intext passage for NON-direct cards stays here (direct cards
+              already showed it above Why-it-matters). */}
+          {!isDirect && e.intextPassage && (
             <blockquote className="border-l-2 border-teal-300 bg-teal-50 px-2 py-1.5 rounded-r">
               <p className="text-[10.5px] text-teal-900 italic leading-relaxed">&ldquo;{e.intextPassage}&rdquo;</p>
               <p className="text-[9px] text-teal-700 mt-0.5 uppercase tracking-wide">Cited in this answer</p>
@@ -242,73 +255,79 @@ function RefCard({ e }: { e: Entry }) {
   );
 }
 
-function EvidenceSummaryStrip({ counts, hiddenCount }: { counts: EvidenceCounts; hiddenCount: number }) {
-  const rel = counts.relevance ?? {};
+// Single-sentence evidence-strength summary (no more dual-row chip strip).
+function EvidenceSummaryLine({ counts }: { counts: EvidenceCounts }) {
   const strg = counts.strength ?? {};
+  const items = STRENGTH_ORDER
+    .map((k) => ({ key: k, n: strg[k] ?? 0 }))
+    .filter((i) => i.n > 0);
+  if (items.length === 0) return null;
 
-  const relItems = RELEVANCE_ORDER
-    .map((k) => ({ key: k, count: rel[k] ?? 0 }))
-    .filter((i) => i.count > 0);
-  const strItems = STRENGTH_ORDER
-    .map((k) => ({ key: k, count: strg[k] ?? 0 }))
-    .filter((i) => i.count > 0);
-
-  if (relItems.length === 0 && strItems.length === 0 && hiddenCount === 0) return null;
-
+  const parts = items.map((i) => {
+    const s = STRENGTH_STYLES[i.key];
+    return `${i.n} ${s.label.toLowerCase()}`;
+  });
   return (
-    <div className="flex flex-col gap-1.5 px-3.5 py-2 bg-slate-50 border-b border-gray-100">
-      {relItems.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[10px] uppercase tracking-wide font-semibold text-slate-500 mr-1">
-            Relevance:
-          </span>
-          {relItems.map((i) => {
-            const s = RELEVANCE_STYLES[i.key];
-            return (
-              <span
-                key={i.key}
-                className={`text-[10.5px] font-medium px-2 py-0.5 rounded-full inline-flex items-center gap-1 ring-1 ${s.bg} ${s.text}`}
-              >
-                <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} aria-hidden />
-                {i.count} {s.label.toLowerCase()}
-              </span>
-            );
-          })}
-          {hiddenCount > 0 && (
-            <span className="text-[10.5px] text-slate-500 ml-1">
-              · {hiddenCount} retrieved but not used
-            </span>
-          )}
-        </div>
-      )}
-      {strItems.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[10px] uppercase tracking-wide font-semibold text-slate-500 mr-1">
-            Evidence:
-          </span>
-          {strItems.map((i) => {
-            const s = STRENGTH_STYLES[i.key];
-            return (
-              <span
-                key={i.key}
-                className={`text-[10.5px] font-medium px-2 py-0.5 rounded-full inline-flex items-center ring-1 ${s.bg} ${s.text}`}
-              >
-                {i.count} {s.label.toLowerCase()}
-              </span>
-            );
-          })}
-        </div>
-      )}
+    <div className="px-3.5 py-2 bg-slate-50 border-b border-gray-100">
+      <p className="text-[11px] text-slate-600">
+        <span className="font-semibold text-slate-700">Evidence: </span>
+        {parts.join(" · ")}
+      </p>
     </div>
   );
 }
 
-// Hidden refs grouped by relevance axis — "Related but not cited" vs "Background" vs "Tangential".
-// Gives vets a clear sense of what was pulled and why the UI dropped it.
+function SectionHeader({
+  kind, count, total,
+}: {
+  kind: "direct" | "related" | "offtopic";
+  count: number;
+  total: number;
+}) {
+  if (count === 0) return null;
+  const meta = SECTION_META[kind];
+  return (
+    <div className={`flex items-start gap-2 px-3 py-2 border-b ${meta.headerTone}`}>
+      <span className={`w-2 h-2 rounded-full ${meta.dot} mt-1.5 shrink-0`} aria-hidden />
+      <div>
+        <div className="text-[12px] font-semibold">
+          {meta.title}
+          <span className="text-[11px] font-normal opacity-75 ml-1.5">
+            ({count} of {total})
+          </span>
+        </div>
+        <div className="text-[10.5px] opacity-80 leading-snug">{meta.subtitle}</div>
+      </div>
+    </div>
+  );
+}
+
+function Section({
+  kind, entries,
+}: {
+  kind: "direct" | "related" | "offtopic";
+  entries: Entry[];
+}) {
+  if (entries.length === 0) return null;
+  return (
+    <div className="flex flex-col">
+      <div className="px-3 pt-3 pb-2 bg-white">
+        <ol className="grid grid-cols-1 sm:grid-cols-2 gap-2 list-none m-0 p-0">
+          {entries.map((e) => (
+            <RefCard key={e.ref} e={e} isDirect={kind === "direct"} />
+          ))}
+        </ol>
+      </div>
+    </div>
+  );
+}
+
+// Hidden refs drawer — grouped by relevance. Retained from prior design
+// but with clinician-friendly group labels.
 const HIDDEN_GROUP_ORDER: Array<{ key: Exclude<RelevanceAxis, ""> | "unclassified"; label: string }> = [
   { key: "related",      label: "Related but not cited" },
   { key: "background",   label: "Background only" },
-  { key: "tangential",   label: "Tangential" },
+  { key: "tangential",   label: "Off-topic" },
   { key: "unclassified", label: "Other retrieved" },
 ];
 
@@ -331,10 +350,7 @@ function HiddenRefsDrawer({ hidden }: { hidden: CitationItem[] }) {
       className="border-t border-gray-100 bg-slate-50/60"
     >
       <summary className="cursor-pointer px-4 py-2 text-[11px] font-medium text-slate-600 hover:text-slate-800 select-none">
-        {open ? "▲ Hide" : "▼ Show"} {hidden.length} retrieved but not used
-        <span className="ml-1.5 text-slate-400">
-          (pulled during search but not cited in the final answer)
-        </span>
+        {open ? "▲ Hide" : "▼ Show"} {hidden.length} retrieved during search but not used in the answer
       </summary>
       <div className="px-3 pb-3 pt-1 flex flex-col gap-3">
         {HIDDEN_GROUP_ORDER.map(({ key, label }) => {
@@ -382,6 +398,17 @@ export default function ReferencesPanel({
   const entries = buildEntries(citations, liveResources);
   const publishers = Array.from(new Set(entries.map((e) => e.publisher).filter(Boolean)));
 
+  // Partition entries by relevance axis for the three-section layout.
+  // `background` and `tangential` collapse into one "off-topic" section —
+  // the distinction is internal-only; clinicians just want to know "don't
+  // rely on these". Distinct handling still lives in the hidden-refs drawer.
+  const directEntries   = entries.filter((e) => e.relevance === "direct");
+  const relatedEntries  = entries.filter((e) => e.relevance === "related");
+  const offtopicEntries = entries.filter(
+    (e) => e.relevance === "background" || e.relevance === "tangential" || e.relevance === "",
+  );
+  const totalShown = directEntries.length + relatedEntries.length + offtopicEntries.length;
+
   return (
     <div className="mt-4 rounded-xl border border-gray-200 overflow-hidden bg-white">
       <button
@@ -398,15 +425,16 @@ export default function ReferencesPanel({
 
       {open && (
         <>
-          <EvidenceSummaryStrip counts={evidenceCounts} hiddenCount={hiddenReferences.length} />
+          <EvidenceSummaryLine counts={evidenceCounts} />
 
-          <div className="px-3 py-3 bg-white">
-            <ol className="grid grid-cols-1 sm:grid-cols-2 gap-2 list-none m-0 p-0">
-              {entries.map((e) => (
-                <RefCard key={e.ref} e={e} />
-              ))}
-            </ol>
-          </div>
+          <SectionHeader kind="direct"   count={directEntries.length}   total={totalShown} />
+          <Section        kind="direct"   entries={directEntries} />
+
+          <SectionHeader kind="related"  count={relatedEntries.length}  total={totalShown} />
+          <Section        kind="related"  entries={relatedEntries} />
+
+          <SectionHeader kind="offtopic" count={offtopicEntries.length} total={totalShown} />
+          <Section        kind="offtopic" entries={offtopicEntries} />
 
           <HiddenRefsDrawer hidden={hiddenReferences} />
 
@@ -416,8 +444,8 @@ export default function ReferencesPanel({
               <span className="font-semibold text-slate-700">Source integrity: </span>
               Grounded in peer-reviewed veterinary literature
               {publishers.length > 0 && <> ({publishers.join(", ")})</>}.
-              Each source carries a <em>relevance</em> tag (how directly it answers your question)
-              and a <em>study-design</em> tag (how strong the evidence itself is).
+              Sections group sources by how directly they address your question;
+              each card's <em>Evidence</em> chip shows the study-design strength.
             </p>
           </div>
         </>

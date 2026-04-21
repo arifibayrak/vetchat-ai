@@ -136,9 +136,19 @@ def classify_species(citation: CitationItem, extra_text: str = "") -> str:
 #   tangential — scraped through the reranker floor only
 # ─────────────────────────────────────────────────────────────────────────────
 
-_RELEVANCE_STRONG  = 1.5   # rerank_score threshold for "direct" (needs overlap too)
-_RELEVANCE_POSITIVE = 0.0  # rerank_score threshold for "related" floor
-_RELEVANCE_BACKGROUND = -1.0
+# Empirically recalibrated 2026-04-21 from N=85 citations across 11 prod tests.
+# MS-MARCO MiniLM against biomedical abstracts clusters 2–3 points lower than
+# its web-search training distribution: the p90 of all observed scores was
+# +1.26 and well-matched queries' top-5 median was +2.21, so requiring ≥1.5
+# for "direct" caught only ~p92+ and left most genuinely-good hits at "related".
+# New floors:
+#   direct     ≥ 0.5  (AND overlap ≥ 1, or top-quartile per-query percentile)
+#   related    ≥ -1.5
+#   background ≥ -3.5
+#   tangential below
+_RELEVANCE_STRONG     = 0.5
+_RELEVANCE_POSITIVE   = -1.5
+_RELEVANCE_BACKGROUND = -3.5
 
 _STOP = frozenset({
     "the", "a", "an", "and", "or", "in", "of", "to", "for", "with", "at", "by",
@@ -163,30 +173,70 @@ def classify_relevance(
     rerank_score: float,
     query: str,
     citation: CitationItem,
+    *,
+    query_percentile: float | None = None,
 ) -> str:
     """
-    Two-step rule:
-      1. Use rerank_score to pick the base bucket (direct/related/background/tangential).
-      2. Apply a small +/- shift based on query↔(title+abstract) word overlap
-         so that a very on-topic title can lift "related" → "direct", and a
-         rerank hit with zero lexical overlap drops from "related" → "background".
+    Two-stage rule (new 2026-04-21):
+
+      Stage 1 — absolute floor (hard cap, can only DOWN-grade):
+        score ≥ 0.5   → candidate for direct (requires overlap ≥ 1 too)
+        score ≥ -1.5  → candidate for related
+        score ≥ -3.5  → candidate for background
+        below         → tangential
+
+      Stage 2 — per-query percentile overlay (can only UP-grade within the
+      absolute-floor ceiling). When `query_percentile` is supplied (0.0–1.0,
+      higher = better rank within this query's top-k):
+        ≥ 0.80  → promote to direct  (if not hard-capped to tangential)
+        ≥ 0.50  → promote to related
+        ≥ 0.20  → promote to background
+
+    Rationale: fixed thresholds alone mis-rank borderline queries where the
+    whole top-k scores modestly (e.g. best hit at -1.0). Percentile overlay
+    says "the best results for THIS query, even if modest, are the ones the
+    clinician should trust most." Absolute floor prevents score-4 papers
+    being promoted to direct just because they happened to be top-1 of a
+    weak-retrieval query.
     """
     query_tokens = _content_tokens(query)
     scan_text = f"{citation.title} {citation.abstract or ''}"
     source_tokens = _content_tokens(scan_text)
     overlap = len(query_tokens & source_tokens) if query_tokens else 0
 
-    # Base bucket from score
-    if rerank_score >= _RELEVANCE_STRONG:
-        base = "direct" if overlap >= 1 else "related"
+    # Stage 1: absolute floor — this is the ceiling the percentile cannot exceed.
+    if rerank_score >= _RELEVANCE_STRONG and overlap >= 1:
+        ceiling = "direct"
+    elif rerank_score >= _RELEVANCE_STRONG:
+        ceiling = "related"  # strong score but no lexical overlap → still only related
     elif rerank_score >= _RELEVANCE_POSITIVE:
-        base = "direct" if overlap >= 2 else "related"
+        ceiling = "related"
     elif rerank_score >= _RELEVANCE_BACKGROUND:
-        base = "related" if overlap >= 2 else "background"
+        ceiling = "background"
     else:
-        base = "tangential"
+        ceiling = "tangential"
 
-    return base
+    if query_percentile is None:
+        return ceiling
+
+    # Stage 2: percentile overlay — pick the BETTER of (percentile bucket, ceiling)
+    # but never exceed the ceiling.
+    order = ["tangential", "background", "related", "direct"]
+    if query_percentile >= 0.80:
+        pct_bucket = "direct"
+    elif query_percentile >= 0.50:
+        pct_bucket = "related"
+    elif query_percentile >= 0.20:
+        pct_bucket = "background"
+    else:
+        pct_bucket = "tangential"
+
+    # "direct" via percentile still requires absolute floor ≥ _RELEVANCE_POSITIVE
+    # AND some overlap — prevents a -3-scored top-1 from being called direct.
+    if pct_bucket == "direct" and (rerank_score < _RELEVANCE_POSITIVE or overlap < 1):
+        pct_bucket = "related"
+
+    return pct_bucket if order.index(pct_bucket) < order.index(ceiling) else ceiling
 
 
 _RELEVANCE_LABELS = {
@@ -329,17 +379,55 @@ def build_why_it_matters(citation: CitationItem) -> str:
 # Public API
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _percentiles(values: list[float]) -> dict[int, float]:
+    """Return {index → percentile in [0,1]} where higher rerank_score maps to
+    higher percentile (1.0 = best in batch). Tied scores receive the SAME
+    percentile (the best rank they collectively achieve) so three equally
+    strong citations all land in the top bucket instead of being spread out.
+    Single-citation batches get percentile 1.0. Empty batches return {}.
+    """
+    n = len(values)
+    if n == 0:
+        return {}
+    if n == 1:
+        return {0: 1.0}
+    # Descending sort — best score first
+    indexed = sorted(enumerate(values), key=lambda x: x[1], reverse=True)
+    out: dict[int, float] = {}
+    i = 0
+    while i < n:
+        # Find run of ties starting at i
+        j = i
+        while j + 1 < n and indexed[j + 1][1] == indexed[i][1]:
+            j += 1
+        # All tied positions share the best rank within the tie-run. The
+        # "best rank" maps to percentile = 1 - (i / (n-1)); the last unique
+        # score maps to 0.
+        pct = 1.0 - (i / (n - 1))
+        for k in range(i, j + 1):
+            orig_idx, _ = indexed[k]
+            out[orig_idx] = pct
+        i = j + 1
+    return out
+
+
 def enrich(citations: list[CitationItem], query: str = "") -> list[CitationItem]:
     """
     Populate, for each citation:
       - study_type, species_relevance (display helpers)
       - strength  (study-design axis)
-      - relevance (query-match axis)
+      - relevance (query-match axis, absolute-floor + per-query percentile)
       - why_it_matters (heuristic fallback; WS3 overrides when available)
-    Order matters: relevance/strength must be set before build_why_it_matters
-    so the template fallback can reference them.
+
+    The per-query percentile is computed across the citations batch passed
+    in — so borderline queries where the whole top-k scored modestly still
+    get a "best among these" tier promotion, while truly off-topic papers
+    stay pinned to the absolute-floor ceiling. See classify_relevance docstring.
     """
-    for c in citations:
+    scores = [c.rerank_score for c in citations]
+    pct_by_idx = _percentiles(scores)
+
+    for i, c in enumerate(citations):
         c.study_type = c.study_type or classify_study_type(c, extra_text=query)
         c.species_relevance = c.species_relevance or classify_species(c, extra_text=query)
         c.strength = c.strength or classify_strength(c, extra_text=query)
@@ -347,6 +435,7 @@ def enrich(citations: list[CitationItem], query: str = "") -> list[CitationItem]
             rerank_score=c.rerank_score,
             query=query,
             citation=c,
+            query_percentile=pct_by_idx.get(i),
         )
         c.why_it_matters = c.why_it_matters or build_why_it_matters(c)
     return citations

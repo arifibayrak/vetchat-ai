@@ -102,34 +102,78 @@ def test_species_unknown_returns_empty():
 # ─── Axis 1: relevance (query-match) ─────────────────────────────────────────
 
 def test_relevance_direct_on_strong_score_and_overlap():
-    # High rerank score + at least one content-word overlap with query
+    # Strong rerank score + overlap with query → direct (absolute floor alone)
     c = _cite(title="Feline lily nephrotoxicity management", rerank_score=2.0)
     assert evidence_tagger.classify_relevance(
         rerank_score=c.rerank_score, query="feline lily toxicosis", citation=c,
     ) == "direct"
 
 
-def test_relevance_related_on_positive_score_low_overlap():
-    c = _cite(title="Canine vaccine protocols", rerank_score=0.5)
+def test_relevance_related_on_strong_score_no_overlap():
+    # Strong score but no lexical overlap → stays at related (ceiling lowered)
+    c = _cite(title="Canine vaccine protocols", rerank_score=2.0)
     assert evidence_tagger.classify_relevance(
         rerank_score=c.rerank_score, query="feline lily toxicosis", citation=c,
     ) == "related"
 
 
-def test_relevance_background_on_marginal_score():
+def test_relevance_related_on_mid_negative_score():
+    # Score in [-1.5, 0.5) range → related regardless of overlap
     c = _cite(title="Generic veterinary overview", rerank_score=-0.5)
-    out = evidence_tagger.classify_relevance(
+    assert evidence_tagger.classify_relevance(
         rerank_score=c.rerank_score, query="feline lily toxicosis", citation=c,
-    )
-    # Low score, no overlap → background
-    assert out == "background"
+    ) == "related"
 
 
-def test_relevance_tangential_below_floor():
+def test_relevance_background_on_low_score():
+    # Score in [-3.5, -1.5) range → background
     c = _cite(title="Industrial polymer synthesis", rerank_score=-2.5)
     assert evidence_tagger.classify_relevance(
         rerank_score=c.rerank_score, query="feline lily toxicosis", citation=c,
+    ) == "background"
+
+
+def test_relevance_tangential_deep_negative():
+    # Below -3.5 floor → tangential
+    c = _cite(title="Unrelated paper", rerank_score=-5.0)
+    assert evidence_tagger.classify_relevance(
+        rerank_score=c.rerank_score, query="feline lily toxicosis", citation=c,
     ) == "tangential"
+
+
+# ─── Percentile overlay (new 2026-04-21) ─────────────────────────────────────
+
+def test_percentile_cannot_exceed_absolute_ceiling():
+    # Even if this is top of its batch (percentile=1.0), score of -4.0
+    # places it below the absolute floor → tangential regardless.
+    c = _cite(title="Off-topic paper", rerank_score=-4.0)
+    assert evidence_tagger.classify_relevance(
+        rerank_score=c.rerank_score, query="feline lily toxicosis",
+        citation=c, query_percentile=1.0,
+    ) == "tangential"
+
+
+def test_percentile_promotes_modest_score_to_related():
+    # Score -1.0 → absolute ceiling is "related". Top percentile → stays related
+    # (can't exceed ceiling), but the overlay confirms it as related rather than
+    # downgrading to background.
+    c = _cite(title="Lily-related paper", rerank_score=-1.0)
+    out = evidence_tagger.classify_relevance(
+        rerank_score=c.rerank_score, query="feline lily toxicosis",
+        citation=c, query_percentile=0.9,
+    )
+    assert out == "related"
+
+
+def test_percentile_downgrades_weak_percentile_within_ceiling():
+    # Modest score (-0.5, ceiling=related), low percentile → downgrade to background
+    c = _cite(title="Tangential paper", rerank_score=-0.5)
+    out = evidence_tagger.classify_relevance(
+        rerank_score=c.rerank_score, query="feline lily toxicosis",
+        citation=c, query_percentile=0.1,
+    )
+    # Bottom quintile → tangential via percentile bucket
+    assert out == "tangential"
 
 
 # ─── Axis 2: strength (study-design) ─────────────────────────────────────────
@@ -228,7 +272,10 @@ def test_enrich_populates_all_fields():
 
 
 def test_counts_by_axes():
-    # 3 direct/clinical_study, 1 related/narrative_review
+    # 3 dog-RCTs with overlapping query tokens → all direct/clinical_study.
+    # 1 FIP review with score −0.3 AND no "dog rct" overlap → absolute
+    # ceiling = related, bottom percentile within batch → background via
+    # percentile overlay.
     cs = [
         _cite(
             title=f"RCT of drug {i} in dogs",
@@ -246,6 +293,7 @@ def test_counts_by_axes():
     counts = evidence_tagger.counts_by_axes(cs)
     assert counts["relevance"]["direct"] == 3
     assert counts["strength"]["clinical_study"] == 3
-    # FIP review: no overlap with "dog rct", score -0.3 → background
-    assert counts["relevance"].get("background") == 1
+    # FIP review is the lowest-scored of the batch → percentile ≈ 0.0 →
+    # tangential bucket (still capped at "related" ceiling, so final is tangential).
+    assert counts["relevance"].get("tangential") == 1
     assert counts["strength"]["narrative_review"] == 1

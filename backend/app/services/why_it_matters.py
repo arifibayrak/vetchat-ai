@@ -178,3 +178,166 @@ def overlay(
         r = rationales.get(c.ref)
         if r:
             c.why_it_matters = r
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Tier A — DEEP rationale for DIRECT citations (WS10, 2026-04-21)
+# One Haiku call per direct citation, parallelised via ThreadPoolExecutor.
+# ~50-word two-sentence rationale that (a) states what the source
+# establishes, (b) names which specific claim in Claude's answer it supports.
+# ─────────────────────────────────────────────────────────────────────────────
+
+_DEEP_WHY_SYSTEM = (
+    "You are a veterinary evidence analyst. For this ONE citation, write a "
+    "two-sentence rationale (≤50 words total) for the clinician reading the "
+    "answer:\n"
+    "  Sentence 1 — what the source establishes (mechanism, finding, dose, "
+    "monitoring interval, or recommendation). Be specific — name the drug / "
+    "value / interval.\n"
+    "  Sentence 2 — which specific claim in the clinician's answer this "
+    "source supports. If a specific sentence from the answer cited this "
+    "reference, quote or paraphrase its clinical point. Use the intext "
+    "passage when supplied.\n\n"
+    "Rules:\n"
+    "  - Do not repeat the title verbatim.\n"
+    "  - Do not start with 'This source', 'This paper', 'This study', "
+    "'The authors', or 'Relevant to'.\n"
+    "  - Do not hedge ('may support', 'could help'). State plainly.\n"
+    "  - Output ONLY the rationale text. No preamble. No markdown. No "
+    "citation markers."
+)
+
+# Single-citation call — cheap, parallelisable. Keep room for 60 words of
+# prose (~80 tokens) plus Haiku's safety margin.
+_DEEP_MAX_TOKENS = 160
+# Cost guard — don't spin up more than this many direct rationales per
+# answer. If more than 6 direct citations, the remainder fall through to
+# the batched Tier B rationale.
+_DEEP_CAP = 6
+# Length sanity — Tier A rationales should be noticeably longer than Tier B.
+# 35–60 words ≈ 180–360 characters.
+_DEEP_MIN_LEN = 120
+_DEEP_MAX_LEN = 360
+
+
+def _build_deep_prompt(
+    query: str,
+    citation: CitationItem,
+    answer_body: str,
+) -> str:
+    # Pull the exact sentence(s) from the answer that cite [N] — this is
+    # the single most useful grounding signal for Tier A. Fall back to the
+    # heuristic intext_passage already extracted in chat.py.
+    intext = (citation.intext_passage or "").strip()
+    abstract = (citation.abstract or "").strip()
+    if len(abstract) > 700:
+        abstract = abstract[:700] + "…"
+
+    parts = [f"Clinician's question:\n{query.strip()}"]
+    if intext:
+        parts.append(f"Sentence in the answer that cited [{citation.ref}]:\n{intext}")
+    parts.append(
+        f"Citation [{citation.ref}] — title + abstract:\n"
+        f'"{citation.title}" — {abstract}'
+    )
+    parts.append(
+        "Write the two-sentence ≤50-word rationale now. "
+        "Output ONLY the rationale."
+    )
+    return "\n\n".join(parts)
+
+
+def _clean_deep(text: str) -> str:
+    """Strip preamble, code fences, citation markers; normalise whitespace."""
+    if not text:
+        return ""
+    t = text.strip()
+    if t.startswith("```"):
+        parts = t.split("```")
+        if len(parts) >= 2:
+            t = parts[1].lstrip("json").strip()
+    # Kill leading labels Haiku sometimes emits
+    t = re.sub(r"^\s*(Rationale|Answer|Summary)\s*:\s*", "", t, flags=re.I)
+    t = re.sub(r"\[\d+\]", "", t)
+    t = re.sub(r"\s+", " ", t).strip()
+    return t
+
+
+def _call_deep_one(
+    query: str,
+    citation: CitationItem,
+    answer_body: str,
+    claude: ClaudeService,
+) -> str | None:
+    try:
+        response = claude._client.messages.create(  # noqa: SLF001
+            model=_HAIKU_MODEL,
+            max_tokens=_DEEP_MAX_TOKENS,
+            system=_DEEP_WHY_SYSTEM,
+            messages=[{
+                "role": "user",
+                "content": _build_deep_prompt(query, citation, answer_body),
+            }],
+        )
+        text = response.content[0].text if response.content else ""
+    except Exception as exc:
+        _log.warning("deep why call failed for ref %s (non-fatal): %s", citation.ref, exc)
+        return None
+
+    cleaned = _clean_deep(text)
+    if not cleaned:
+        return None
+    if not (_DEEP_MIN_LEN <= len(cleaned) <= _DEEP_MAX_LEN):
+        # Too short (<35 words) or too long (>60) — reject so caller falls
+        # back to Tier B. Prevents Haiku one-liners shorter than the batched
+        # Tier B rationale from replacing a better existing one.
+        _log.info(
+            "deep why rejected for ref %s: length %d outside [%d, %d]",
+            citation.ref, len(cleaned), _DEEP_MIN_LEN, _DEEP_MAX_LEN,
+        )
+        return None
+    # Template-smell guard reused from Tier B
+    if _TEMPLATE_SMELL.match(cleaned):
+        return None
+    return cleaned
+
+
+def generate_deep_rationales(
+    query: str,
+    citations: list[CitationItem],
+    claude: ClaudeService,
+    answer_body: str,
+) -> dict[int, str]:
+    """
+    Tier A: deep ~50-word claim-linked rationales for DIRECT citations only.
+    Parallelised via ThreadPoolExecutor (each call is independent). Capped
+    at _DEEP_CAP to prevent latency/cost blow-up on answers with many direct
+    refs — the remainder stay on Tier B (batched ≤22-word rationales).
+
+    Returns {ref → rationale}. Caller uses overlay() to apply.
+    """
+    direct = [c for c in citations if (c.relevance or "") == "direct" and (c.title or "").strip()]
+    if not direct:
+        return {}
+    # Apply the cost cap — prioritise the highest-scoring direct citations.
+    direct.sort(key=lambda c: -(c.rerank_score or 0.0))
+    direct = direct[:_DEEP_CAP]
+
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    out: dict[int, str] = {}
+    with ThreadPoolExecutor(max_workers=min(len(direct), 6)) as pool:
+        fut_to_ref = {
+            pool.submit(_call_deep_one, query, c, answer_body, claude): c.ref
+            for c in direct
+        }
+        for fut in as_completed(fut_to_ref):
+            ref = fut_to_ref[fut]
+            try:
+                r = fut.result()
+            except Exception as exc:
+                _log.warning("deep why future failed for ref %s: %s", ref, exc)
+                continue
+            if r:
+                out[ref] = r
+    return out

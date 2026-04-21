@@ -289,13 +289,33 @@ async def _chat_stream(
 
         chroma_chunks: list[RetrievedChunk] = []
         if chroma_collection is not None:
+            # Start with retrieval against the refined (keyword-compressed) query.
             chroma_raw = await loop.run_in_executor(
                 None, chroma_search, search_query, chroma_collection,
                 n_pre_rerank, settings.embedding_model,
             )
+            seen_ids = {c.id for c in chroma_raw}
+
+            # BUG-01 fix (WS7.1, 2026-04-21): refine_query compresses long
+            # clinical vignettes to ≤8 words, which often loses the primary
+            # entity — e.g. a pyometra-sepsis vignette gets refined to
+            # "canine septic shock management" and pyometra-specific papers
+            # miss top-k. For long queries (>80 chars) we also embed the raw
+            # user query and union the results. Preserves the refined-query
+            # ordering where both probes agree, adds rescued hits to the tail.
+            if len(query) > 80 and query.strip() != search_query.strip():
+                raw_raw = await loop.run_in_executor(
+                    None, chroma_search, query, chroma_collection,
+                    n_pre_rerank, settings.embedding_model,
+                )
+                for c in raw_raw:
+                    if c.id not in seen_ids:
+                        chroma_raw.append(c)
+                        seen_ids.add(c.id)
+
             # HyDE: embed a hypothetical abstract alongside the raw query so
-            # retrieval is done in abstract-space too. Unions with the raw
-            # search by chunk id, dedup-first-wins so the raw query's ordering
+            # retrieval is done in abstract-space too. Unions with the prior
+            # probes by chunk id, dedup-first-wins so the earlier ordering
             # is preserved where it agrees.
             if hyde_task is not None:
                 try:
@@ -308,7 +328,6 @@ async def _chat_stream(
                         None, chroma_search, hyde_text, chroma_collection,
                         n_pre_rerank, settings.embedding_model,
                     )
-                    seen_ids = {c.id for c in chroma_raw}
                     for c in hyde_raw:
                         if c.id not in seen_ids:
                             chroma_raw.append(c)
@@ -345,6 +364,25 @@ async def _chat_stream(
                 chroma_chunks, detected_species,
                 get_text=lambda c: f"{c.title} {c.text}",
             )
+
+        # ── Absolute-floor guard: if ALL reranked sources score below -3.0,
+        # the reranker's min-4 floor has pulled tangential junk into the
+        # panel. Treat this as "no retrieval" and route to the consensus
+        # fallback — vets prefer an honest "literature synthesis incomplete"
+        # banner over 4 sources of noise. (BUG-02 / WS7.4, 2026-04-21.)
+        _ABSOLUTE_FLOOR = -3.0
+        _all_scored = (
+            [getattr(c, "rerank_score", 0.0) for c in chroma_chunks]
+            + [getattr(r, "rerank_score", 0.0) for r in live_results]
+        )
+        all_below_floor = bool(_all_scored) and max(_all_scored) < _ABSOLUTE_FLOOR
+        if all_below_floor:
+            _log.info(
+                "Absolute-floor guard: all %d reranked sources below %.1f; "
+                "routing to consensus fallback.", len(_all_scored), _ABSOLUTE_FLOOR,
+            )
+            live_results = []
+            chroma_chunks = []
 
         # ── No results from either source → graceful consensus fallback ───────
         # Previously we dumped an "API key error" message and the frontend
@@ -643,21 +681,38 @@ async def _chat_stream(
         evidence_mode = "literature"
         fallback_kind = None
 
-    # LLM-generated "why it matters" overlay. One batched Haiku call gives us
-    # claim-grounded rationales for the cited sources. We skip in consensus-
-    # only modes — there are no sources to ground against.
+    # LLM-generated "why it matters" overlay — two tiers.
+    #   Tier B (batched, ≤22 words) runs first for ALL citations — cheap and
+    #          keeps cards informative even when nothing else grounds.
+    #   Tier A (per-direct, ~50 words, claim-linked) runs second for DIRECT
+    #          citations only — overwrites Tier B so vets get the deeper
+    #          rationale on the sources they'll actually act on.
+    # Both tiers skipped in consensus-only modes (no sources to ground against).
     if evidence_mode == "literature" and citations:
         try:
-            rationales = await loop.run_in_executor(
+            rationales_b = await loop.run_in_executor(
                 None,
                 why_it_matters_service.generate_rationales,
                 query,
                 citations,
                 claude,
             )
-            why_it_matters_service.overlay(citations, rationales)
+            why_it_matters_service.overlay(citations, rationales_b)
         except Exception as exc:
-            _log.warning("why_it_matters overlay failed (non-fatal): %s", exc)
+            _log.warning("why_it_matters Tier B overlay failed (non-fatal): %s", exc)
+
+        try:
+            rationales_a = await loop.run_in_executor(
+                None,
+                why_it_matters_service.generate_deep_rationales,
+                query,
+                citations,
+                claude,
+                answer_raw,
+            )
+            why_it_matters_service.overlay(citations, rationales_a)
+        except Exception as exc:
+            _log.warning("why_it_matters Tier A overlay failed (non-fatal): %s", exc)
 
     evidence_counts = evidence_tagger.counts_by_axes(citations)
 
