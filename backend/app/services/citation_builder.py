@@ -10,7 +10,6 @@ Hard per-source cap prevents oversized chunks blowing context budget.
 """
 from app.models.chat import CitationItem
 from app.services.retriever import RetrievedChunk
-from app.services.reranker import score_to_bucket
 
 # Map API source names to their parent publishers
 _PUBLISHER_MAP: dict[str, str] = {
@@ -78,9 +77,14 @@ def build(chunks: list[RetrievedChunk]) -> tuple[str, list[CitationItem]]:
             doi=chunk.doi,
             url=doi_url,
             authors=chunk.authors,
+            # For Crossref-ingested articles the chunk text is essentially the
+            # abstract — keep it so the relevance classifier and quote extractor
+            # have something to work against. Directory stubs have no abstract-
+            # like content (just title/ISSN/URL), so we leave abstract empty.
+            abstract=chunk.text if chunk.source_type == "article" else "",
             publisher=publisher,
             source=source,
-            relevance=score_to_bucket(getattr(chunk, "rerank_score", 0.0)),
+            rerank_score=float(getattr(chunk, "rerank_score", 0.0)),
         ))
 
     return "\n".join(lines), citations
@@ -154,7 +158,7 @@ def build_from_live(live_results: list) -> tuple[str, list[CitationItem]]:
             cited_by=r.cited_by,
             publisher=publisher,
             source=r.source,
-            relevance=score_to_bucket(getattr(r, "rerank_score", 0.0)),
+            rerank_score=float(getattr(r, "rerank_score", 0.0)),
         ))
 
     return "\n".join(lines), citations
@@ -229,9 +233,10 @@ def merge(
             doi=chunk.doi,
             url=doi_url,
             authors=chunk.authors,
+            abstract=chunk.text if chunk.source_type == "article" else "",
             publisher=publisher,
             source=source,
-            relevance=score_to_bucket(getattr(chunk, "rerank_score", 0.0)),
+            rerank_score=float(getattr(chunk, "rerank_score", 0.0)),
         ))
 
     if extra_lines:

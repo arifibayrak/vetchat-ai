@@ -40,19 +40,14 @@ def _get_cross_encoder():
     return _cross_encoder
 
 
-def score_to_bucket(score: float) -> str:
-    """
-    Map a cross-encoder relevance score to a user-facing bucket.
-    Calibrated for MS-MARCO MiniLM against biomedical abstracts — a directly
-    relevant biomed paper typically scores 0.5-2.0, not 3+. The previous
-    >=3.0 threshold for "high" meant almost every useful match fell into
-    "moderate" and downstream evidence tiers collapsed to "weak".
-    """
-    if score >= 1.0:
-        return "high"
-    if score >= -0.5:
-        return "moderate"
-    return "tangential"
+def _matches_boost_journal(journal: str, boost_journals: frozenset[str]) -> bool:
+    """Substring match so minor title variations ('Journal of X, The') still hit."""
+    if not journal or not boost_journals:
+        return False
+    if journal in boost_journals:
+        return True
+    lowered = journal.lower()
+    return any(name.lower() in lowered for name in boost_journals)
 
 
 def rerank(
@@ -60,10 +55,19 @@ def rerank(
     chunks: list[RetrievedChunk],
     top_k: int = 5,
     use_reranker: bool = True,
+    boost_journals: frozenset[str] | None = None,
+    boost_amount: float = 0.3,
 ) -> list[RetrievedChunk]:
     """
     Rerank ChromaDB chunks. Attaches each chunk's cross-encoder score to
-    `.rerank_score`. Filters below threshold with a min-2 fallback.
+    `.rerank_score`. Filters below threshold with a min-4 fallback.
+
+    When `boost_journals` is supplied, chunks published in those journals
+    get `boost_amount` added to their rerank_score BEFORE filtering — this
+    lets toxicology queries tilt the prior toward known-relevant outlets
+    (JVECC, Clinical Toxicology, etc.) without discarding the reranker's
+    judgement. Stored score reflects the boosted value so downstream
+    filters (reference hygiene) see the same signal.
     """
     if not chunks:
         return []
@@ -73,10 +77,14 @@ def rerank(
         if model is not None:
             pairs = [(query, chunk.text) for chunk in chunks]
             scores = model.predict(pairs)
-            # Attach scores to every chunk for downstream citation tagging
+            boosted: list[float] = []
             for chunk, score in zip(chunks, scores):
-                chunk.rerank_score = float(score)
-            ranked = sorted(zip(scores, chunks), key=lambda x: x[0], reverse=True)
+                s = float(score)
+                if _matches_boost_journal(chunk.journal, boost_journals or frozenset()):
+                    s += boost_amount
+                chunk.rerank_score = s
+                boosted.append(s)
+            ranked = sorted(zip(boosted, chunks), key=lambda x: x[0], reverse=True)
             above = [(s, c) for s, c in ranked if s >= _CHROMA_THRESHOLD]
             if len(above) < _MIN_RESULTS:
                 above = ranked[:_MIN_RESULTS]

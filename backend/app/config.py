@@ -40,6 +40,10 @@ class Settings(BaseSettings):
     chroma_path: str = "./chroma_store"
     embedding_model: str = "all-MiniLM-L6-v2"
     use_reranker: bool = True
+    # HyDE query expansion — embed a hypothetical abstract alongside the raw
+    # query to broaden retrieval on terse veterinary queries. Gated so we can
+    # disable it if Claude's extra call pushes latency too high.
+    use_hyde: bool = True
     claude_model: str = "claude-sonnet-4-6"
     claude_max_tokens: int = 4096  # detailed clinical answers need headroom
     # Comma-separated list of allowed CORS origins

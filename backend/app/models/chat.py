@@ -25,12 +25,20 @@ class CitationItem(BaseModel):
     # Provenance — shown in UI so vets know exactly which publisher/database each source is from
     publisher: str = ""   # e.g. "Taylor & Francis", "Elsevier", "Springer Nature"
     source: str = ""      # e.g. "Scopus", "Springer Nature", "Taylor & Francis", "Literature"
-    relevance: str = ""   # "high" | "moderate" | "tangential" — from cross-encoder rerank score
-    # Clinician-friendly inferred fields — populated server-side from title/abstract/doc_type
-    study_type: str = ""          # "Review" | "RCT" | "Case series" | "Retrospective" | "Guideline" | "Research article" | ""
-    species_relevance: str = ""   # "Dogs" | "Cats" | "Dogs & cats" | "Equine" | "Avian" | "Mixed" | ""
-    why_it_matters: str = ""      # One-line clinician summary of how this source supports the claim
-    evidence_tier: str = ""       # "direct" | "review" | "guideline" | "weak" | "none" — maps to in-line tag
+    # Raw cross-encoder score — kept so the enrich() step can classify relevance
+    # without re-running the reranker, and so downstream code (reference hygiene,
+    # tox-journal boost) can filter on it directly.
+    rerank_score: float = 0.0
+    # Two-axis evidence model (populated by evidence_tagger.enrich):
+    #   relevance: how directly this source answers the query
+    #   strength : the study-design quality of the source itself
+    # These replace the tangled single-tier evidence_tier field.
+    relevance: str = ""   # "direct" | "related" | "background" | "tangential" | ""
+    strength: str = ""    # "guideline" | "systematic_review" | "clinical_study" | "case_series" | "narrative_review" | "expert_consensus" | ""
+    # Clinician-friendly display fields — populated server-side
+    study_type: str = ""          # human-readable label: "Review" | "RCT" | "Case series" | ...
+    species_relevance: str = ""   # "Dogs" | "Cats" | "Dogs & cats" | "Equine" | ...
+    why_it_matters: str = ""      # one-line rationale tying this source to the specific claim
 
 
 class ChatRequest(BaseModel):
@@ -74,7 +82,8 @@ class ChatResponse(BaseModel):
     evidence_mode: str = "literature"     # "literature" | "consensus" | "partial" | "gap"
     # Non-null when a fallback path produced the answer — drives frontend recovery UI
     fallback_kind: str | None = None      # None | "no_retrieval" | "guard_blocked" | "timeout_partial"
-    # Counts per evidence tier for the evidence-summary strip in the UI
-    evidence_counts: dict = {}            # {"direct": 3, "review": 1, "guideline": 2, "weak": 0}
+    # Counts along each evidence axis for the summary strip in the UI
+    # {"relevance": {"direct": 3, "related": 2, ...}, "strength": {"clinical_study": 4, ...}}
+    evidence_counts: dict = {}
     # Retrieved-but-hidden refs for the "Retrieved but not used" collapsible
     hidden_references: list[CitationItem] = []

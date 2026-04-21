@@ -7,7 +7,7 @@ upgrade:
   - citation guard → consensus fallback with fallback_kind="guard_blocked"
   - follow-up fast path → delta-shaped answer & prior_citations reused
   - irrelevant reference suppression surfaces hidden_references
-  - citation enrichment: study_type / species_relevance / evidence_tier / why_it_matters
+  - citation enrichment: study_type / species_relevance / relevance + strength axes / why_it_matters
 """
 import json
 from unittest.mock import MagicMock, patch
@@ -193,8 +193,9 @@ def test_uncited_moderate_refs_are_hidden_from_main_panel(test_client):
 # ─── Evidence enrichment — reference-card fields ──────────────────────────────
 
 def test_citations_are_enriched_with_clinician_fields(test_client):
-    """Every citation must carry study_type / species_relevance / evidence_tier /
-    why_it_matters so the reference card UX has the data it needs."""
+    """Every citation must carry study_type / species_relevance / two-axis
+    evidence model (relevance + strength) / why_it_matters so the reference
+    card UX has the data it needs."""
     answer = "## Direct Evidence\n\n- Finding [1] [Direct evidence]\n"
     resources = [
         _fake_live(
@@ -211,12 +212,13 @@ def test_citations_are_enriched_with_clinician_fields(test_client):
     c = result["citations"][0]
     assert c["study_type"] == "RCT"
     assert c["species_relevance"] == "Dogs"
-    assert c["evidence_tier"] == "direct"
+    assert c["relevance"] in ("direct", "related")
+    assert c["strength"] == "clinical_study"
     assert c["why_it_matters"]  # non-empty
 
 
 def test_evidence_counts_included_in_response(test_client):
-    """The response must carry the evidence_counts dict used by the UI strip."""
+    """The response must carry the two-axis evidence_counts dict used by the UI strip."""
     answer = "## Direct Evidence\n\n- Finding [1] [Direct evidence]\n"
     resources = [_fake_live("RCT in dogs", "RCT abstract.")]
     resources[0].rerank_score = 4.0
@@ -225,7 +227,11 @@ def test_evidence_counts_included_in_response(test_client):
         resp = test_client.post("/chat", json={"query": "canine pyoderma"})
     result = _get_result(_parse_sse(resp.text))
     assert "evidence_counts" in result
-    assert result["evidence_counts"]["direct"] >= 1
+    assert "relevance" in result["evidence_counts"]
+    assert "strength" in result["evidence_counts"]
+    # At least one citation should be classified along each axis
+    assert sum(result["evidence_counts"]["relevance"].values()) >= 1
+    assert sum(result["evidence_counts"]["strength"].values()) >= 1
 
 
 # ─── Follow-up fast path → delta-shaped answer ────────────────────────────────

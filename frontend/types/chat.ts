@@ -10,7 +10,15 @@ export interface FlowData {
   source: string;
 }
 
-export type EvidenceTier = "direct" | "review" | "guideline" | "weak" | "none" | "";
+export type RelevanceAxis = "direct" | "related" | "background" | "tangential" | "";
+export type StrengthAxis =
+  | "guideline"
+  | "systematic_review"
+  | "clinical_study"
+  | "case_series"
+  | "narrative_review"
+  | "expert_consensus"
+  | "";
 
 export interface CitationItem {
   ref: number;
@@ -31,12 +39,16 @@ export interface CitationItem {
   // Provenance — which publisher/database this source came from
   publisher?: string;
   source?: string;
-  relevance?: "high" | "moderate" | "tangential" | "";
-  // Clinician-friendly enrichment (populated server-side by evidence_tagger)
-  study_type?: string;          // "Review" | "RCT" | "Case series" | etc.
+  rerank_score?: number;
+  // Two-axis evidence model (server-side, via evidence_tagger):
+  //   relevance — how directly the source answers the query
+  //   strength  — the study-design quality of the source
+  relevance?: RelevanceAxis;
+  strength?: StrengthAxis;
+  // Clinician-friendly display fields
+  study_type?: string;          // human-readable: "Review" | "RCT" | "Case series" | ...
   species_relevance?: string;   // "Dogs" | "Cats" | "Dogs & cats" | "Equine" | ...
-  why_it_matters?: string;      // one-line clinician-facing summary
-  evidence_tier?: EvidenceTier; // drives the coloured tier badge on each card
+  why_it_matters?: string;      // one-line rationale tying this source to the specific claim
 }
 
 export interface LiveResourceItem {
@@ -79,11 +91,11 @@ export interface EmergencyPreliminary {
 export type EvidenceMode = "literature" | "consensus" | "partial" | "gap";
 export type FallbackKind = "no_retrieval" | "guard_blocked" | "timeout_partial" | null;
 
+// Counts along each evidence axis — backend sends both maps; frontend
+// renders a two-row summary strip in ReferencesPanel.
 export interface EvidenceCounts {
-  direct?: number;
-  review?: number;
-  guideline?: number;
-  weak?: number;
+  relevance?: Partial<Record<Exclude<RelevanceAxis, "">, number>>;
+  strength?: Partial<Record<Exclude<StrengthAxis, "">, number>>;
 }
 
 export interface ChatResponse {

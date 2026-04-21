@@ -12,7 +12,7 @@ from fastapi.responses import StreamingResponse
 from app.auth import get_optional_user
 from app.config import get_settings
 from app.models.chat import ChatRequest
-from app.services import citation_builder, disclaimer_injector, evidence_tagger
+from app.services import citation_builder, disclaimer_injector, evidence_tagger, tox_intent
 from app.services.claude_service import ClaudeService, is_diagnostic_query
 from app.services.emergency_detector import DISCLAIMER, get_detector
 from app.services.fallback_generator import (
@@ -20,9 +20,11 @@ from app.services.fallback_generator import (
     generate_partial_fallback,
 )
 from app.services.live_search import search_live
-from app.services.retriever import search as chroma_search
+from app.services.query_expander import expand as hyde_expand
+from app.services.retriever import RetrievedChunk, search as chroma_search
 from app.services.reranker import rerank, rerank_live
 from app.services.species_filter import detect_species, filter_and_reorder
+from app.services import why_it_matters as why_it_matters_service
 
 _log = logging.getLogger(__name__)
 router = APIRouter()
@@ -206,6 +208,13 @@ async def _chat_stream(
     emergency = detector.check(query)
     emergency_resources = emergency.resources if emergency.is_emergency else []
 
+    # Retrieval intent — drives tox-journal boosting + wider pre-rerank window.
+    # Based on emergency category (if any) plus tox-vocabulary + species check.
+    intent = tox_intent.classify_intent(
+        query, emergency.category if emergency.is_emergency else None
+    )
+    is_tox_query = intent == "toxicology"
+
     claude = ClaudeService(api_key=settings.anthropic_api_key, model=settings.claude_model)
     loop = asyncio.get_running_loop()
 
@@ -266,18 +275,53 @@ async def _chat_stream(
             "icon": "🔍",
         })
 
-        # Run live API search and ChromaDB vector search concurrently
+        # Run live API search, HyDE expansion, and ChromaDB vector search concurrently.
+        # Tox queries get a wider pre-rerank window (40 vs 20) because tox
+        # vocabulary is narrow and the corpus is sparse — give the reranker
+        # more material to choose from.
         live_task = loop.run_in_executor(None, search_live, search_query, settings, 5)
+        hyde_task = (
+            loop.run_in_executor(None, hyde_expand, query, claude)
+            if settings.use_hyde else None
+        )
+        n_pre_rerank = 40 if is_tox_query else 20
+        boost_set = tox_intent.TOX_JOURNAL_NAMES if is_tox_query else None
 
-        chroma_chunks = []
+        chroma_chunks: list[RetrievedChunk] = []
         if chroma_collection is not None:
             chroma_raw = await loop.run_in_executor(
                 None, chroma_search, search_query, chroma_collection,
-                20, settings.embedding_model,
+                n_pre_rerank, settings.embedding_model,
             )
+            # HyDE: embed a hypothetical abstract alongside the raw query so
+            # retrieval is done in abstract-space too. Unions with the raw
+            # search by chunk id, dedup-first-wins so the raw query's ordering
+            # is preserved where it agrees.
+            if hyde_task is not None:
+                try:
+                    hyde_text = await hyde_task
+                except Exception as exc:
+                    _log.warning("HyDE expansion failed (non-fatal): %s", exc)
+                    hyde_text = ""
+                if hyde_text:
+                    hyde_raw = await loop.run_in_executor(
+                        None, chroma_search, hyde_text, chroma_collection,
+                        n_pre_rerank, settings.embedding_model,
+                    )
+                    seen_ids = {c.id for c in chroma_raw}
+                    for c in hyde_raw:
+                        if c.id not in seen_ids:
+                            chroma_raw.append(c)
+                            seen_ids.add(c.id)
             # Rerank against the ORIGINAL user query (not the keyword-only search_query)
-            # so clinical intent ("stabilization", "first-line treatment") drives ranking
-            chroma_chunks = rerank(query, chroma_raw, top_k=10, use_reranker=settings.use_reranker)
+            # so clinical intent ("stabilization", "first-line treatment") drives ranking.
+            # For tox queries apply a small +0.3 rerank_score boost to chunks from
+            # the curated tox-journal list (JVECC, Clinical Toxicology, etc.).
+            chroma_chunks = rerank(
+                query, chroma_raw, top_k=10,
+                use_reranker=settings.use_reranker,
+                boost_journals=boost_set,
+            )
 
         search_result = await live_task
         live_results = search_result.resources
@@ -346,7 +390,7 @@ async def _chat_stream(
                 "cited_count": 0,
                 "evidence_mode": "consensus",
                 "fallback_kind": "no_retrieval",
-                "evidence_counts": {"direct": 0, "review": 0, "guideline": 0, "weak": 0},
+                "evidence_counts": {"relevance": {}, "strength": {}},
                 "hidden_references": [],
             }
             yield _event({"type": "result", "payload": payload})
@@ -545,8 +589,12 @@ async def _chat_stream(
     _total_before = len(citations)
     _kept: list = []
     _hidden: list = []
+    # Keep uncited citations in the main panel only when their raw cross-encoder
+    # score indicates they were strongly on-topic (≥1.0 ≈ "high" bucket).
+    # Using rerank_score directly instead of the old `relevance` bucket field
+    # because relevance now means something different (the new two-axis model).
     for c in citations:
-        if str(c.ref) in cited_str_set or c.relevance == "high":
+        if str(c.ref) in cited_str_set or getattr(c, "rerank_score", 0.0) >= 1.0:
             _kept.append(c)
         else:
             _hidden.append(c)
@@ -570,8 +618,9 @@ async def _chat_stream(
         c.relevant_quote = _extract_relevant_quote(answer, c.ref, c.abstract)
 
     # ── Enrich citations with clinician-readable metadata ─────────────────────
-    # study_type, species_relevance, evidence_tier, why_it_matters
-    # These drive the new reference-card UX in the frontend.
+    # study_type, species_relevance, relevance axis, strength axis, heuristic
+    # why_it_matters. The LLM rationale (below) overlays the heuristic text
+    # for citations we can ground against their abstract.
     evidence_tagger.enrich(citations, query=query)
     evidence_tagger.enrich(hidden_citations, query=query)
 
@@ -594,7 +643,23 @@ async def _chat_stream(
         evidence_mode = "literature"
         fallback_kind = None
 
-    evidence_counts = evidence_tagger.counts_by_tier(citations)
+    # LLM-generated "why it matters" overlay. One batched Haiku call gives us
+    # claim-grounded rationales for the cited sources. We skip in consensus-
+    # only modes — there are no sources to ground against.
+    if evidence_mode == "literature" and citations:
+        try:
+            rationales = await loop.run_in_executor(
+                None,
+                why_it_matters_service.generate_rationales,
+                query,
+                citations,
+                claude,
+            )
+            why_it_matters_service.overlay(citations, rationales)
+        except Exception as exc:
+            _log.warning("why_it_matters overlay failed (non-fatal): %s", exc)
+
+    evidence_counts = evidence_tagger.counts_by_axes(citations)
 
     yield _event({"type": "progress", "step": 5, "label": "Formatting answer…", "icon": "✍️"})
 

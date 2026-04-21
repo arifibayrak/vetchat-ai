@@ -104,6 +104,25 @@ async def _background_boot(app: FastAPI, collection, settings) -> None:
                 _log.info("Seeded %d Taylor & Francis journal entries.", n_tf)
             else:
                 _log.info("ChromaDB has %d documents — skipping seed.", collection.count())
+
+            # Article-vs-stub breakdown so we can confirm Crossref ingestion
+            # landed on the mounted volume. Stubs alone mean retrieval has
+            # nothing useful to query against.
+            try:
+                meta_peek = collection.get(include=["metadatas"]).get("metadatas") or []
+                st_counts: dict[str, int] = {}
+                for m in meta_peek:
+                    if not m:
+                        continue
+                    st = (m.get("source_type") or "unknown").strip() or "unknown"
+                    st_counts[st] = st_counts.get(st, 0) + 1
+                _log.info(
+                    "Corpus composition: %s",
+                    ", ".join(f"{k}={v}" for k, v in sorted(st_counts.items(), key=lambda x: -x[1]))
+                    or "(empty)",
+                )
+            except Exception as exc:
+                _log.warning("Corpus composition probe failed (non-fatal): %s", exc)
         except Exception as exc:
             _log.warning("Background auto-seed failed (service still healthy): %s", exc)
 

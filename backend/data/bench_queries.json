@@ -1,0 +1,25 @@
+{
+  "description": "Retrieval benchmark queries for Arlo. Mix of toxicology, emergency, internal medicine, surgery, and reproduction across species. Used by scripts/bench_retrieval.py to probe the retrieve+rerank pipeline end-to-end.",
+  "queries": [
+    {"id": "tox_lily_cat",        "domain": "toxicology", "query": "feline lily toxicosis management"},
+    {"id": "tox_xylitol_dog",     "domain": "toxicology", "query": "xylitol ingestion dog hypoglycemia"},
+    {"id": "tox_chocolate_dog",   "domain": "toxicology", "query": "chocolate theobromine toxicity canine"},
+    {"id": "tox_ethylene_glycol", "domain": "toxicology", "query": "ethylene glycol antifreeze poisoning small animal"},
+    {"id": "tox_permethrin_cat",  "domain": "toxicology", "query": "permethrin toxicity cat seizures"},
+    {"id": "tox_nsaid_dog",       "domain": "toxicology", "query": "ibuprofen ingestion dog treatment"},
+    {"id": "tox_grape_dog",       "domain": "toxicology", "query": "grape raisin nephrotoxicity dog"},
+    {"id": "tox_rodenticide",     "domain": "toxicology", "query": "anticoagulant rodenticide toxicosis management"},
+    {"id": "emerg_pyometra_sepsis", "domain": "emergency", "query": "canine pyometra with sepsis risk stabilization"},
+    {"id": "emerg_gdv",           "domain": "emergency", "query": "gastric dilatation volvulus decompression surgery"},
+    {"id": "emerg_urethral",      "domain": "emergency", "query": "feline urethral obstruction potassium management"},
+    {"id": "emerg_dka",           "domain": "internal",  "query": "diabetic ketoacidosis feline fluid and insulin protocol"},
+    {"id": "internal_imha",       "domain": "internal",  "query": "immune mediated hemolytic anemia dog first line treatment"},
+    {"id": "internal_fip",        "domain": "internal",  "query": "feline infectious peritonitis gs-441524 treatment"},
+    {"id": "internal_parvo",      "domain": "internal",  "query": "canine parvovirus supportive care hospitalised"},
+    {"id": "equine_colic",        "domain": "internal",  "query": "equine colic medical management decision making"},
+    {"id": "bovine_milk_fever",   "domain": "internal",  "query": "bovine periparturient hypocalcemia calcium treatment"},
+    {"id": "ophth_corneal_ulcer", "domain": "surgery",   "query": "deep corneal ulcer dog surgical management"},
+    {"id": "neuro_seizures",      "domain": "internal",  "query": "canine idiopathic epilepsy maintenance anticonvulsant therapy"},
+    {"id": "uti_cat",             "domain": "internal",  "query": "feline bacterial urinary tract infection antibiotic selection"}
+  ]
+}
