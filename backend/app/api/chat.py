@@ -631,12 +631,17 @@ async def _chat_stream(
     _kept: list = []
     _hidden: list = []
     # Keep uncited citations in the main panel when their raw cross-encoder
-    # score indicates decent relevance (≥ -0.5 ≈ "related" or better).
-    # The new three-section UI separates `direct / related / off-topic` so
-    # borderline-but-on-topic refs are still useful — they just land in
-    # the "Supporting context" or "Off-topic" section with honest chips.
-    # Previously gated at ≥ 1.0 which hid most legit borderline sources.
-    _KEEP_SCORE_FLOOR = -0.5
+    # score passes a light floor (≥ -1.0, the "related" absolute ceiling).
+    # Calibration history:
+    #   1.0  — original Part 1: hid most legitimate borderline refs
+    #   -0.5 — Part 2 first cut: rescued hygiene but dropped T3/T5 queries
+    #          whose best Chroma hits scored -0.8 to -2.0 (not cited by Claude)
+    #   -1.0 — current: matches the absolute "related" ceiling in
+    #          evidence_tagger so anything the classifier calls "related"
+    #          or better stays in the main panel; off-topic heads to hidden.
+    # The three-section UI makes this safe — related/background sources now
+    # render under "Supporting context" with honest chips.
+    _KEEP_SCORE_FLOOR = -1.0
     for c in citations:
         if str(c.ref) in cited_str_set or getattr(c, "rerank_score", 0.0) >= _KEEP_SCORE_FLOOR:
             _kept.append(c)

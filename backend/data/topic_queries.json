@@ -1,7 +1,7 @@
 {
   "description": "Topic-scoped Crossref ingest list for scripts/ingest_crossref_topic.py. Unlike the journal-scoped ingest_crossref_tf/tox scripts, this finds articles by clinical topic regardless of publishing journal — filling gaps where iconic vet topics (lily toxicosis, canine pyometra) live in journals outside the curated T&F / tox whitelists.",
   "topics": [
-    {"slug": "lily_toxicosis_cat",    "query": "lily toxicosis cats Lilium nephrotoxicity",          "per_topic": 40},
+    {"slug": "lily_toxicosis_cat",    "query": "lily toxicosis cats Lilium nephrotoxicity",          "per_topic": 100},
     {"slug": "canine_pyometra",       "query": "canine pyometra sepsis ovariohysterectomy",          "per_topic": 40},
     {"slug": "feline_urethral_obs",   "query": "feline urethral obstruction potassium management",   "per_topic": 30},
     {"slug": "canine_dka",            "query": "canine diabetic ketoacidosis insulin fluid therapy", "per_topic": 30},
