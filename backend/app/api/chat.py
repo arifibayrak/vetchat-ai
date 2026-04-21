@@ -365,12 +365,15 @@ async def _chat_stream(
                 get_text=lambda c: f"{c.title} {c.text}",
             )
 
-        # ── Absolute-floor guard: if ALL reranked sources score below -3.0,
-        # the reranker's min-4 floor has pulled tangential junk into the
-        # panel. Treat this as "no retrieval" and route to the consensus
-        # fallback — vets prefer an honest "literature synthesis incomplete"
-        # banner over 4 sources of noise. (BUG-02 / WS7.4, 2026-04-21.)
-        _ABSOLUTE_FLOOR = -3.0
+        # ── Absolute-floor guard: if ALL reranked sources score below -5.0,
+        # the reranker's min-4 floor has pulled truly off-topic results into
+        # the panel. Treat this as "no retrieval" and route to consensus.
+        # Initial WS7.4 used -3.0; post-QA found that caught legitimate
+        # sparse-corpus queries (T1 lily, T5 ethylene glycol) where best
+        # match is -5 to -7. Lowered to -5.0 so only nonsense (T24 platypus,
+        # T19 quokka) trips the guard, while weak-but-real queries keep
+        # their tangential citations honestly labelled by the UI grouping.
+        _ABSOLUTE_FLOOR = -5.0
         _all_scored = (
             [getattr(c, "rerank_score", 0.0) for c in chroma_chunks]
             + [getattr(r, "rerank_score", 0.0) for r in live_results]
@@ -627,12 +630,15 @@ async def _chat_stream(
     _total_before = len(citations)
     _kept: list = []
     _hidden: list = []
-    # Keep uncited citations in the main panel only when their raw cross-encoder
-    # score indicates they were strongly on-topic (≥1.0 ≈ "high" bucket).
-    # Using rerank_score directly instead of the old `relevance` bucket field
-    # because relevance now means something different (the new two-axis model).
+    # Keep uncited citations in the main panel when their raw cross-encoder
+    # score indicates decent relevance (≥ -0.5 ≈ "related" or better).
+    # The new three-section UI separates `direct / related / off-topic` so
+    # borderline-but-on-topic refs are still useful — they just land in
+    # the "Supporting context" or "Off-topic" section with honest chips.
+    # Previously gated at ≥ 1.0 which hid most legit borderline sources.
+    _KEEP_SCORE_FLOOR = -0.5
     for c in citations:
-        if str(c.ref) in cited_str_set or getattr(c, "rerank_score", 0.0) >= 1.0:
+        if str(c.ref) in cited_str_set or getattr(c, "rerank_score", 0.0) >= _KEEP_SCORE_FLOOR:
             _kept.append(c)
         else:
             _hidden.append(c)
