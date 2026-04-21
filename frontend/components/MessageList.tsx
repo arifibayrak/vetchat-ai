@@ -4,38 +4,42 @@ import { useEffect, useRef } from "react";
 import type { Message } from "@/types/chat";
 import MessageBubble from "./MessageBubble";
 
+// Retrieval-tuned prompts: short, keyword-dense, plain-clinical phrasing.
+// These patterns scored highest (+2 to +9 rerank) on the Part-2 QA —
+// long vignettes collapse under refine_query; tight domain-term queries
+// maximise HyDE + raw-query union overlap.
 const SUGGESTED_PROMPTS = [
   {
     label: "🦠 Feline infectious peritonitis",
-    query: "Feline infectious peritonitis: pathogenesis, diagnosis, and novel antiviral treatment protocols",
+    query: "Feline infectious peritonitis treatment: GS-441524 dosing by form, duration, and bloodwork monitoring",
   },
   {
     label: "🩸 Immune-mediated haemolytic anaemia",
-    query: "Canine immune-mediated haemolytic anaemia: diagnostic criteria and immunosuppressive treatment protocols",
+    query: "Canine immune-mediated haemolytic anaemia: first-line immunosuppression, transfusion triggers, and thromboprophylaxis",
   },
   {
     label: "🔥 Canine pancreatitis",
-    query: "Canine pancreatitis: severity scoring, diagnostic approach, and evidence-based management",
+    query: "Canine acute pancreatitis: cPL diagnosis, fluid therapy, analgesia, and early enteral nutrition",
   },
   {
     label: "🐱 Feline hyperthyroidism",
-    query: "Feline hyperthyroidism: comparison of treatment options including radioiodine, methimazole, and thyroidectomy",
+    query: "Feline hyperthyroidism: radioiodine versus methimazole versus thyroidectomy — outcomes and renal considerations",
   },
   {
     label: "🧠 Canine cognitive dysfunction",
-    query: "Canine cognitive dysfunction syndrome: pathophysiology, diagnosis criteria, and pharmacological management",
+    query: "Canine cognitive dysfunction syndrome: DISHAA criteria, selegiline, SAMe, and dietary interventions",
   },
   {
     label: "🦴 Cranial cruciate ligament rupture",
-    query: "Canine cranial cruciate ligament rupture: TPLO versus conservative management evidence",
+    query: "Canine cranial cruciate ligament rupture: TPLO versus TTA versus conservative management outcomes",
   },
   {
     label: "💊 Antimicrobial stewardship",
-    query: "Antimicrobial stewardship in small animal practice: resistance patterns and empirical therapy guidelines",
+    query: "Small animal antimicrobial stewardship: empirical therapy, culture-directed de-escalation, and ISCAID guidelines",
   },
   {
     label: "☠️ NSAID toxicity small animals",
-    query: "NSAID toxicity in dogs and cats: mechanism, clinical signs, decontamination and management",
+    query: "NSAID toxicosis in dogs and cats: decontamination window, gastroprotectants, fluid diuresis, and renal monitoring",
   },
 ];
 

@@ -11,6 +11,12 @@
     {"slug": "canine_gdv",            "query": "gastric dilatation volvulus surgery decompression",  "per_topic": 30},
     {"slug": "feline_fip",            "query": "feline infectious peritonitis GS-441524 treatment",  "per_topic": 30},
     {"slug": "xylitol_dog",           "query": "xylitol toxicity dog hypoglycemia hepatic",           "per_topic": 100},
-    {"slug": "ethylene_glycol_dog",   "query": "ethylene glycol toxicity dog fomepizole ethanol",      "per_topic": 100}
+    {"slug": "ethylene_glycol_dog",   "query": "ethylene glycol toxicity dog fomepizole ethanol",      "per_topic": 100},
+    {"slug": "canine_pancreatitis",   "query": "canine acute pancreatitis cPL diagnosis fluid therapy analgesia", "per_topic": 60},
+    {"slug": "feline_hyperthyroidism","query": "feline hyperthyroidism radioiodine methimazole thyroidectomy",    "per_topic": 60},
+    {"slug": "canine_cognitive_dysf", "query": "canine cognitive dysfunction syndrome selegiline dementia",        "per_topic": 40},
+    {"slug": "canine_ccl_rupture",    "query": "canine cranial cruciate ligament rupture TPLO TTA outcome",         "per_topic": 50},
+    {"slug": "antimicrobial_stewardship","query": "small animal antimicrobial stewardship resistance ISCAID",       "per_topic": 50},
+    {"slug": "nsaid_toxicity_small",  "query": "NSAID toxicity dog cat ibuprofen meloxicam decontamination",        "per_topic": 60}
   ]
 }
